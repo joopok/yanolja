@@ -1,0 +1,398 @@
+# ⚡ Performance Optimization Rules
+
+You are a Flutter performance optimization expert. Follow these CRITICAL performance rules to ensure smooth 60FPS experience in the Yanolja clone project.
+
+## 🔴 **MANDATORY OPTIMIZATION PATTERNS**
+
+### **Image Loading** (CRITICAL)
+```dart
+// ✅ REQUIRED: CachedNetworkImage for all network images
+CachedNetworkImage(
+  imageUrl: accommodation.images.first,
+  placeholder: (context, url) => Container(
+    color: Theme.of(context).colorScheme.surfaceContainer,
+    child: Center(
+      child: CircularProgressIndicator.adaptive(),
+    ),
+  ),
+  errorWidget: (context, url, error) => Container(
+    color: Theme.of(context).colorScheme.errorContainer,
+    child: Icon(
+      Icons.broken_image_outlined,
+      color: Theme.of(context).colorScheme.onErrorContainer,
+    ),
+  ),
+  fit: BoxFit.cover,
+  memCacheWidth: 800, // REQUIRED: Limit memory usage
+  memCacheHeight: 600,
+)
+
+// ❌ FORBIDDEN: Direct Image.network usage
+// Image.network(imageUrl) // WRONG! Causes memory leaks
+```
+
+### **List Performance** (MANDATORY)
+```dart
+// ✅ REQUIRED: ListView.builder for dynamic lists
+ListView.builder(
+  itemCount: accommodations.length,
+  itemBuilder: (context, index) {
+    // REQUIRED: Return const constructors when possible
+    return AccommodationListItem(
+      key: ValueKey(accommodations[index].id), // REQUIRED: Keys for identity
+      accommodation: accommodations[index],
+    );
+  },
+  // REQUIRED: Custom physics for better scroll feel
+  physics: const BouncingScrollPhysics(),
+)
+
+// ✅ REQUIRED: SliverList for custom scroll views
+SliverList.builder(
+  itemCount: items.length,
+  itemBuilder: (context, index) => ItemWidget(item: items[index]),
+)
+
+// ❌ FORBIDDEN: Column with many children
+// Column(children: list.map((item) => Widget()).toList()) // WRONG!
+```
+
+### **Animation Performance** (CRITICAL)
+```dart
+// ✅ REQUIRED: TweenAnimationBuilder for smooth animations
+TweenAnimationBuilder<double>(
+  duration: Duration(milliseconds: 300),
+  curve: Curves.easeOutCubic,
+  tween: Tween(begin: 0.0, end: 1.0),
+  builder: (context, value, child) {
+    return Transform.translate(
+      offset: Offset(0, 20 * (1 - value)),
+      child: Opacity(
+        opacity: value,
+        child: child, // REQUIRED: Use child parameter for static content
+      ),
+    );
+  },
+  child: const ExpensiveWidget(), // REQUIRED: const for non-changing widgets
+)
+
+// ✅ REQUIRED: RepaintBoundary for complex widgets
+RepaintBoundary(
+  child: CustomPaint(
+    painter: ComplexCustomPainter(),
+    child: child,
+  ),
+)
+```
+
+## 🚫 **PERFORMANCE KILLERS** (NEVER DO)
+
+### ❌ **Memory Leak Patterns**
+```dart
+// ❌ FORBIDDEN: No disposal of controllers
+class BadWidget extends StatefulWidget {
+  @override
+  _BadWidgetState createState() => _BadWidgetState();
+}
+
+class _BadWidgetState extends State<BadWidget> {
+  final ScrollController _controller = ScrollController();
+  
+  // WRONG: No dispose method!
+  @override
+  Widget build(BuildContext context) {
+    return ListView(controller: _controller);
+  }
+}
+
+// ✅ REQUIRED: Proper disposal
+class GoodWidget extends StatefulWidget {
+  @override
+  _GoodWidgetState createState() => _GoodWidgetState();
+}
+
+class _GoodWidgetState extends State<GoodWidget> {
+  late final ScrollController _controller;
+  
+  @override
+  void initState() {
+    super.initState();
+    _controller = ScrollController();
+  }
+  
+  @override
+  void dispose() {
+    _controller.dispose(); // REQUIRED!
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return ListView(controller: _controller);
+  }
+}
+```
+
+### ❌ **Build Method Anti-patterns**
+```dart
+// ❌ FORBIDDEN: Heavy computation in build method
+Widget build(BuildContext context) {
+  // WRONG: Expensive operation on every rebuild
+  final processedData = heavyDataProcessing(rawData);
+  return Text(processedData);
+}
+
+// ✅ REQUIRED: Memoize expensive operations
+class OptimizedWidget extends StatefulWidget {
+  final List<Data> rawData;
+  
+  @override
+  _OptimizedWidgetState createState() => _OptimizedWidgetState();
+}
+
+class _OptimizedWidgetState extends State<OptimizedWidget> {
+  String? _cachedProcessedData;
+  List<Data>? _lastProcessedRawData;
+  
+  String get processedData {
+    // REQUIRED: Only recompute when data changes
+    if (_lastProcessedRawData != widget.rawData) {
+      _cachedProcessedData = heavyDataProcessing(widget.rawData);
+      _lastProcessedRawData = widget.rawData;
+    }
+    return _cachedProcessedData!;
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Text(processedData);
+  }
+}
+```
+
+## ✅ **REQUIRED OPTIMIZATION TECHNIQUES**
+
+### **Widget Rebuilding Optimization**
+```dart
+// ✅ REQUIRED: const constructors everywhere possible
+const AccommodationCard({
+  super.key,
+  required this.accommodation,
+  required this.onTap,
+});
+
+// ✅ REQUIRED: ValueKey for list items with stable identity
+ListView.builder(
+  itemBuilder: (context, index) => AccommodationCard(
+    key: ValueKey(accommodations[index].id), // REQUIRED!
+    accommodation: accommodations[index],
+  ),
+)
+
+// ✅ REQUIRED: Builder widgets to isolate rebuilds
+Builder(
+  builder: (context) {
+    final selectedRegion = ref.watch(selectedRegionProvider);
+    return DropdownButton<String>(
+      value: selectedRegion,
+      onChanged: (value) => ref.read(selectedRegionProvider.notifier).state = value,
+      items: regions.map((region) => DropdownMenuItem(/*...*/)).toList(),
+    );
+  },
+)
+```
+
+### **Riverpod Performance Patterns**
+```dart
+// ✅ REQUIRED: Selective watching with select
+Widget build(BuildContext context) {
+  // REQUIRED: Only rebuild when specific field changes
+  final isLoading = ref.watch(
+    accommodationStateProvider.select((state) => state.isLoading),
+  );
+  
+  return isLoading 
+    ? const CircularProgressIndicator()
+    : const AccommodationList();
+}
+
+// ✅ REQUIRED: Family providers for parameterized data
+final accommodationsByRegionProvider = Provider.family<List<Accommodation>, String>(
+  (ref, region) {
+    final allAccommodations = ref.watch(accommodationListProvider);
+    return allAccommodations.where((acc) => acc.region == region).toList();
+  },
+);
+```
+
+### **Carousel Optimization**
+```dart
+// ✅ REQUIRED: Optimized CarouselSlider configuration
+CarouselSlider.builder(
+  itemCount: banners.length,
+  itemBuilder: (context, index, realIndex) => Banner(
+    key: ValueKey(banners[index].id), // REQUIRED: Stable keys
+    banner: banners[index],
+  ),
+  options: CarouselOptions(
+    height: 200,
+    viewportFraction: 0.9,
+    enableInfiniteScroll: true,
+    autoPlayAnimationDuration: Duration(milliseconds: 800),
+    autoPlayCurve: Curves.fastOutSlowIn,
+    enlargeCenterPage: true,
+    scrollDirection: Axis.horizontal,
+    // REQUIRED: Optimize for performance
+    pageSnapping: true,
+    reverse: false,
+  ),
+)
+```
+
+## 🎯 **STATE MANAGEMENT PERFORMANCE**
+
+### **Provider Optimization Patterns**
+```dart
+// ✅ REQUIRED: keepAlive for expensive computations
+final expensiveDataProvider = FutureProvider<ExpensiveData>((ref) async {
+  ref.keepAlive(); // REQUIRED: Prevent disposal
+  
+  final repository = ref.watch(repositoryProvider);
+  return await repository.computeExpensiveData();
+});
+
+// ✅ REQUIRED: Debouncing for search inputs
+final debouncedSearchProvider = Provider<String>((ref) {
+  final searchQuery = ref.watch(searchQueryProvider);
+  
+  // REQUIRED: Return empty for short queries
+  if (searchQuery.length < 2) return '';
+  
+  return searchQuery;
+});
+
+// ✅ REQUIRED: Pagination for large datasets
+final paginatedAccommodationsProvider = FutureProvider.family<List<Accommodation>, int>(
+  (ref, page) async {
+    final repository = ref.watch(accommodationRepositoryProvider);
+    return await repository.getAccommodationsPaginated(page: page, limit: 20);
+  },
+);
+```
+
+## 📱 **SCROLL PERFORMANCE**
+
+### **Optimized Scroll Views**
+```dart
+// ✅ REQUIRED: SliverOpacity for smooth transitions
+SliverOpacity(
+  opacity: scrollOffset > 100 ? 0.8 : 1.0,
+  sliver: SliverAppBar.medium(
+    title: Text('Hotel List'),
+    pinned: true,
+  ),
+)
+
+// ✅ REQUIRED: CustomScrollView with slivers
+CustomScrollView(
+  // REQUIRED: Optimize scroll physics
+  physics: const BouncingScrollPhysics(
+    parent: AlwaysScrollableScrollPhysics(),
+  ),
+  slivers: [
+    SliverAppBar.medium(/*...*/),
+    SliverToBoxAdapter(
+      child: SearchSection(), // REQUIRED: Wrap non-sliver widgets
+    ),
+    SliverList.builder(
+      itemBuilder: (context, index) => AccommodationCard(/*...*/),
+    ),
+  ],
+)
+```
+
+### **Infinite Scroll Pattern**
+```dart
+// ✅ REQUIRED: Efficient infinite scroll implementation
+class InfiniteScrollList extends ConsumerStatefulWidget {
+  @override
+  _InfiniteScrollListState createState() => _InfiniteScrollListState();
+}
+
+class _InfiniteScrollListState extends ConsumerState<InfiniteScrollList> {
+  final ScrollController _scrollController = ScrollController();
+  int _currentPage = 0;
+  
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+  
+  void _onScroll() {
+    if (_scrollController.position.pixels >= 
+        _scrollController.position.maxScrollExtent - 200) {
+      // REQUIRED: Load next page when near bottom
+      _loadNextPage();
+    }
+  }
+  
+  void _loadNextPage() {
+    setState(() => _currentPage++);
+    ref.refresh(paginatedDataProvider(_currentPage));
+  }
+  
+  @override
+  void dispose() {
+    _scrollController.dispose(); // REQUIRED!
+    super.dispose();
+  }
+}
+```
+
+## 🔧 **BUILD OPTIMIZATION CHECKLIST**
+
+### Before submitting code, ensure:
+- [ ] All images use CachedNetworkImage with memory limits
+- [ ] ListView.builder used for dynamic lists (not Column + map)
+- [ ] Controllers properly disposed in dispose() method
+- [ ] const constructors used wherever possible
+- [ ] ValueKey provided for list items with stable identity
+- [ ] Heavy computations moved out of build methods
+- [ ] RepaintBoundary around expensive custom widgets
+- [ ] Riverpod providers use .select() for partial rebuilds
+- [ ] Animation controllers disposed properly
+- [ ] No function calls in build method parameters
+
+## 🚨 **PERFORMANCE VIOLATIONS**
+
+**IMMEDIATELY FIX:**
+- Image.network without caching
+- Missing dispose() methods for controllers
+- Heavy computation in build methods
+- Column with 20+ children (use ListView.builder)
+- Function creation in build methods
+- Missing const constructors
+- No keys in dynamic lists
+- Unnecessary setState calls
+- Riverpod provider without proper scope
+
+## 📊 **MONITORING REQUIREMENTS**
+
+**Use these tools to ensure performance:**
+```dart
+// ✅ REQUIRED: Performance overlay for debugging
+flutter run --debug // Shows performance overlay
+flutter run --profile // Profile mode for testing
+
+// ✅ REQUIRED: Widget inspector for optimization
+import 'package:flutter/rendering.dart';
+debugPaintSizeEnabled = true; // Visual debugging
+```
+
+**Performance metrics to maintain:**
+- Build time: < 16ms per frame
+- Jank: < 5% of frames
+- Memory usage: Stable, no leaks
+- App startup time: < 3 seconds
+- Page transition time: < 400ms

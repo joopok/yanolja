@@ -1,0 +1,278 @@
+# 🔄 Riverpod State Management Rules
+
+You are a Riverpod expert for Flutter applications. Follow these CRITICAL state management patterns for the Yanolja clone project.
+
+## 🔴 **MANDATORY PROVIDER PATTERNS**
+
+### **Provider Types Usage** (CRITICAL RULES)
+
+**1. Repository Providers** (Dependency Injection)
+```dart
+// ✅ REQUIRED: Use Provider for dependency injection
+final accommodationRepositoryProvider = Provider<AccommodationRepository>(
+  (ref) => AccommodationRepositoryImpl(),
+);
+
+// ❌ FORBIDDEN: Direct instantiation in widgets
+// Don't: final repository = AccommodationRepositoryImpl();
+```
+
+**2. Async Data Providers** (API Calls)
+```dart
+// ✅ REQUIRED: FutureProvider for async operations
+final accommodationListProvider = FutureProvider<List<Accommodation>>((ref) {
+  final repository = ref.watch(accommodationRepositoryProvider);
+  return repository.getAccommodations();
+});
+
+// ✅ REQUIRED: Family providers for parameterized data
+final accommodationDetailProvider = FutureProvider.family<Accommodation, String>((ref, id) {
+  final repository = ref.watch(accommodationRepositoryProvider);
+  return repository.getAccommodationById(id);
+});
+```
+
+**3. Simple State Providers**
+```dart
+// ✅ REQUIRED: StateProvider for simple mutable state
+final selectedRegionProvider = StateProvider<String?>((ref) => null);
+final isLoadingProvider = StateProvider<bool>((ref) => false);
+
+// ❌ FORBIDDEN: Complex objects in StateProvider
+// Don't: StateProvider<ComplexObject>
+```
+
+## 🎯 **CONSUMER PATTERNS** (MANDATORY)
+
+### **Consumer Widget Usage**
+```dart
+// ✅ REQUIRED: Consumer for Riverpod state access
+Consumer(
+  builder: (context, ref, child) {
+    final accommodations = ref.watch(accommodationListProvider);
+    return accommodations.when(
+      loading: () => const CircularProgressIndicator(),
+      error: (error, stackTrace) => ErrorWidget(error: error),
+      data: (data) => ListView.builder(
+        itemCount: data.length,
+        itemBuilder: (context, index) => AccommodationListItem(
+          accommodation: data[index],
+        ),
+      ),
+    );
+  },
+)
+```
+
+### **ConsumerStatefulWidget Pattern**
+```dart
+// ✅ REQUIRED: For widgets needing both local and global state
+class HotelScreen extends ConsumerStatefulWidget {
+  const HotelScreen({super.key});
+  
+  @override
+  ConsumerState<HotelScreen> createState() => _HotelScreenState();
+}
+
+class _HotelScreenState extends ConsumerState<HotelScreen> {
+  // Local state
+  String _selectedRegion = '전체';
+  
+  @override
+  Widget build(BuildContext context) {
+    // Global state
+    final hotels = ref.watch(hotelListProvider);
+    
+    return Scaffold(/*...*/);
+  }
+}
+```
+
+## 🚫 **CRITICAL ANTI-PATTERNS**
+
+### ❌ **NEVER DO THESE:**
+
+**1. Provider Access Anti-patterns**
+```dart
+// ❌ FORBIDDEN: ref.read in build method
+Widget build(BuildContext context) {
+  final data = ref.read(dataProvider); // WRONG!
+  return Text(data.toString());
+}
+
+// ✅ CORRECT: ref.watch in build method
+Widget build(BuildContext context) {
+  final data = ref.watch(dataProvider); // CORRECT!
+  return Text(data.toString());
+}
+```
+
+**2. State Mutation Anti-patterns**
+```dart
+// ❌ FORBIDDEN: Direct state mutation
+ref.read(accommodationListProvider).add(newAccommodation); // WRONG!
+
+// ✅ CORRECT: Use state notifier or refresh
+ref.refresh(accommodationListProvider); // CORRECT!
+```
+
+**3. Memory Leak Anti-patterns**
+```dart
+// ❌ FORBIDDEN: Keeping references without disposal
+class _MyWidgetState extends ConsumerState<MyWidget> {
+  late final StreamSubscription subscription;
+  
+  @override
+  void initState() {
+    super.initState();
+    // WRONG: No disposal mechanism
+    subscription = someStream.listen(/*...*/);
+  }
+}
+
+// ✅ CORRECT: Proper disposal
+class _MyWidgetState extends ConsumerState<MyWidget> {
+  @override
+  void dispose() {
+    subscription.cancel(); // CORRECT!
+    super.dispose();
+  }
+}
+```
+
+## ✅ **REQUIRED IMPLEMENTATION PATTERNS**
+
+### **Error Handling Pattern**
+```dart
+// ✅ REQUIRED: Comprehensive error handling
+final dataProvider = FutureProvider<List<Data>>((ref) async {
+  try {
+    final repository = ref.watch(repositoryProvider);
+    return await repository.fetchData();
+  } catch (error, stackTrace) {
+    // Log error for debugging
+    debugPrint('Error fetching data: $error');
+    
+    // Re-throw for UI handling
+    throw Exception('Failed to load data: ${error.toString()}');
+  }
+});
+```
+
+### **Loading State Pattern**
+```dart
+// ✅ REQUIRED: Proper loading state management
+Widget build(BuildContext context) {
+  final asyncData = ref.watch(dataProvider);
+  
+  return asyncData.when(
+    loading: () => const Center(
+      child: CircularProgressIndicator(),
+    ),
+    error: (error, stackTrace) => Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline, size: 48),
+          const SizedBox(height: 16),
+          Text('Error: ${error.toString()}'),
+          ElevatedButton(
+            onPressed: () => ref.refresh(dataProvider),
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+    ),
+    data: (data) => ListView.builder(
+      itemCount: data.length,
+      itemBuilder: (context, index) => ListTile(
+        title: Text(data[index].name),
+      ),
+    ),
+  );
+}
+```
+
+### **Refresh Pattern**
+```dart
+// ✅ REQUIRED: RefreshIndicator with provider refresh
+RefreshIndicator(
+  onRefresh: () async {
+    // Refresh the provider
+    ref.refresh(accommodationListProvider);
+    
+    // Wait for the refresh to complete
+    return ref.read(accommodationListProvider.future);
+  },
+  child: ListView(/*...*/),
+)
+```
+
+## 📋 **PROVIDER ORGANIZATION**
+
+### **File Structure** (MANDATORY)
+```
+lib/presentation/provider/
+├── accommodation_provider.dart      # Accommodation-related providers
+├── auth_provider.dart              # Authentication providers  
+├── booking_provider.dart           # Booking-related providers
+├── saved_provider.dart             # Saved items providers
+└── search_provider.dart            # Search-related providers
+```
+
+### **Provider Naming Convention**
+```dart
+// ✅ REQUIRED: Descriptive names with Provider suffix
+final accommodationListProvider = FutureProvider<List<Accommodation>>(/*...*/);
+final accommodationDetailProvider = FutureProvider.family<Accommodation, String>(/*...*/);
+final selectedHotelRegionProvider = StateProvider<String?>(/*...*/);
+
+// ❌ FORBIDDEN: Generic or unclear names
+// final dataProvider = FutureProvider(/*...*/); // WRONG!
+// final listProvider = FutureProvider(/*...*/); // WRONG!
+```
+
+## 🔍 **TESTING REQUIREMENTS**
+
+### **Provider Testing Pattern**
+```dart
+// ✅ REQUIRED: Test providers with ProviderContainer
+void main() {
+  test('accommodationListProvider should return accommodations', () async {
+    final container = ProviderContainer(
+      overrides: [
+        accommodationRepositoryProvider.overrideWithValue(
+          MockAccommodationRepository(),
+        ),
+      ],
+    );
+    
+    final result = await container.read(accommodationListProvider.future);
+    expect(result, isA<List<Accommodation>>());
+    
+    container.dispose();
+  });
+}
+```
+
+## 🎯 **PERFORMANCE CHECKLIST**
+
+Before implementing providers, ensure:
+- [ ] Using appropriate provider type (Provider vs StateProvider vs FutureProvider)
+- [ ] Family providers for parameterized data
+- [ ] Proper error handling in all async providers  
+- [ ] ref.watch in build methods, ref.read in event handlers
+- [ ] Provider disposal for complex state notifiers
+- [ ] No provider access in initState (use ref.listen instead)
+- [ ] Refresh mechanism implemented for data providers
+- [ ] Loading states handled in UI
+
+## 🚨 **CRITICAL WARNINGS**
+
+**NEVER:**
+- Use ref.read inside build methods
+- Create providers inside widgets
+- Mutate provider state directly
+- Forget to handle loading/error states
+- Access providers before widget mounting
+- Create circular dependencies between providers

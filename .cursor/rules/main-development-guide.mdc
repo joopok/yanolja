@@ -1,0 +1,248 @@
+# 🚀 Yanolja Clone Development Rules
+
+You are an expert Flutter developer working on a high-quality Yanolja clone application. This project follows **Clean Architecture** principles with **Material Design 3**, **Riverpod** state management, and **GoRouter** navigation.
+
+## 📋 **PROJECT OVERVIEW**
+
+### **Technology Stack**
+- **Framework**: Flutter 3.24+ with Dart 3.5+
+- **Architecture**: Clean Architecture (3-layer)
+- **State Management**: Riverpod 2.5+
+- **Navigation**: GoRouter 13+
+- **Design System**: Material Design 3
+- **Typography**: Pretendard (Korean-optimized)
+- **Image Handling**: CachedNetworkImage
+- **Dependency Injection**: Riverpod Providers
+
+### **Project Structure**
+```
+lib/
+├── core/                   # Core utilities & DI
+├── domain/                 # Business logic layer
+│   ├── entities/          # Pure business models
+│   ├── repositories/      # Abstract interfaces  
+│   └── usecases/         # Business use cases
+├── data/                  # Data access layer
+│   ├── models/           # Serializable models
+│   ├── datasources/      # API & local data
+│   ├── repositories/     # Repository implementations
+│   └── mappers/          # Entity ↔ Model conversion
+└── presentation/          # UI layer
+    ├── screen/           # Page-level widgets
+    ├── widget/           # Reusable components
+    └── provider/         # State management
+```
+
+## 🔗 **COMPREHENSIVE RULE SYSTEM**
+
+This development guide consists of specialized rule files. **ALWAYS** reference these files before implementing features:
+
+### **1. Architecture Rules** 
+📁 [project-architecture.mdc](mdc:.cursor/rules/project-architecture.mdc)
+- Clean Architecture enforcement
+- Layer separation principles
+- Dependency injection patterns
+- Repository pattern implementation
+
+### **2. Code Conventions**
+📁 [flutter-conventions.mdc](mdc:.cursor/rules/flutter-conventions.mdc)
+- Naming conventions (snake_case files, PascalCase classes)
+- Code structure patterns
+- Documentation requirements
+- Import organization
+
+### **3. State Management**
+📁 [state-management.mdc](mdc:.cursor/rules/state-management.mdc)
+- Riverpod provider patterns
+- Consumer widget usage
+- Error handling strategies
+- Performance optimization
+
+### **4. Design System**
+📁 [design-system.mdc](mdc:.cursor/rules/design-system.mdc)
+- Material Design 3 implementation
+- Color system usage
+- Typography standards
+- Component guidelines
+
+### **5. Performance Optimization**
+📁 [performance-optimization.mdc](mdc:.cursor/rules/performance-optimization.mdc)
+- Image optimization strategies
+- List performance patterns
+- Animation best practices
+- Memory management
+
+### **6. Navigation & Routing**
+📁 [routing-navigation.mdc](mdc:.cursor/rules/routing-navigation.mdc)
+- GoRouter configuration
+- Navigation patterns
+- Deep linking support
+- Route error handling
+
+## 🔴 **CRITICAL DEVELOPMENT PRINCIPLES**
+
+### **1. NEVER Violate Architecture Boundaries**
+```dart
+// ❌ FORBIDDEN: Domain importing presentation
+import 'package:flutter/material.dart'; // In domain layer - WRONG!
+
+// ✅ REQUIRED: Pure domain entities
+class AccommodationEntity {
+  final String id;
+  final String name;
+  // Pure Dart only
+}
+```
+
+### **2. ALWAYS Use Material 3 Components**
+```dart
+// ❌ FORBIDDEN: Deprecated widgets
+BottomNavigationBar(/*...*/) // WRONG!
+
+// ✅ REQUIRED: Latest Material 3 widgets
+NavigationBar(
+  destinations: [/*...*/],
+) // CORRECT!
+```
+
+### **3. MANDATORY Riverpod Patterns**
+```dart
+// ❌ FORBIDDEN: ref.read in build methods
+Widget build(BuildContext context) {
+  final data = ref.read(dataProvider); // WRONG!
+}
+
+// ✅ REQUIRED: ref.watch for reactive updates
+Widget build(BuildContext context) {
+  final data = ref.watch(dataProvider); // CORRECT!
+}
+```
+
+### **4. REQUIRED GoRouter Navigation**
+```dart
+// ❌ FORBIDDEN: Direct Navigator usage
+Navigator.push(context, MaterialPageRoute(/*...*/)); // WRONG!
+
+// ✅ REQUIRED: Declarative navigation
+context.push('/detail/${accommodation.id}'); // CORRECT!
+```
+
+## 🎯 **FEATURE DEVELOPMENT WORKFLOW**
+
+### **Step 1: Architecture Planning**
+1. Define domain entity in `domain/entities/`
+2. Create repository interface in `domain/repositories/`
+3. Implement use cases in `domain/usecases/`
+
+### **Step 2: Data Layer Implementation**
+1. Create data model in `data/models/` with JSON serialization
+2. Implement data source in `data/datasources/`
+3. Create mapper in `data/mappers/` for entity ↔ model conversion
+4. Implement repository in `data/repositories/`
+
+### **Step 3: Presentation Layer**
+1. Create Riverpod providers in `presentation/provider/`
+2. Implement screen widgets in `presentation/screen/`
+3. Create reusable components in `presentation/widget/`
+4. Set up navigation routes in `core/router.dart`
+
+### **Step 4: Testing & Optimization**
+1. Write unit tests for business logic
+2. Add widget tests for UI components
+3. Optimize performance (images, lists, animations)
+4. Ensure Material 3 compliance
+
+## 🚫 **ABSOLUTE PROHIBITIONS**
+
+### ❌ **NEVER DO THESE UNDER ANY CIRCUMSTANCES:**
+
+1. **Architecture Violations**
+   - Import Flutter in domain layer
+   - Access data sources directly from presentation
+   - Put business logic in widgets
+
+2. **Performance Killers**
+   - Use `Image.network` without caching
+   - Create controllers without disposal
+   - Heavy computation in build methods
+   - Column with 20+ children (use ListView.builder)
+
+3. **State Management Violations**
+   - Use `ref.read` in build methods
+   - Access providers before widget mounting
+   - Create circular provider dependencies
+
+4. **Design System Violations**
+   - Hardcode colors instead of theme colors
+   - Use deprecated Material 2 widgets
+   - Ignore accessibility requirements
+
+5. **Navigation Anti-patterns**
+   - Use Navigator directly instead of GoRouter
+   - Hardcode route strings
+   - Put business logic in route builders
+
+## ✅ **QUALITY GATES**
+
+### **Before ANY commit, ensure:**
+- [ ] `flutter analyze` returns zero issues
+- [ ] All tests pass (`flutter test`)
+- [ ] Material 3 compliance verified
+- [ ] Performance requirements met (60 FPS)
+- [ ] Clean Architecture boundaries respected
+- [ ] Riverpod patterns correctly implemented
+- [ ] GoRouter navigation used exclusively
+- [ ] Accessibility standards met
+- [ ] Memory leaks prevented (controller disposal)
+- [ ] Consistent naming conventions followed
+
+## 🔍 **CODE REVIEW CRITERIA**
+
+### **Mandatory Checks:**
+1. **Architecture**: No layer violations
+2. **State Management**: Proper Riverpod usage
+3. **Performance**: No performance anti-patterns
+4. **Design**: Material 3 compliance
+5. **Navigation**: GoRouter usage
+6. **Code Quality**: Consistent conventions
+7. **Testing**: Adequate test coverage
+8. **Accessibility**: WCAG compliance
+
+### **Rejection Criteria:**
+- Any architecture boundary violation
+- Performance-killing patterns
+- Hardcoded strings/colors
+- Missing error handling
+- Deprecated widget usage
+- Direct Navigator usage
+- Missing documentation for public APIs
+
+## 🎨 **DESIGN EXCELLENCE**
+
+This project aims for **premium quality** with:
+- **Smooth 60 FPS** performance
+- **Modern Material 3** aesthetics
+- **Accessible** design (WCAG AA)
+- **Responsive** layouts
+- **Intuitive** user experience
+- **Consistent** visual language
+
+## 📈 **CONTINUOUS IMPROVEMENT**
+
+### **Performance Monitoring:**
+- Build time: < 16ms per frame
+- Memory usage: Stable, no leaks
+- App startup: < 3 seconds
+- Navigation: < 400ms transitions
+
+### **Code Quality Metrics:**
+- Test coverage: > 80%
+- Linting issues: 0
+- Architecture violations: 0
+- Performance warnings: 0
+
+---
+
+**Remember**: These rules ensure we build a **world-class Flutter application** that serves as a **best practices showcase**. Every line of code should reflect the highest standards of Flutter development.
+
+**When in doubt**, reference the specific rule files listed above and follow their detailed guidance.

@@ -14,6 +14,24 @@ class SavedNotifier extends StateNotifier<List<String>> {
       state = [...state, accommodationId];
     }
   }
+  
+  // 특정 숙소를 찜 목록에서 제거
+  void removeSaved(String accommodationId) {
+    state = state.where((id) => id != accommodationId).toList();
+  }
+  
+  // 찜 목록 전체 삭제
+  void clearAll() {
+    state = [];
+  }
+  
+  // 특정 숙소가 찜 목록에 있는지 확인
+  bool isSaved(String accommodationId) {
+    return state.contains(accommodationId);
+  }
+  
+  // 찜 목록 개수 반환
+  int get savedCount => state.length;
 }
 
 // StateNotifierProvider를 생성하여 UI에서 SavedNotifier를 사용할 수 있도록 합니다.

@@ -1,0 +1,426 @@
+# 🧭 GoRouter Navigation Rules
+
+You are a GoRouter navigation expert. Follow these STRICT routing patterns for the Yanolja clone project to ensure consistent navigation behavior.
+
+## 🔴 **MANDATORY GOROUTER SETUP**
+
+### **Router Configuration** (CRITICAL)
+Reference: [core/router.dart](mdc:lib/core/router.dart)
+
+```dart
+// ✅ REQUIRED: StatefulShellRoute for bottom navigation
+final router = GoRouter(
+  initialLocation: '/home',
+  routes: [
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) => MainShell(
+        navigationShell: navigationShell,
+      ),
+      branches: [
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/home',
+              name: 'home',
+              builder: (context, state) => const HomeScreen(),
+              routes: [
+                GoRoute(
+                  path: '/detail/:id',
+                  name: 'detail',
+                  builder: (context, state) => DetailScreen(
+                    accommodationId: state.pathParameters['id']!,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        // Additional branches for other tabs...
+      ],
+    ),
+  ],
+);
+```
+
+### **Route Naming Convention** (MANDATORY)
+```dart
+// ✅ REQUIRED: Consistent route naming
+const String homeRoute = '/home';
+const String hotelRoute = '/hotel';
+const String savedRoute = '/saved';
+const String moreRoute = '/more';
+
+// ✅ REQUIRED: Parameterized routes
+const String detailRoute = '/detail/:id';
+const String searchRoute = '/search/:category';
+const String bookingRoute = '/booking/:accommodationId';
+
+// ❌ FORBIDDEN: Inconsistent naming
+// const String Home = '/Home'; // WRONG!
+// const String hotel_page = '/hotel_page'; // WRONG!
+```
+
+## 🎯 **NAVIGATION PATTERNS**
+
+### **Declarative Navigation** (MANDATORY)
+```dart
+// ✅ REQUIRED: context.go for tab navigation
+onTap: () => context.go('/hotel')
+
+// ✅ REQUIRED: context.push for overlay navigation
+onTap: () => context.push('/detail/${accommodation.id}')
+
+// ✅ REQUIRED: context.pushNamed with parameters
+onTap: () => context.pushNamed(
+  'detail',
+  pathParameters: {'id': accommodation.id},
+  queryParameters: {'from': 'search'},
+)
+
+// ❌ FORBIDDEN: Imperative Navigator usage
+// Navigator.push(context, MaterialPageRoute(...)) // WRONG!
+```
+
+### **Route Parameters** (REQUIRED PATTERNS)
+```dart
+// ✅ REQUIRED: Path parameters for required data
+GoRoute(
+  path: '/detail/:id',
+  builder: (context, state) {
+    final accommodationId = state.pathParameters['id']!;
+    return DetailScreen(accommodationId: accommodationId);
+  },
+)
+
+// ✅ REQUIRED: Query parameters for optional data
+GoRoute(
+  path: '/search',
+  builder: (context, state) {
+    final category = state.uri.queryParameters['category'];
+    final region = state.uri.queryParameters['region'];
+    return SearchScreen(category: category, region: region);
+  },
+)
+
+// ✅ REQUIRED: Extra data for complex objects
+onTap: () => context.push(
+  '/booking',
+  extra: BookingData(
+    accommodation: accommodation,
+    checkIn: selectedCheckIn,
+    checkOut: selectedCheckOut,
+  ),
+)
+```
+
+## 🚫 **NAVIGATION ANTI-PATTERNS**
+
+### ❌ **NEVER DO THESE:**
+
+**1. Direct Navigator Usage**
+```dart
+// ❌ FORBIDDEN: Using Navigator directly
+Navigator.of(context).push(
+  MaterialPageRoute(builder: (context) => DetailScreen()),
+); // WRONG!
+
+// ✅ CORRECT: Use GoRouter
+context.push('/detail/${accommodation.id}'); // CORRECT!
+```
+
+**2. Hardcoded Route Strings**
+```dart
+// ❌ FORBIDDEN: Magic strings
+context.go('/hotel/detail/123'); // WRONG!
+
+// ✅ CORRECT: Named routes with parameters
+context.pushNamed('detail', pathParameters: {'id': '123'}); // CORRECT!
+```
+
+**3. Complex State in Routes**
+```dart
+// ❌ FORBIDDEN: Business logic in route definitions
+GoRoute(
+  path: '/hotel',
+  builder: (context, state) {
+    // WRONG: API calls and complex logic in builder
+    final hotels = fetchHotelsFromAPI();
+    return HotelScreen(hotels: hotels);
+  },
+)
+
+// ✅ CORRECT: Pure route definitions
+GoRoute(
+  path: '/hotel',
+  builder: (context, state) => const HotelScreen(), // CORRECT!
+)
+```
+
+## ✅ **REQUIRED IMPLEMENTATION PATTERNS**
+
+### **Route Guards** (AUTHENTICATION)
+```dart
+// ✅ REQUIRED: Route guards for protected routes
+final router = GoRouter(
+  redirect: (context, state) {
+    final isLoggedIn = getIt<AuthService>().isLoggedIn;
+    final isAuthRoute = state.uri.toString().startsWith('/auth');
+    
+    // Redirect to login if not authenticated
+    if (!isLoggedIn && !isAuthRoute) {
+      return '/auth/login';
+    }
+    
+    // Redirect authenticated users away from auth pages
+    if (isLoggedIn && isAuthRoute) {
+      return '/home';
+    }
+    
+    return null; // No redirect needed
+  },
+  routes: [/*...*/],
+);
+```
+
+### **Deep Linking Support**
+```dart
+// ✅ REQUIRED: Handle deep links properly
+GoRoute(
+  path: '/detail/:id',
+  builder: (context, state) {
+    final id = state.pathParameters['id']!;
+    
+    // REQUIRED: Validate parameters
+    if (!isValidAccommodationId(id)) {
+      return const NotFoundScreen();
+    }
+    
+    return DetailScreen(accommodationId: id);
+  },
+)
+
+// ✅ REQUIRED: Share functionality with deep links
+void shareAccommodation(Accommodation accommodation) {
+  final url = '${baseUrl}/detail/${accommodation.id}';
+  Share.share(url);
+}
+```
+
+### **Navigation State Management**
+```dart
+// ✅ REQUIRED: Riverpod integration with router
+final routerProvider = Provider<GoRouter>((ref) {
+  return GoRouter(
+    navigatorKey: ref.watch(navigatorKeyProvider),
+    initialLocation: '/home',
+    debugLogDiagnostics: kDebugMode,
+    routes: routes,
+  );
+});
+
+// ✅ REQUIRED: Navigation state preservation
+final selectedTabProvider = StateProvider<int>((ref) => 0);
+
+class MainShell extends ConsumerWidget {
+  final StatefulNavigationShell navigationShell;
+  
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      body: navigationShell,
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: navigationShell.currentIndex,
+        onDestinationSelected: (index) {
+          navigationShell.goBranch(index);
+          ref.read(selectedTabProvider.notifier).state = index;
+        },
+        destinations: const [/*...*/],
+      ),
+    );
+  }
+}
+```
+
+## 🔧 **ADVANCED ROUTING PATTERNS**
+
+### **Nested Navigation**
+```dart
+// ✅ REQUIRED: Nested routes for hierarchical navigation
+StatefulShellBranch(
+  routes: [
+    GoRoute(
+      path: '/hotel',
+      builder: (context, state) => const HotelScreen(),
+      routes: [
+        GoRoute(
+          path: '/search',
+          builder: (context, state) => const HotelSearchScreen(),
+        ),
+        GoRoute(
+          path: '/detail/:id',
+          builder: (context, state) => HotelDetailScreen(
+            hotelId: state.pathParameters['id']!,
+          ),
+          routes: [
+            GoRoute(
+              path: '/booking',
+              builder: (context, state) => BookingScreen(
+                hotelId: state.pathParameters['id']!,
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  ],
+)
+```
+
+### **Modal Routes**
+```dart
+// ✅ REQUIRED: Modal presentation for dialogs and sheets
+GoRoute(
+  path: '/filter',
+  parentNavigatorKey: rootNavigatorKey, // REQUIRED: Full screen modal
+  builder: (context, state) => const FilterScreen(),
+)
+
+// ✅ REQUIRED: Bottom sheet routes
+GoRoute(
+  path: '/sort',
+  parentNavigatorKey: rootNavigatorKey,
+  pageBuilder: (context, state) => CustomTransitionPage(
+    child: const SortBottomSheet(),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return SlideTransition(
+        position: animation.drive(
+          Tween(begin: const Offset(0, 1), end: Offset.zero),
+        ),
+        child: child,
+      );
+    },
+  ),
+)
+```
+
+### **Route Transitions**
+```dart
+// ✅ REQUIRED: Custom page transitions
+GoRoute(
+  path: '/detail/:id',
+  pageBuilder: (context, state) => CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: DetailScreen(accommodationId: state.pathParameters['id']!),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(
+        opacity: CurveTween(curve: Curves.easeInOut).animate(animation),
+        child: child,
+      );
+    },
+    transitionDuration: const Duration(milliseconds: 300),
+  ),
+)
+```
+
+## 🔍 **ERROR HANDLING**
+
+### **Route Error Handling** (MANDATORY)
+```dart
+// ✅ REQUIRED: Global error page
+final router = GoRouter(
+  errorBuilder: (context, state) => ErrorScreen(
+    error: state.error,
+    path: state.uri.toString(),
+  ),
+  routes: [/*...*/],
+);
+
+// ✅ REQUIRED: Graceful error recovery
+class ErrorScreen extends StatelessWidget {
+  final Exception? error;
+  final String path;
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('페이지를 찾을 수 없습니다')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64),
+            const SizedBox(height: 16),
+            Text('요청하신 페이지를 찾을 수 없습니다.'),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => context.go('/home'),
+              child: const Text('홈으로 돌아가기'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+## 🎯 **NAVIGATION TESTING**
+
+### **Route Testing Patterns**
+```dart
+// ✅ REQUIRED: Test navigation flows
+void main() {
+  testWidgets('should navigate to detail screen', (tester) async {
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const HomeScreen(),
+        ),
+        GoRoute(
+          path: '/detail/:id',
+          builder: (context, state) => DetailScreen(
+            accommodationId: state.pathParameters['id']!,
+          ),
+        ),
+      ],
+    );
+    
+    await tester.pumpWidget(
+      MaterialApp.router(routerConfig: router),
+    );
+    
+    // Test navigation
+    await tester.tap(find.text('View Details'));
+    await tester.pumpAndSettle();
+    
+    expect(find.byType(DetailScreen), findsOneWidget);
+  });
+}
+```
+
+## 📋 **ROUTING CHECKLIST**
+
+Before implementing navigation, ensure:
+- [ ] StatefulShellRoute used for bottom navigation
+- [ ] Named routes defined with consistent naming
+- [ ] Path parameters for required data
+- [ ] Query parameters for optional filters
+- [ ] Route guards for authentication
+- [ ] Deep linking support implemented
+- [ ] Error handling for invalid routes
+- [ ] Custom transitions where appropriate
+- [ ] Navigation state preserved across tab switches
+- [ ] No direct Navigator usage anywhere
+
+## 🚨 **CRITICAL VIOLATIONS**
+
+**NEVER:**
+- Use Navigator.push/pop directly
+- Hardcode route strings in navigation calls
+- Put business logic in route builders
+- Forget to handle route parameters validation
+- Create circular route dependencies
+- Use context.go for modal presentations
+- Ignore deep linking requirements
+- Skip error handling for route failures

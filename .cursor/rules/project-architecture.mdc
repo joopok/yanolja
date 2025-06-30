@@ -1,0 +1,103 @@
+# 🏗️ Clean Architecture Rules for Yanolja Clone
+
+You are a Flutter expert specializing in Clean Architecture implementation. Follow these MANDATORY rules when working with this Yanolja clone project.
+
+## 📋 CRITICAL ARCHITECTURE PRINCIPLES
+
+### 🔴 **MUST FOLLOW - Layer Separation Rules**
+
+**1. DOMAIN LAYER PURITY** (Priority: CRITICAL)
+- Domain entities MUST remain framework-agnostic
+- NEVER import Flutter packages in [domain/entities/](mdc:lib/domain/entities/)
+- Business logic belongs ONLY in domain layer
+- Example: [accommodation_entity.dart](mdc:lib/domain/entities/accommodation_entity.dart) contains pure Dart classes
+
+**2. DATA LAYER RESPONSIBILITY**
+- Data models in [data/models/](mdc:lib/data/models/) handle serialization/deserialization
+- Mappers in [data/mappers/](mdc:lib/data/mappers/) convert between entities and models
+- Repository implementations in [data/repositories/](mdc:lib/data/repositories/) handle data sources
+
+**3. PRESENTATION LAYER BOUNDARIES**
+- UI components in [presentation/screen/](mdc:lib/presentation/screen/) and [presentation/widget/](mdc:lib/presentation/widget/)
+- State management in [presentation/provider/](mdc:lib/presentation/provider/)
+- NEVER access data sources directly from presentation layer
+
+## 🚫 **FORBIDDEN PRACTICES**
+
+### ❌ NEVER DO THESE:
+1. **Cross-layer violations**: Don't import presentation code in domain layer
+2. **Direct database access**: Don't bypass repository pattern
+3. **Business logic in UI**: Keep widgets pure and delegate to providers
+4. **Tight coupling**: Don't hardcode dependencies, use dependency injection
+
+### ✅ REQUIRED PATTERNS:
+
+**Repository Pattern Implementation:**
+```dart
+// ✅ CORRECT: Abstract repository in domain
+abstract class AccommodationRepository {
+  Future<List<AccommodationEntity>> getAccommodations();
+}
+
+// ✅ CORRECT: Implementation in data layer
+class AccommodationRepositoryImpl implements AccommodationRepository {
+  final AccommodationDataSource dataSource;
+  // Implementation details...
+}
+```
+
+**Dependency Injection with Riverpod:**
+```dart
+// ✅ CORRECT: Provider for repository
+final accommodationRepositoryProvider = Provider<AccommodationRepository>(
+  (ref) => AccommodationRepositoryImpl(
+    dataSource: ref.watch(accommodationDataSourceProvider),
+  ),
+);
+```
+
+## 📁 DIRECTORY STRUCTURE ENFORCEMENT
+
+### When creating new features, ALWAYS follow this structure:
+```
+lib/
+├── domain/
+│   ├── entities/           # Pure business models
+│   ├── repositories/       # Abstract interfaces
+│   └── usecases/          # Business logic
+├── data/
+│   ├── models/            # Serializable models
+│   ├── datasources/       # API/Local data access
+│   ├── repositories/      # Repository implementations
+│   └── mappers/           # Entity ↔ Model conversion
+└── presentation/
+    ├── screen/            # Page-level widgets
+    ├── widget/            # Reusable components
+    └── provider/          # State management
+```
+
+## 🎯 IMPLEMENTATION CHECKLIST
+
+Before adding new features, ensure:
+- [ ] Entity created in domain layer (pure Dart)
+- [ ] Repository interface defined in domain
+- [ ] Model created in data layer with fromMap/toMap
+- [ ] Mapper created for entity ↔ model conversion
+- [ ] Repository implementation in data layer
+- [ ] Provider setup for dependency injection
+- [ ] UI components use providers, not direct data access
+
+## 🔍 CODE REVIEW CRITERIA
+
+**MUST CHECK:**
+1. No Flutter imports in domain layer
+2. Repository pattern correctly implemented
+3. Proper separation of concerns
+4. Dependency injection via Riverpod
+5. Mapper functions handle all conversions
+
+**REJECT IF:**
+- Business logic exists in widgets
+- Direct API calls from presentation layer
+- Missing abstraction layers
+- Circular dependencies between layers

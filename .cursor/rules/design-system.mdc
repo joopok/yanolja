@@ -1,0 +1,319 @@
+# 🎨 Material Design 3 System Rules
+
+You are a Material Design 3 expert. Follow these STRICT design system rules for the Yanolja clone project to ensure consistency and modern UI standards.
+
+## 🔴 **MANDATORY MATERIAL 3 SETUP**
+
+### **Theme Configuration** (CRITICAL)
+Reference: [main.dart](mdc:lib/main.dart) theme setup
+
+```dart
+// ✅ REQUIRED: Complete Material 3 theme setup
+ThemeData(
+  useMaterial3: true, // MANDATORY
+  fontFamily: 'Pretendard', // Korean-optimized font
+  colorScheme: ColorScheme.fromSeed(
+    seedColor: const Color(0xFF4A55A2),
+    brightness: Brightness.light,
+    dynamicSchemeVariant: DynamicSchemeVariant.fidelity, // REQUIRED
+  ),
+  
+  // ✅ REQUIRED: Latest Material 3 component themes
+  segmentedButtonTheme: SegmentedButtonThemeData(/*...*/),
+  navigationBarTheme: NavigationBarThemeData(/*...*/),
+  progressIndicatorTheme: ProgressIndicatorThemeData(year2023: false),
+  sliderTheme: SliderThemeData(year2023: false),
+)
+```
+
+## 🎯 **COLOR SYSTEM RULES**
+
+### **Primary Color Palette** (MANDATORY)
+```dart
+// ✅ REQUIRED: Use theme colors, NEVER hardcode
+Theme.of(context).colorScheme.primary        // #4A55A2 (Indigo)
+Theme.of(context).colorScheme.secondary      // #C54B8C (Pink)
+Theme.of(context).colorScheme.tertiary       // #7895B2 (Blue-grey)
+
+// ✅ REQUIRED: Surface colors for cards and containers
+Theme.of(context).colorScheme.surface
+Theme.of(context).colorScheme.surfaceContainer
+Theme.of(context).colorScheme.surfaceContainerHigh
+Theme.of(context).colorScheme.surfaceContainerHighest
+
+// ✅ REQUIRED: Outline colors for borders
+Theme.of(context).colorScheme.outline
+Theme.of(context).colorScheme.outlineVariant
+```
+
+### **Semantic Colors** (REQUIRED)
+```dart
+// ✅ SUCCESS: Use green for positive actions
+const Color successColor = Color(0xFF10B981);
+
+// ✅ WARNING: Use amber for warnings
+const Color warningColor = Color(0xFFF59E0B);
+
+// ✅ ERROR: Use red for errors
+const Color errorColor = Color(0xFFEF4444);
+
+// ❌ FORBIDDEN: Don't hardcode these in widgets
+// Use semantic color constants or theme extensions
+```
+
+## 🚫 **COLOR ANTI-PATTERNS**
+
+### ❌ **NEVER DO THESE:**
+```dart
+// ❌ FORBIDDEN: Hardcoded colors
+Container(color: Color(0xFF6366F1)) // WRONG!
+Container(color: Colors.blue) // WRONG!
+
+// ✅ CORRECT: Theme-based colors
+Container(color: Theme.of(context).colorScheme.primary) // CORRECT!
+Container(color: Theme.of(context).colorScheme.primaryContainer) // CORRECT!
+```
+
+## 📐 **SPACING & SIZING SYSTEM**
+
+### **Standardized Spacing** (MANDATORY)
+```dart
+// ✅ REQUIRED: Use consistent spacing values
+const double spacing4 = 4.0;    // Micro spacing
+const double spacing8 = 8.0;    // Small spacing
+const double spacing12 = 12.0;  // Medium spacing
+const double spacing16 = 16.0;  // Default spacing
+const double spacing20 = 20.0;  // Large spacing
+const double spacing24 = 24.0;  // Extra large spacing
+const double spacing32 = 32.0;  // Section spacing
+
+// ✅ USAGE EXAMPLES:
+EdgeInsets.all(spacing16)
+EdgeInsets.symmetric(horizontal: spacing20, vertical: spacing16)
+SizedBox(height: spacing24)
+```
+
+### **Border Radius Standards**
+```dart
+// ✅ REQUIRED: Consistent border radius
+const double radiusSmall = 8.0;   // Small elements
+const double radiusDefault = 12.0; // Default cards
+const double radiusMedium = 16.0;  // Medium cards
+const double radiusLarge = 20.0;   // Large cards
+const double radiusExtra = 24.0;   // Special elements
+```
+
+## 🔧 **COMPONENT USAGE RULES**
+
+### **Latest Material 3 Widgets** (MANDATORY)
+
+**1. Navigation (CRITICAL)**
+```dart
+// ✅ REQUIRED: Use NavigationBar, NOT BottomNavigationBar
+NavigationBar(
+  destinations: [
+    NavigationDestination(
+      icon: Icon(Icons.home_outlined),
+      selectedIcon: Icon(Icons.home_rounded),
+      label: '홈',
+    ),
+  ],
+)
+
+// ❌ FORBIDDEN: Old BottomNavigationBar
+// BottomNavigationBar(/*...*/) // WRONG!
+```
+
+**2. App Bars (REQUIRED)**
+```dart
+// ✅ REQUIRED: Use SliverAppBar.medium for modern look
+SliverAppBar.medium(
+  title: Text('화면 제목'),
+  centerTitle: false,
+  elevation: 0,
+  scrolledUnderElevation: 3,
+)
+
+// ✅ ALTERNATIVE: SliverAppBar.large for emphasis
+SliverAppBar.large(title: Text('큰 제목'))
+```
+
+**3. Buttons (MANDATORY PATTERNS)**
+```dart
+// ✅ REQUIRED: SegmentedButton for toggles
+SegmentedButton<String>(
+  segments: [
+    ButtonSegment(value: 'option1', label: Text('옵션 1')),
+    ButtonSegment(value: 'option2', label: Text('옵션 2')),
+  ],
+  selected: {'option1'},
+  onSelectionChanged: (Set<String> selection) {/*...*/},
+)
+
+// ✅ REQUIRED: FilledButton for primary actions
+FilledButton(
+  onPressed: () {},
+  child: Text('Primary Action'),
+)
+
+// ✅ REQUIRED: OutlinedButton for secondary actions
+OutlinedButton(
+  onPressed: () {},
+  child: Text('Secondary Action'),
+)
+```
+
+### **Card Design Standards**
+```dart
+// ✅ REQUIRED: Modern card with proper elevation
+Card(
+  elevation: 2,
+  surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
+  child: Padding(
+    padding: EdgeInsets.all(spacing16),
+    child: Column(/*...*/),
+  ),
+)
+
+// ✅ ALTERNATIVE: Custom container with Material 3 styling
+Container(
+  decoration: BoxDecoration(
+    color: Theme.of(context).colorScheme.surfaceContainer,
+    borderRadius: BorderRadius.circular(radiusDefault),
+    border: Border.all(
+      color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+    ),
+  ),
+  child: /*...*/,
+)
+```
+
+## 🎭 **ANIMATION GUIDELINES**
+
+### **Recommended Animation Patterns**
+```dart
+// ✅ REQUIRED: TweenAnimationBuilder for smooth animations
+TweenAnimationBuilder<double>(
+  duration: Duration(milliseconds: 600),
+  curve: Curves.easeOutCubic,
+  tween: Tween(begin: 0.0, end: 1.0),
+  builder: (context, value, child) {
+    return Transform.translate(
+      offset: Offset(0, 30 * (1 - value)),
+      child: Opacity(
+        opacity: value,
+        child: child,
+      ),
+    );
+  },
+  child: YourWidget(),
+)
+
+// ✅ REQUIRED: Standard Material motion curves
+Curves.easeOutCubic    // For entrance animations
+Curves.easeInOut       // For transitions
+Curves.elasticOut      // For bounce effects (sparingly)
+```
+
+### **Animation Duration Standards**
+```dart
+// ✅ REQUIRED: Consistent animation timings
+const Duration fastAnimation = Duration(milliseconds: 200);
+const Duration normalAnimation = Duration(milliseconds: 300);
+const Duration slowAnimation = Duration(milliseconds: 500);
+const Duration pageTransition = Duration(milliseconds: 400);
+```
+
+## 📱 **RESPONSIVE DESIGN RULES**
+
+### **Breakpoint System**
+```dart
+// ✅ REQUIRED: Responsive breakpoints
+class Breakpoints {
+  static const double mobile = 480;
+  static const double tablet = 768;
+  static const double desktop = 1024;
+  
+  static bool isMobile(BuildContext context) =>
+      MediaQuery.of(context).size.width < mobile;
+      
+  static bool isTablet(BuildContext context) =>
+      MediaQuery.of(context).size.width >= mobile &&
+      MediaQuery.of(context).size.width < desktop;
+}
+```
+
+## 🔍 **ACCESSIBILITY REQUIREMENTS**
+
+### **Minimum Standards** (MANDATORY)
+```dart
+// ✅ REQUIRED: Semantic labels
+Semantics(
+  label: '호텔 검색 버튼',
+  child: IconButton(
+    onPressed: () {},
+    icon: Icon(Icons.search),
+  ),
+)
+
+// ✅ REQUIRED: Sufficient touch targets (minimum 44x44)
+Container(
+  width: 44,
+  height: 44,
+  child: IconButton(/*...*/),
+)
+
+// ✅ REQUIRED: Color contrast compliance
+// Ensure text meets WCAG AA standards (4.5:1 contrast ratio)
+```
+
+## 🎯 **TYPOGRAPHY SYSTEM**
+
+### **Text Style Standards**
+```dart
+// ✅ REQUIRED: Use theme typography
+Theme.of(context).textTheme.displayLarge    // 57sp - Hero text
+Theme.of(context).textTheme.displayMedium   // 45sp - Large headings
+Theme.of(context).textTheme.headlineLarge   // 32sp - Page titles
+Theme.of(context).textTheme.headlineMedium  // 28sp - Section titles
+Theme.of(context).textTheme.titleLarge      // 22sp - App bar titles
+Theme.of(context).textTheme.titleMedium     // 16sp - Card titles
+Theme.of(context).textTheme.bodyLarge       // 16sp - Body text
+Theme.of(context).textTheme.bodyMedium      // 14sp - Secondary text
+Theme.of(context).textTheme.labelLarge      // 14sp - Button text
+```
+
+### **Font Weight Standards**
+```dart
+// ✅ REQUIRED: Consistent font weights
+FontWeight.w400  // Regular - Body text
+FontWeight.w500  // Medium - Emphasized text
+FontWeight.w600  // SemiBold - Subheadings
+FontWeight.w700  // Bold - Headings
+FontWeight.w800  // ExtraBold - Hero text (sparingly)
+```
+
+## 🚨 **DESIGN CHECKLIST**
+
+Before implementing UI components, ensure:
+- [ ] useMaterial3: true is set in theme
+- [ ] All colors use theme.colorScheme
+- [ ] Consistent spacing values (4, 8, 12, 16, 20, 24, 32)
+- [ ] Proper border radius (8, 12, 16, 20, 24)
+- [ ] Latest Material 3 widgets (NavigationBar, SegmentedButton)
+- [ ] Accessibility labels for interactive elements
+- [ ] Minimum 44x44 touch targets
+- [ ] Appropriate elevation and surface tints
+- [ ] Consistent animation durations and curves
+- [ ] Typography follows Material 3 scale
+
+## ❌ **CRITICAL VIOLATIONS TO AVOID**
+
+**NEVER:**
+- Use hardcoded colors instead of theme colors
+- Use deprecated widgets (BottomNavigationBar, etc.)
+- Create inconsistent spacing values
+- Ignore accessibility requirements
+- Use outdated Material 2 patterns
+- Mix different design systems
+- Create custom colors without semantic meaning

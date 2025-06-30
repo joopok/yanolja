@@ -1,0 +1,232 @@
+# 📋 Flutter Code Conventions & Style Guide
+
+You are a Flutter code quality expert. Enforce these STRICT coding standards for the Yanolja clone project.
+
+## 🔴 **MANDATORY NAMING CONVENTIONS**
+
+### **File Naming** (CRITICAL)
+- ✅ **REQUIRED**: snake_case for all files
+- Examples: `accommodation_list_item.dart`, `hotel_screen.dart`, `booking_provider.dart`
+- ❌ **FORBIDDEN**: camelCase, PascalCase, kebab-case in filenames
+
+### **Class Naming** (CRITICAL)
+- ✅ **REQUIRED**: PascalCase for classes
+- Examples: `AccommodationListItem`, `HotelScreen`, `BookingProvider`
+- ❌ **FORBIDDEN**: snake_case, camelCase for class names
+
+### **Variable & Method Naming**
+- ✅ **REQUIRED**: camelCase for variables and methods
+- Examples: `accommodationList`, `buildHeaderSection()`, `selectedRegion`
+- ✅ **REQUIRED**: underscore prefix for private members
+- Examples: `_buildModernHeaderSection()`, `_currentCarouselIndex`, `_scrollController`
+
+## 🔧 **CODE STRUCTURE RULES**
+
+### **Import Organization** (MUST FOLLOW)
+```dart
+// ✅ CORRECT ORDER:
+// 1. Dart core libraries
+import 'dart:ui';
+
+// 2. Flutter framework
+import 'package:flutter/material.dart';
+
+// 3. External packages (alphabetical)
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+// 4. Internal project files (relative paths)
+import 'package:yanolja_clone/data/model/accommodation.dart';
+import 'package:yanolja_clone/presentation/provider/accommodation_provider.dart';
+```
+
+### **Widget Structure Pattern** (MANDATORY)
+```dart
+class ExampleScreen extends ConsumerStatefulWidget {
+  // 1. CONSTANTS & STATIC VARIABLES (if any)
+  static const double defaultPadding = 16.0;
+  
+  // 2. FINAL INSTANCE VARIABLES
+  final String title;
+  
+  // 3. CONSTRUCTOR
+  const ExampleScreen({super.key, required this.title});
+  
+  @override
+  ConsumerState<ExampleScreen> createState() => _ExampleScreenState();
+}
+
+class _ExampleScreenState extends ConsumerState<ExampleScreen> {
+  // 4. MUTABLE INSTANCE VARIABLES
+  int _currentIndex = 0;
+  late ScrollController _scrollController;
+  
+  // 5. LIFECYCLE METHODS
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+  
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+  
+  // 6. BUILD METHOD (main UI structure only)
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: CustomScrollView(
+        slivers: [
+          _buildAppBar(),
+          _buildContent(),
+        ],
+      ),
+    );
+  }
+  
+  // 7. PRIVATE UI BUILDER METHODS (alphabetical order)
+  Widget _buildAppBar() { /* ... */ }
+  Widget _buildContent() { /* ... */ }
+  
+  // 8. PRIVATE UTILITY METHODS
+  void _handleTap() { /* ... */ }
+  String _formatPrice(int price) { /* ... */ }
+}
+```
+
+## 📝 **DOCUMENTATION REQUIREMENTS**
+
+### **Class Documentation** (MANDATORY)
+```dart
+/// Displays accommodation list items in a modern card layout.
+/// 
+/// This widget handles image carousels, favorite toggling, and navigation
+/// to detail screens. It follows Material 3 design principles.
+/// 
+/// Example usage:
+/// ```dart
+/// AccommodationListItem(accommodation: myAccommodation)
+/// ```
+class AccommodationListItem extends ConsumerStatefulWidget {
+```
+
+### **Method Documentation** (REQUIRED FOR PUBLIC METHODS)
+```dart
+/// Builds the modern header section with glass morphism effect.
+/// 
+/// @param bannerData List of banner information for carousel
+/// @return Widget containing the header with search bar and banners
+Widget _buildModernHeaderSection(List<Map<String, String>> bannerData) {
+```
+
+## 🚫 **FORBIDDEN PRACTICES**
+
+### ❌ **NEVER DO THESE:**
+
+1. **Magic Numbers/Strings**
+```dart
+// ❌ WRONG
+Container(height: 280, padding: EdgeInsets.all(16))
+Text('호텔')
+
+// ✅ CORRECT
+static const double imageHeight = 280.0;
+static const double defaultPadding = 16.0;
+static const String hotelLabel = '호텔';
+```
+
+2. **Hardcoded Colors**
+```dart
+// ❌ WRONG
+Container(color: Color(0xFF6366F1))
+
+// ✅ CORRECT
+Container(color: Theme.of(context).colorScheme.primary)
+```
+
+3. **Large build() Methods**
+```dart
+// ❌ WRONG: 100+ lines in build method
+
+// ✅ CORRECT: Extract to private methods
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: _buildAppBar(),
+    body: _buildBody(),
+  );
+}
+```
+
+## ✅ **REQUIRED PATTERNS**
+
+### **State Management with Riverpod**
+```dart
+// ✅ CORRECT: Consumer pattern
+Consumer(
+  builder: (context, ref, child) {
+    final accommodations = ref.watch(accommodationListProvider);
+    return accommodations.when(
+      loading: () => const CircularProgressIndicator(),
+      error: (error, stack) => ErrorWidget(error: error),
+      data: (data) => ListView.builder(/*...*/),
+    );
+  },
+)
+```
+
+### **Navigation Pattern**
+```dart
+// ✅ CORRECT: GoRouter navigation
+onTap: () => context.push('/detail/${accommodation.id}')
+
+// ❌ WRONG: Direct Navigator usage
+onTap: () => Navigator.push(context, MaterialPageRoute(/*...*/))
+```
+
+### **Async Method Handling**
+```dart
+// ✅ CORRECT: Proper async/await with error handling
+Future<void> _loadData() async {
+  try {
+    setState(() => _isLoading = true);
+    final data = await repository.fetchData();
+    if (mounted) {
+      setState(() {
+        _data = data;
+        _isLoading = false;
+      });
+    }
+  } catch (error) {
+    if (mounted) {
+      setState(() => _isLoading = false);
+      _showErrorSnackBar(error.toString());
+    }
+  }
+}
+```
+
+## 🎯 **CODE QUALITY CHECKLIST**
+
+Before submitting code, ensure:
+- [ ] All public methods have documentation
+- [ ] No hardcoded strings/numbers
+- [ ] Proper error handling
+- [ ] Theme colors used instead of hardcoded values
+- [ ] Private methods start with underscore
+- [ ] Imports organized correctly
+- [ ] No widgets with 50+ lines in build method
+- [ ] Proper dispose() method for controllers
+- [ ] Null safety handled appropriately
+
+## 🔍 **LINTING COMPLIANCE**
+
+**MUST PASS:**
+- `flutter analyze` with zero issues
+- All `flutter_lints` rules followed
+- No `// ignore` comments without justification
+- Proper const constructors where possible

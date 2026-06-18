@@ -18,17 +18,12 @@ class MapScreen extends ConsumerStatefulWidget {
 }
 
 class _MapScreenState extends ConsumerState<MapScreen> {
-  GoogleMapController? _mapController;
   final Map<MarkerId, Marker> _markers = {};
 
   @override
   void initState() {
     super.initState();
     _addMarkers();
-  }
-
-  void _onMapCreated(GoogleMapController controller) {
-    _mapController = controller;
   }
 
   void _addMarkers() {
@@ -44,7 +39,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             snippet: acc.address,
             onTap: () {
               // TODO: 숙소 상세 페이지로 이동
-              print('Tapped on ${acc.name}');
+              debugPrint('Tapped on ${acc.name}');
             },
           ),
         );
@@ -63,7 +58,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         surfaceTintColor: theme.colorScheme.surface,
       ),
       body: GoogleMap(
-        onMapCreated: _onMapCreated,
         initialCameraPosition: CameraPosition(
           target: widget.initialCameraPosition ?? const LatLng(37.5665, 126.9780), // 서울 시청
           zoom: 10.0,

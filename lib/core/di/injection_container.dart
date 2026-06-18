@@ -7,6 +7,7 @@
 /// - Data Sources: 로컬 데이터 소스 (MockAPI, LocalStorage 등)
 /// - Repositories: 데이터 접근 계층 구현체
 /// - Use Cases: 비즈니스 로직 수행
+library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

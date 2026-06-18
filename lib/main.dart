@@ -1,34 +1,33 @@
 // import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yanolja_clone/core/router.dart';
+import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 // import 'package:yanolja_clone/firebase_options.dart';
-import 'package:go_router/go_router.dart';
 
 void main() async {
   // Flutter 엔진과 위젯 트리를 바인딩합니다.
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // 앱을 세로 모드로만 고정
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  
+
   // 🔥 Firebase 초기화 (임시 비활성화 - GoogleService-Info.plist 누락)
   // await Firebase.initializeApp(
   //   options: DefaultFirebaseOptions.currentPlatform,
   // );
 
-  // 🎨 상태바 스타일 설정 (T membership 보라색 테마)
+  // 상태바 스타일: NOL 앱처럼 밝은 배경 + 어두운 아이콘
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light, // 보라색 배경에 맞춘 밝은 아이콘
-      statusBarBrightness: Brightness.dark,
-      systemNavigationBarColor: Color(0xFFF8F9FA), // T membership 배경색
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.white,
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
@@ -47,336 +46,311 @@ class YanoljaCloneApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     return MaterialApp.router(
-      title: 'T membership 클론',
+      title: 'NOL(야놀자)',
       debugShowCheckedModeBanner: false,
-      
-      // 🌈 Material Design 3 완전 적용 (Context7 최신 기능)
-      theme: _buildNeumorphismTheme(),
-      
-      // 🌙 Dark Theme (T membership 보라색 다크모드)
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6C63FF),
-          dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
-          brightness: Brightness.dark,
-        ),
-        appBarTheme: const AppBarTheme(
-          centerTitle: false,
-          elevation: 0,
-          scrolledUnderElevation: 3,
-        ),
-      ),
-      
-      themeMode: ThemeMode.system,
+
+      // NOL 라이트 테마 (앱 전체 일관 적용)
+      theme: _buildYanoljaTheme(),
+
+      // 야놀자 앱은 라이트 테마 기반이므로 라이트로 고정
+      themeMode: ThemeMode.light,
       routerConfig: router,
     );
   }
 
-  /// 🎨 **T membership 글라데이션 테마 시스템**
-  /// masgib_screen.dart의 보라색 글라데이션을 전체 앱에 적용
-  ThemeData _buildNeumorphismTheme() {
-    // 🌈 T membership 글라데이션 색상 팔레트
-    const primaryPurple = Color(0xFF6C63FF);          // 메인 보라색
-    const lightPurple = Color.fromARGB(255, 37, 4, 249); // 진한 보라색
-    const blueT = Color.fromARGB(255, 1, 79, 246);    // T 파란색
-    const neumorphismBackground = Color(0xFFF8F9FA);  // 연한 배경
-    const neumorphismSurface = Color(0xFFFFFFFF);     // 화이트 표면
-    const neumorphismShadowLight = Color(0xFFFFFFFF); // 순백 하이라이트
-    const neumorphismShadowDark = Color(0xFFE8E8E8);  // 연한 그레이 그림자
-    const neumorphismSuccess = Color(0xFF00D4A3);     // 민트 그린 성공색
-    const neumorphismWarning = Color(0xFFEA580C);     // 오렌지 경고색
-    const neumorphismText = Color(0xFF1F2937);        // 다크 텍스트
-    const neumorphismTextSecondary = Color(0xFF6B7280); // 그레이 보조텍스트
+  /// NOL 디자인 테마
+  /// 블루/퍼플 브랜드 컬러 + 깔끔한 화이트 플랫 스타일
+  ThemeData _buildYanoljaTheme() {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: YanoljaColors.primary,
+      brightness: Brightness.light,
+    ).copyWith(
+      primary: YanoljaColors.primary,
+      onPrimary: Colors.white,
+      secondary: YanoljaColors.primaryPurple,
+      surface: YanoljaColors.surface,
+      onSurface: YanoljaColors.textPrimary,
+      onSurfaceVariant: YanoljaColors.textSecondary,
+      outline: YanoljaColors.border,
+      outlineVariant: YanoljaColors.divider,
+      surfaceContainerHighest: YanoljaColors.surfaceAlt,
+      shadow: YanoljaColors.shadow,
+      error: const Color(0xFFE03131),
+    );
 
     return ThemeData(
       useMaterial3: true,
-      
-      // 🌈 T membership 글라데이션 색상 시스템
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primaryPurple,
-        dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
-        brightness: Brightness.light,
-      ).copyWith(
-        // 🎨 배경 계층 구조
-        surface: neumorphismBackground,
-        surfaceContainer: neumorphismSurface,
-        surfaceContainerHigh: neumorphismSurface,
-        surfaceContainerHighest: const Color(0xFFFBFBFC),
-        
-        // 🎯 주요 색상들 (T membership 보라색 적용)
-        primary: primaryPurple,
-        secondary: lightPurple,
-        tertiary: blueT,
-        
-        // 📝 텍스트 색상
-        onSurface: neumorphismText,
-        onSurfaceVariant: neumorphismTextSecondary,
-        
-        // 🔲 테두리 색상
-        outline: const Color(0xFFE5E7EB),
-        outlineVariant: const Color(0xFFF3F4F6),
-        
-        // 🌟 그림자 색상
-        shadow: neumorphismShadowDark,
-      ),
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: YanoljaColors.background,
+      splashFactory: InkRipple.splashFactory,
 
-      // 🎭 네오모피즘 카드 테마
-      cardTheme: CardThemeData(
-        color: neumorphismSurface,
-        elevation: 0,
-        shadowColor: Colors.transparent,
+      // 🏷️ 칩 테마
+      chipTheme: ChipThemeData(
+        backgroundColor: YanoljaColors.surfaceAlt,
+        selectedColor: YanoljaColors.primaryLight,
+        side: BorderSide.none,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+        ),
+        labelStyle: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: YanoljaColors.textPrimary,
         ),
       ),
 
-      // 🔘 네오모피즘 버튼 테마들
+      // 🃏 카드 테마 — 절제된 그림자, 둥근 모서리
+      cardTheme: CardThemeData(
+        color: YanoljaColors.surface,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shadowColor: YanoljaColors.shadow,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+        ),
+      ),
+
+      // 🔘 메인 버튼 — 야놀자 핑크 필드 버튼
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: neumorphismSurface,
-          foregroundColor: neumorphismText,
+          backgroundColor: YanoljaColors.primary,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: const Color(0xFFFFC2D8),
+          disabledForegroundColor: Colors.white,
           elevation: 0,
+          minimumSize: const Size.fromHeight(52),
           shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.3,
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(YanoljaRadius.md),
+          ),
         ),
       ),
 
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          backgroundColor: neumorphismSurface,
-          foregroundColor: neumorphismText,
-          side: BorderSide.none,
-          elevation: 0,
-          shadowColor: Colors.transparent,
+          foregroundColor: YanoljaColors.textPrimary,
+          backgroundColor: Colors.white,
+          minimumSize: const Size.fromHeight(52),
+          side: const BorderSide(color: YanoljaColors.border, width: 1),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(YanoljaRadius.md),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          textStyle: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
 
-      // 🏗️ 앱바 테마
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: YanoljaColors.primary,
+          textStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+
+      // 🏗️ 앱바 — 화이트, 좌측 정렬, 무 elevation (야놀자 스타일)
       appBarTheme: const AppBarTheme(
-        backgroundColor: neumorphismBackground,
-        foregroundColor: neumorphismText,
+        backgroundColor: Colors.white,
+        foregroundColor: YanoljaColors.textPrimary,
+        surfaceTintColor: Colors.white,
         elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: true,
+        scrolledUnderElevation: 0.5,
+        centerTitle: false,
         titleTextStyle: TextStyle(
-          color: neumorphismText,
+          color: YanoljaColors.textPrimary,
           fontSize: 18,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.4,
+        ),
+        iconTheme: IconThemeData(color: YanoljaColors.textPrimary),
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
         ),
       ),
 
-      // 🧩 네비게이션 바 테마 (T membership 보라색 적용)
+      // 🧭 하단 네비게이션 — 플랫 화이트, 핑크 선택
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        indicatorColor: Colors.transparent,
+        elevation: 0,
+        height: 60,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return IconThemeData(
+            size: 24,
+            color:
+                selected ? YanoljaColors.primary : YanoljaColors.textTertiary,
+          );
+        }),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color:
+                selected ? YanoljaColors.primary : YanoljaColors.textTertiary,
+          );
+        }),
+      ),
+
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: neumorphismSurface,
-        selectedItemColor: primaryPurple,
-        unselectedItemColor: neumorphismTextSecondary,
+        backgroundColor: Colors.white,
+        selectedItemColor: YanoljaColors.primary,
+        unselectedItemColor: YanoljaColors.textTertiary,
         elevation: 0,
         type: BottomNavigationBarType.fixed,
+        showUnselectedLabels: true,
       ),
 
-      // ✏️ 입력 필드 테마
+      // ✏️ 입력 필드 — 라이트 그레이 필, 핑크 포커스
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: neumorphismSurface,
+        fillColor: YanoljaColors.surfaceAlt,
+        hintStyle: const TextStyle(
+          color: YanoljaColors.textTertiary,
+          fontSize: 15,
+          fontWeight: FontWeight.w400,
+        ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(YanoljaRadius.md),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(YanoljaRadius.md),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: primaryPurple, width: 2),
+          borderRadius: BorderRadius.circular(YanoljaRadius.md),
+          borderSide:
+              const BorderSide(color: YanoljaColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Colors.red, width: 1),
+          borderRadius: BorderRadius.circular(YanoljaRadius.md),
+          borderSide: const BorderSide(color: Color(0xFFE03131), width: 1),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
 
-      // 🔤 타이포그래피
+      // 〰️ 구분선
+      dividerTheme: const DividerThemeData(
+        color: YanoljaColors.divider,
+        thickness: 1,
+        space: 1,
+      ),
+      dividerColor: YanoljaColors.divider,
+
+      // 🔤 타이포그래피 — 또렷하고 깔끔한 한국어 친화 스케일
       textTheme: const TextTheme(
         displayLarge: TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-          color: neumorphismText,
-          height: 1.2,
-        ),
+            fontSize: 30,
+            fontWeight: FontWeight.w800,
+            color: YanoljaColors.textPrimary,
+            letterSpacing: -0.6,
+            height: 1.25),
         displayMedium: TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.bold,
-          color: neumorphismText,
-          height: 1.3,
-        ),
+            fontSize: 26,
+            fontWeight: FontWeight.w800,
+            color: YanoljaColors.textPrimary,
+            letterSpacing: -0.5,
+            height: 1.3),
         displaySmall: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.w600,
-          color: neumorphismText,
-          height: 1.3,
-        ),
-        headlineLarge: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.w600,
-          color: neumorphismText,
-          height: 1.4,
-        ),
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: YanoljaColors.textPrimary,
+            letterSpacing: -0.4,
+            height: 1.3),
         headlineMedium: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: neumorphismText,
-          height: 1.4,
-        ),
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: YanoljaColors.textPrimary,
+            letterSpacing: -0.4,
+            height: 1.3),
         headlineSmall: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: neumorphismText,
-          height: 1.4,
-        ),
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: YanoljaColors.textPrimary,
+            letterSpacing: -0.3,
+            height: 1.35),
         titleLarge: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: neumorphismText,
-          height: 1.5,
-        ),
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: YanoljaColors.textPrimary,
+            letterSpacing: -0.3,
+            height: 1.4),
         titleMedium: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: neumorphismText,
-          height: 1.5,
-        ),
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: YanoljaColors.textPrimary,
+            letterSpacing: -0.2,
+            height: 1.4),
         titleSmall: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: neumorphismText,
-          height: 1.5,
-        ),
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: YanoljaColors.textPrimary,
+            letterSpacing: -0.2,
+            height: 1.4),
         bodyLarge: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.normal,
-          color: neumorphismText,
-          height: 1.6,
-        ),
+            fontSize: 15,
+            fontWeight: FontWeight.w400,
+            color: YanoljaColors.textPrimary,
+            letterSpacing: -0.2,
+            height: 1.5),
         bodyMedium: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.normal,
-          color: neumorphismText,
-          height: 1.6,
-        ),
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            color: YanoljaColors.textSecondary,
+            letterSpacing: -0.2,
+            height: 1.5),
         bodySmall: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.normal,
-          color: neumorphismTextSecondary,
-          height: 1.6,
-        ),
+            fontSize: 12,
+            fontWeight: FontWeight.w400,
+            color: YanoljaColors.textSecondary,
+            letterSpacing: -0.1,
+            height: 1.45),
         labelLarge: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: neumorphismText,
-          height: 1.4,
-        ),
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: YanoljaColors.textPrimary),
         labelMedium: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: neumorphismTextSecondary,
-          height: 1.4,
-        ),
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: YanoljaColors.textSecondary),
         labelSmall: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w500,
-          color: neumorphismTextSecondary,
-          height: 1.4,
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: YanoljaColors.textTertiary),
+      ),
+
+      // 🎚️ 바텀시트
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
       ),
 
-      // 📱 스캐폴드 배경
-      scaffoldBackgroundColor: neumorphismBackground,
-      
-      // 🎯 기타 테마들
-      dividerColor: const Color(0xFFE5E7EB),
-      disabledColor: const Color(0xFFD1D5DB),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: const Color(0xFF2B2B2B),
+        contentTextStyle:
+            const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
     );
   }
-}
-
-/// 🎨 **T membership 네오모피즘 디자인 헬퍼 클래스**
-/// T membership 보라색 테마에 최적화된 네오모피즘 효과를 제공
-class NeumorphismHelper {
-  static const _lightShadow = Color(0xFFFFFFFF);
-  static const _darkShadow = Color(0xFFE8E8E8);
-  static const _purpleAccent = Color(0xFF6C63FF);
-  
-  /// 🌟 기본 네오모피즘 그림자 (돌출 효과)
-  static List<BoxShadow> get elevatedShadow => [
-    BoxShadow(
-      color: _darkShadow.withOpacity(0.5),
-      offset: const Offset(6, 6),
-      blurRadius: 12,
-      spreadRadius: 0,
-    ),
-    BoxShadow(
-      color: _lightShadow.withOpacity(0.9),
-      offset: const Offset(-6, -6),
-      blurRadius: 12,
-      spreadRadius: 0,
-    ),
-  ];
-
-  /// 🔽 눌린 네오모피즘 그림자 (인셋 효과)
-  static List<BoxShadow> get pressedShadow => [
-    BoxShadow(
-      color: _darkShadow.withOpacity(0.6),
-      offset: const Offset(3, 3),
-      blurRadius: 6,
-      spreadRadius: 0,
-    ),
-    BoxShadow(
-      color: _lightShadow.withOpacity(0.7),
-      offset: const Offset(-3, -3),
-      blurRadius: 6,
-      spreadRadius: 0,
-    ),
-  ];
-
-  /// 🌸 부드러운 네오모피즘 그림자 (미묘한 효과)
-  static List<BoxShadow> get softShadow => [
-    BoxShadow(
-      color: _darkShadow.withOpacity(0.3),
-      offset: const Offset(4, 4),
-      blurRadius: 8,
-      spreadRadius: 0,
-    ),
-    BoxShadow(
-      color: _lightShadow.withOpacity(0.8),
-      offset: const Offset(-4, -4),
-      blurRadius: 8,
-      spreadRadius: 0,
-    ),
-  ];
-
-  /// 🔆 강한 네오모피즘 그림자 (강조 효과)
-  static List<BoxShadow> get boldShadow => [
-    BoxShadow(
-      color: _darkShadow.withOpacity(0.7),
-      offset: const Offset(8, 8),
-      blurRadius: 16,
-      spreadRadius: 0,
-    ),
-    BoxShadow(
-      color: _lightShadow.withOpacity(0.9),
-      offset: const Offset(-8, -8),
-      blurRadius: 16,
-      spreadRadius: 0,
-    ),
-  ];
 }

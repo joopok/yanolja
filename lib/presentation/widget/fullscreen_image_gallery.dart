@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -32,7 +31,7 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery>
   
   int _currentIndex = 0;
   bool _showOverlay = true;
-  bool _isZoomed = false;
+  final bool _isZoomed = false;
 
   @override
   void initState() {
@@ -96,12 +95,6 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery>
           ? SystemUiOverlayStyle.light
           : SystemUiOverlayStyle.dark,
     );
-  }
-
-  void _onScaleStateChanged(PhotoViewScaleState scaleState) {
-    setState(() {
-      _isZoomed = scaleState != PhotoViewScaleState.initial;
-    });
   }
 
   void _closeGallery() {
@@ -237,7 +230,7 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery>
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.black.withOpacity(0.8),
+                        Colors.black.withValues(alpha: 0.8),
                         Colors.transparent,
                       ],
                     ),
@@ -247,7 +240,7 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery>
                       // 닫기 버튼
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
+                          color: Colors.black.withValues(alpha: 0.5),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: IconButton(
@@ -269,7 +262,7 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery>
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.7),
+                          color: Colors.black.withValues(alpha: 0.7),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
@@ -287,7 +280,7 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery>
                       // 더보기 메뉴
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
+                          color: Colors.black.withValues(alpha: 0.5),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: PopupMenuButton<String>(
@@ -358,7 +351,7 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery>
                         begin: Alignment.bottomCenter,
                         end: Alignment.topCenter,
                         colors: [
-                          Colors.black.withOpacity(0.8),
+                          Colors.black.withValues(alpha: 0.8),
                           Colors.transparent,
                         ],
                       ),

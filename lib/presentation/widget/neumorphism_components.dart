@@ -1,78 +1,55 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 
-/// 🌟 네오모피즘 그림자 헬퍼
+/// 🌟 그림자 헬퍼 (야놀자 플랫 스타일)
+///
+/// 과거 네오모피즘(이중 그림자) 구조를 호환성 유지를 위해 동일한 이름으로 노출하되,
+/// 실제 시각은 야놀자 디자인 언어에 맞춘 절제된 단일 그림자로 통일합니다.
 class NeumorphismHelper {
-  static const _lightShadow = Color(0xFFFFFFFF);
-  static const _darkShadow = Color(0xFFD1D1D4);
-  
-  /// 기본 네오모피즘 그림자 (돌출 효과)
-  static List<BoxShadow> get elevatedShadow => [
+  /// 기본 그림자 (살짝 떠 있는 카드 느낌)
+  static List<BoxShadow> get elevatedShadow => const [
     BoxShadow(
-      color: _darkShadow.withValues(alpha: 0.5),
-      offset: const Offset(6, 6),
-      blurRadius: 12,
-      spreadRadius: 0,
-    ),
-    BoxShadow(
-      color: _lightShadow.withValues(alpha: 0.9),
-      offset: const Offset(-6, -6),
-      blurRadius: 12,
+      color: YanoljaColors.shadow,
+      offset: Offset(0, 4),
+      blurRadius: 14,
       spreadRadius: 0,
     ),
   ];
 
-  /// 눌린 네오모피즘 그림자 (인셋 효과)
-  static List<BoxShadow> get pressedShadow => [
+  /// 눌린 상태 (그림자 거의 없음 — 플랫)
+  static List<BoxShadow> get pressedShadow => const [
     BoxShadow(
-      color: _darkShadow.withValues(alpha: 0.6),
-      offset: const Offset(3, 3),
-      blurRadius: 6,
-      spreadRadius: 0,
-    ),
-    BoxShadow(
-      color: _lightShadow.withValues(alpha: 0.7),
-      offset: const Offset(-3, -3),
-      blurRadius: 6,
+      color: YanoljaColors.shadow,
+      offset: Offset(0, 1),
+      blurRadius: 4,
       spreadRadius: 0,
     ),
   ];
 
-  /// 부드러운 네오모피즘 그림자 (미묘한 효과)
-  static List<BoxShadow> get softShadow => [
+  /// 부드러운 그림자 (미묘한 떠 있음)
+  static List<BoxShadow> get softShadow => const [
     BoxShadow(
-      color: _darkShadow.withValues(alpha: 0.3),
-      offset: const Offset(4, 4),
-      blurRadius: 8,
-      spreadRadius: 0,
-    ),
-    BoxShadow(
-      color: _lightShadow.withValues(alpha: 0.8),
-      offset: const Offset(-4, -4),
+      color: YanoljaColors.shadow,
+      offset: Offset(0, 2),
       blurRadius: 8,
       spreadRadius: 0,
     ),
   ];
 
-  /// 강한 네오모피즘 그림자 (강조 효과)
-  static List<BoxShadow> get boldShadow => [
+  /// 강조 그림자 (조금 더 또렷)
+  static List<BoxShadow> get boldShadow => const [
     BoxShadow(
-      color: _darkShadow.withValues(alpha: 0.7),
-      offset: const Offset(8, 8),
-      blurRadius: 16,
-      spreadRadius: 0,
-    ),
-    BoxShadow(
-      color: _lightShadow.withValues(alpha: 0.9),
-      offset: const Offset(-8, -8),
-      blurRadius: 16,
+      color: YanoljaColors.shadow,
+      offset: Offset(0, 6),
+      blurRadius: 18,
       spreadRadius: 0,
     ),
   ];
 }
 
-/// 🎨 **네오모피즘 카드**
-/// 부드러운 그림자 효과로 입체감을 표현하는 기본 카드 컴포넌트
+/// 🎨 **야놀자 플랫 카드** (구 네오모피즘 카드)
+/// 화이트 표면 + 얇은 헤어라인 보더 + 절제된 단일 그림자로 입체감을 표현합니다.
+/// 클래스/생성자 시그니처는 호환성을 위해 유지합니다.
 class NeumorphismCard extends StatefulWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -87,7 +64,7 @@ class NeumorphismCard extends StatefulWidget {
     super.key,
     required this.child,
     this.padding,
-    this.borderRadius = 20,
+    this.borderRadius = 16,
     this.isPressed = false,
     this.onTap,
     this.onLongPress,
@@ -99,87 +76,40 @@ class NeumorphismCard extends StatefulWidget {
   State<NeumorphismCard> createState() => _NeumorphismCardState();
 }
 
-class _NeumorphismCardState extends State<NeumorphismCard>
-    with SingleTickerProviderStateMixin {
-  bool _isPressed = false;
-  late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 150),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.98,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  void _handleTapDown(TapDownDetails details) {
-    if (widget.onTap != null) {
-      setState(() => _isPressed = true);
-      _animationController.forward();
-      HapticFeedback.lightImpact();
-    }
-  }
-
-  void _handleTapUp(TapUpDetails details) {
-    if (widget.onTap != null) {
-      setState(() => _isPressed = false);
-      _animationController.reverse();
-      widget.onTap?.call();
-    }
-  }
-
-  void _handleTapCancel() {
-    if (widget.onTap != null) {
-      setState(() => _isPressed = false);
-      _animationController.reverse();
-    }
-  }
-
+class _NeumorphismCardState extends State<NeumorphismCard> {
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return AnimatedBuilder(
-      animation: _scaleAnimation,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _scaleAnimation.value,
-          child: GestureDetector(
-            onTapDown: _handleTapDown,
-            onTapUp: _handleTapUp,
-            onTapCancel: _handleTapCancel,
-            onLongPress: widget.onLongPress,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              padding: widget.padding,
-              decoration: BoxDecoration(
-                color: widget.backgroundColor ?? theme.colorScheme.surfaceContainer,
-                borderRadius: BorderRadius.circular(widget.borderRadius),
-                boxShadow: widget.customShadow ??
-                    (widget.isPressed || _isPressed
-                        ? NeumorphismHelper.pressedShadow
-                        : NeumorphismHelper.elevatedShadow),
-              ),
-              child: widget.child,
-            ),
-          ),
-        );
-      },
+    final bgColor = widget.backgroundColor ?? YanoljaColors.surface;
+
+    final card = AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      padding: widget.padding,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(widget.borderRadius),
+        border: Border.all(color: YanoljaColors.border, width: 1),
+        boxShadow: widget.customShadow ??
+            (widget.isPressed
+                ? NeumorphismHelper.pressedShadow
+                : NeumorphismHelper.softShadow),
+      ),
+      child: widget.child,
+    );
+
+    if (widget.onTap == null && widget.onLongPress == null) {
+      return card;
+    }
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: widget.onTap,
+        onLongPress: widget.onLongPress,
+        borderRadius: BorderRadius.circular(widget.borderRadius),
+        splashColor: YanoljaColors.primary.withValues(alpha: 0.06),
+        highlightColor: YanoljaColors.primary.withValues(alpha: 0.04),
+        child: card,
+      ),
     );
   }
 }
@@ -223,14 +153,9 @@ class NeumorphismButton extends StatefulWidget {
 }
 
 class _NeumorphismButtonState extends State<NeumorphismButton> {
-  bool _isPressed = false;
-
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
     return NeumorphismCard(
-      isPressed: _isPressed,
       borderRadius: widget.borderRadius,
       backgroundColor: widget.backgroundColor,
       padding: widget.padding,
@@ -243,7 +168,7 @@ class _NeumorphismButtonState extends State<NeumorphismButton> {
             Icon(
               widget.icon,
               size: widget.iconSize,
-              color: widget.iconColor ?? theme.colorScheme.primary,
+              color: widget.iconColor ?? YanoljaColors.primary,
             ),
             if (widget.text != null) const SizedBox(width: 8),
           ],
@@ -253,7 +178,7 @@ class _NeumorphismButtonState extends State<NeumorphismButton> {
               style: TextStyle(
                 fontSize: widget.fontSize,
                 fontWeight: widget.fontWeight,
-                color: widget.textColor ?? theme.colorScheme.onSurface,
+                color: widget.textColor ?? YanoljaColors.textPrimary,
               ),
             ),
         ],
@@ -284,8 +209,6 @@ class NeumorphismIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
     return NeumorphismCard(
       borderRadius: size / 2,
       backgroundColor: backgroundColor,
@@ -297,7 +220,7 @@ class NeumorphismIconButton extends StatelessWidget {
           child: Icon(
             icon,
             size: iconSize,
-            color: iconColor ?? theme.colorScheme.primary,
+            color: iconColor ?? YanoljaColors.primary,
           ),
         ),
       ),
@@ -348,16 +271,15 @@ class _NeumorphismTextFieldState extends State<NeumorphismTextField> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: _isFocused 
-            ? NeumorphismHelper.pressedShadow
-            : NeumorphismHelper.softShadow,
+        color: _isFocused ? YanoljaColors.surface : YanoljaColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _isFocused ? YanoljaColors.primary : YanoljaColors.border,
+          width: _isFocused ? 1.4 : 1,
+        ),
       ),
       child: Focus(
         onFocusChange: (hasFocus) {
@@ -372,9 +294,9 @@ class _NeumorphismTextFieldState extends State<NeumorphismTextField> {
           onTap: widget.onTap,
           readOnly: widget.readOnly,
           maxLines: widget.maxLines,
-          style: TextStyle(
-            color: theme.colorScheme.onSurface,
-            fontSize: 16,
+          style: const TextStyle(
+            color: YanoljaColors.textPrimary,
+            fontSize: 15,
             fontWeight: FontWeight.w500,
           ),
           decoration: InputDecoration(
@@ -386,23 +308,25 @@ class _NeumorphismTextFieldState extends State<NeumorphismTextField> {
             errorBorder: InputBorder.none,
             focusedErrorBorder: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 16,
+              horizontal: 16,
+              vertical: 14,
             ),
-            hintStyle: TextStyle(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontSize: 16,
+            hintStyle: const TextStyle(
+              color: YanoljaColors.textTertiary,
+              fontSize: 15,
               fontWeight: FontWeight.w400,
             ),
-            labelStyle: TextStyle(
-              color: theme.colorScheme.onSurfaceVariant,
+            labelStyle: const TextStyle(
+              color: YanoljaColors.textSecondary,
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
             prefixIcon: widget.prefixIcon != null
                 ? Icon(
                     widget.prefixIcon,
-                    color: theme.colorScheme.onSurfaceVariant,
+                    color: _isFocused
+                        ? YanoljaColors.primary
+                        : YanoljaColors.textTertiary,
                   )
                 : null,
             suffixIcon: widget.suffixIcon != null
@@ -410,7 +334,7 @@ class _NeumorphismTextFieldState extends State<NeumorphismTextField> {
                     onTap: widget.onSuffixIconTap,
                     child: Icon(
                       widget.suffixIcon,
-                      color: theme.colorScheme.onSurfaceVariant,
+                      color: YanoljaColors.textTertiary,
                     ),
                   )
                 : null,
@@ -443,48 +367,55 @@ class NeumorphismChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return NeumorphismCard(
-      isPressed: isSelected,
-      borderRadius: 20,
-      backgroundColor: isSelected 
-          ? (selectedColor ?? theme.colorScheme.primary.withValues(alpha: 0.1))
-          : (unselectedColor ?? theme.colorScheme.surfaceContainer),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      onTap: onTap,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            Icon(
-              icon,
-              size: 16,
-              color: isSelected 
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 6),
-          ],
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: isSelected 
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.onSurface,
-            ),
+    final bgColor = isSelected
+        ? (selectedColor ?? YanoljaColors.primaryLight)
+        : (unselectedColor ?? YanoljaColors.surface);
+    final borderColor =
+        isSelected ? YanoljaColors.primary : YanoljaColors.border;
+    final fgColor =
+        isSelected ? YanoljaColors.primary : YanoljaColors.textSecondary;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+        splashColor: YanoljaColors.primary.withValues(alpha: 0.06),
+        highlightColor: YanoljaColors.primary.withValues(alpha: 0.04),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+            border: Border.all(color: borderColor, width: 1),
           ),
-        ],
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: 16, color: fgColor),
+                const SizedBox(width: 6),
+              ],
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: fgColor,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
-/// 🌟 **네오모피즘 뱃지**
-/// 🏷️ **네오모피즘 배지 - 그라데이션 에디션**
-/// 아름다운 그라데이션으로 상태나 정보를 표시하는 배지
+/// 🏷️ **야놀자 배지**
+/// 상태/특가 정보를 표시하는 플랫 핑크 배지 (기본 핑크 배경 + 화이트 텍스트).
+/// `useGradient` 파라미터는 호환성을 위해 유지하나, 야놀자 플랫 스타일에선 단색으로 처리합니다.
 class NeumorphismBadge extends StatelessWidget {
   final String text;
   final Color? backgroundColor;
@@ -498,41 +429,25 @@ class NeumorphismBadge extends StatelessWidget {
     this.backgroundColor,
     this.textColor,
     this.fontSize = 10,
-    this.useGradient = false, // 화이트 테마는 단색이 더 깔끔
+    this.useGradient = false, // 야놀자는 단색 배지를 사용
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
+    final bg = backgroundColor ?? YanoljaColors.primary;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: useGradient ? null : backgroundColor ?? theme.colorScheme.primary,
-        gradient: useGradient ? LinearGradient(
-          colors: [
-            backgroundColor ?? const Color(0xFF6B7280), // 모던 그레이
-            backgroundColor?.withValues(alpha: 0.8) ?? const Color(0xFF9CA3AF), // 라이트 그레이
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ) : null,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: NeumorphismHelper.softShadow,
+        color: bg,
+        borderRadius: BorderRadius.circular(YanoljaRadius.sm),
       ),
       child: Text(
         text,
         style: TextStyle(
           fontSize: fontSize,
-          fontWeight: FontWeight.w600,
-          color: textColor ?? (useGradient || backgroundColor != null ? Colors.white : const Color(0xFF111827)),
-          shadows: useGradient ? const [
-            Shadow(
-              offset: Offset(0, 1),
-              blurRadius: 2,
-              color: Colors.black26,
-            ),
-          ] : null,
+          fontWeight: FontWeight.w700,
+          color: textColor ?? Colors.white,
         ),
       ),
     );

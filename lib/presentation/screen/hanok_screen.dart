@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/data/model/accommodation.dart';
 import 'package:yanolja_clone/presentation/provider/accommodation_provider.dart';
 import 'package:yanolja_clone/presentation/provider/saved_provider.dart';
@@ -26,11 +26,11 @@ class _HanokScreenState extends ConsumerState<HanokScreen> {
     final accommodationsAsync = ref.watch(accommodationListProvider);
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: YanoljaColors.background,
       appBar: AppBar(
         title: const Text(
           '한옥',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.w800),
         ),
         elevation: 0,
       ),
@@ -38,8 +38,8 @@ class _HanokScreenState extends ConsumerState<HanokScreen> {
         data: (accommodations) {
           // 한옥만 필터링 (category가 '한옥'인 것)
           var hanoks = accommodations
-              .where((accommodation) => 
-                  accommodation.category.contains('한옥') || 
+              .where((accommodation) =>
+                  accommodation.category.contains('한옥') ||
                   accommodation.name.contains('한옥'))
               .toList();
 
@@ -78,35 +78,31 @@ class _HanokScreenState extends ConsumerState<HanokScreen> {
             children: [
               // 필터 섹션
               Container(
-                color: Colors.white,
+                color: YanoljaColors.background,
                 child: Column(
                   children: [
                     // 스타일 필터
-                    Container(
-                      height: 50,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                    SizedBox(
+                      height: 52,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 8),
                         itemCount: _styles.length,
                         itemBuilder: (context, index) {
                           final style = _styles[index];
                           final isSelected = _selectedStyle == style;
                           return Padding(
                             padding: const EdgeInsets.only(right: 8),
-                            child: ChoiceChip(
-                              label: Text(style),
+                            child: _StyleChip(
+                              label: style,
                               selected: isSelected,
-                              onSelected: (selected) {
+                              onTap: () {
                                 setState(() {
-                                  _selectedStyle = selected ? style : '전체';
+                                  _selectedStyle =
+                                      isSelected ? '전체' : style;
                                 });
                               },
-                              selectedColor: Theme.of(context).primaryColor,
-                              labelStyle: TextStyle(
-                                color: isSelected ? Colors.white : Colors.black87,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              ),
                             ),
                           );
                         },
@@ -114,24 +110,31 @@ class _HanokScreenState extends ConsumerState<HanokScreen> {
                     ),
                     // 정렬 옵션
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.fromLTRB(20, 4, 12, 8),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             '${hanoks.length}개의 한옥',
                             style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey,
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
+                              color: YanoljaColors.textSecondary,
                             ),
                           ),
                           DropdownButton<String>(
                             value: _sortBy,
                             underline: const SizedBox(),
-                            icon: const Icon(Icons.arrow_drop_down),
+                            borderRadius:
+                                BorderRadius.circular(YanoljaRadius.md),
+                            icon: const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: YanoljaColors.textSecondary,
+                            ),
                             style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.black87,
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
+                              color: YanoljaColors.textPrimary,
                             ),
                             items: _sortOptions.map((option) {
                               return DropdownMenuItem(
@@ -148,6 +151,11 @@ class _HanokScreenState extends ConsumerState<HanokScreen> {
                         ],
                       ),
                     ),
+                    const Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: YanoljaColors.border,
+                    ),
                   ],
                 ),
               ),
@@ -158,25 +166,26 @@ class _HanokScreenState extends ConsumerState<HanokScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.home_outlined,
-                              size: 80,
-                              color: Colors.grey[300],
+                              size: 72,
+                              color: YanoljaColors.textTertiary,
                             ),
                             const SizedBox(height: 16),
-                            Text(
+                            const Text(
                               '조건에 맞는 한옥이 없습니다',
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w700,
+                                color: YanoljaColors.textPrimary,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
+                            const SizedBox(height: 6),
+                            const Text(
                               '다른 조건으로 검색해보세요',
                               style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[500],
+                                fontSize: 13.5,
+                                color: YanoljaColors.textSecondary,
                               ),
                             ),
                           ],
@@ -184,15 +193,15 @@ class _HanokScreenState extends ConsumerState<HanokScreen> {
                       )
                     : AnimationLimiter(
                         child: ListView.builder(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
                           itemCount: hanoks.length,
                           itemBuilder: (context, index) {
                             final hanok = hanoks[index];
                             return AnimationConfiguration.staggeredList(
                               position: index,
-                              duration: const Duration(milliseconds: 375),
+                              duration: const Duration(milliseconds: 300),
                               child: SlideAnimation(
-                                verticalOffset: 50.0,
+                                verticalOffset: 20.0,
                                 child: FadeInAnimation(
                                   child: _HanokListItem(hanok: hanok),
                                 ),
@@ -205,35 +214,78 @@ class _HanokScreenState extends ConsumerState<HanokScreen> {
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: YanoljaColors.primary),
+        ),
         error: (error, stack) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(
                 Icons.error_outline,
-                size: 64,
-                color: Colors.red,
+                size: 60,
+                color: YanoljaColors.primary,
               ),
               const SizedBox(height: 16),
-              Text(
+              const Text(
                 '오류가 발생했습니다',
                 style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[800],
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  color: YanoljaColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 error.toString(),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
+                style: const TextStyle(
+                  fontSize: 13.5,
+                  color: YanoljaColors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// 야놀자 스타일 필터 칩 (플랫 핑크)
+class _StyleChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _StyleChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? YanoljaColors.primary : YanoljaColors.surfaceAlt,
+          borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+          border: Border.all(
+            color: selected ? YanoljaColors.primary : YanoljaColors.border,
+            width: 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13.5,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            color: selected ? Colors.white : YanoljaColors.textSecondary,
           ),
         ),
       ),
@@ -251,13 +303,26 @@ class _HanokListItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isSaved = ref.watch(savedProvider).contains(hanok.id);
 
+    // 야놀자 스타일 가격 표기 (정가 취소선 + 핑크 할인율 + 굵은 현재가)
+    final discountRate = YanoljaFormat.discountRate(hanok.id);
+    final originalPrice =
+        YanoljaFormat.originalPrice(hanok.price, discountRate);
+
     return GestureDetector(
       onTap: () => context.push('/detail/${hanok.id}'),
-      child: Card(
+      child: Container(
         margin: const EdgeInsets.only(bottom: 16),
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+        decoration: BoxDecoration(
+          color: YanoljaColors.surface,
+          borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+          border: Border.all(color: YanoljaColors.border, width: 1),
+          boxShadow: const [
+            BoxShadow(
+              color: YanoljaColors.shadow,
+              blurRadius: 12,
+              offset: Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,26 +331,30 @@ class _HanokListItem extends ConsumerWidget {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(YanoljaRadius.lg)),
                   child: CachedNetworkImage(
-                    imageUrl: hanok.imageUrls.isNotEmpty 
-                        ? hanok.imageUrls.first 
+                    imageUrl: hanok.imageUrls.isNotEmpty
+                        ? hanok.imageUrls.first
                         : 'https://images.unsplash.com/photo-1540479859555-17af45c78602?w=800',
                     width: double.infinity,
                     height: 200,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
-                      color: Colors.grey[200],
+                      color: YanoljaColors.surfaceAlt,
                       child: const Center(
-                        child: CircularProgressIndicator(),
+                        child: CircularProgressIndicator(
+                          color: YanoljaColors.primary,
+                          strokeWidth: 2,
+                        ),
                       ),
                     ),
                     errorWidget: (context, url, error) => Container(
-                      color: Colors.grey[200],
+                      color: YanoljaColors.surfaceAlt,
                       child: const Icon(
-                        Icons.error_outline,
-                        size: 50,
-                        color: Colors.grey,
+                        Icons.image_not_supported_outlined,
+                        size: 44,
+                        color: YanoljaColors.textTertiary,
                       ),
                     ),
                   ),
@@ -298,34 +367,40 @@ class _HanokListItem extends ConsumerWidget {
                     children: [
                       if (hanok.isNew)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(20),
+                            color: YanoljaColors.primary,
+                            borderRadius:
+                                BorderRadius.circular(YanoljaRadius.sm),
                           ),
                           child: const Text(
                             'NEW',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.3,
                             ),
                           ),
                         ),
                       if (hanok.isPopular) ...[
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
-                            color: Colors.orange,
-                            borderRadius: BorderRadius.circular(20),
+                            color: YanoljaColors.textPrimary
+                                .withValues(alpha: 0.78),
+                            borderRadius:
+                                BorderRadius.circular(YanoljaRadius.sm),
                           ),
                           child: const Text(
                             '인기',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
@@ -335,17 +410,29 @@ class _HanokListItem extends ConsumerWidget {
                 ),
                 // 찜 버튼
                 Positioned(
-                  top: 12,
-                  right: 12,
-                  child: IconButton(
-                    icon: Icon(
-                      isSaved ? Icons.favorite : Icons.favorite_border,
-                      color: isSaved ? Colors.red : Colors.white,
-                      size: 28,
-                    ),
-                    onPressed: () {
+                  top: 8,
+                  right: 8,
+                  child: GestureDetector(
+                    onTap: () {
                       ref.read(savedProvider.notifier).toggleSaved(hanok.id);
                     },
+                    behavior: HitTestBehavior.opaque,
+                    child: Container(
+                      padding: const EdgeInsets.all(7),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.92),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isSaved
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                        color: isSaved
+                            ? YanoljaColors.primary
+                            : YanoljaColors.textSecondary,
+                        size: 22,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -358,67 +445,57 @@ class _HanokListItem extends ConsumerWidget {
                 children: [
                   // 이름과 평점
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: Text(
                           hanok.name,
                           style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                            color: YanoljaColors.textPrimary,
+                            letterSpacing: -0.3,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Row(
-                        children: [
-                          const Icon(Icons.star, color: Colors.amber, size: 16),
-                          const SizedBox(width: 4),
-                          Text(
-                            hanok.rating.toString(),
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            ' (${hanok.reviewCount})',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
+                      const SizedBox(width: 8),
+                      YanoljaRating(
+                        rating: hanok.rating,
+                        reviewCount: hanok.reviewCount,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   // 주소
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.location_on_outlined,
-                        size: 16,
-                        color: Colors.grey[600],
+                        size: 15,
+                        color: YanoljaColors.textTertiary,
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 3),
                       Expanded(
                         child: Text(
                           hanok.address,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: YanoljaColors.textSecondary,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
                   // 설명
                   Text(
                     hanok.description,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[700],
-                      height: 1.4,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: YanoljaColors.textSecondary,
+                      height: 1.45,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -427,66 +504,101 @@ class _HanokListItem extends ConsumerWidget {
                   // 태그들
                   if (hanok.tags != null && hanok.tags!.isNotEmpty)
                     Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
+                      spacing: 6,
+                      runSpacing: 6,
                       children: hanok.tags!.take(3).map((tag) {
                         return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
-                            color: Colors.brown[50],
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: Colors.brown[200]!,
-                              width: 1,
-                            ),
+                            color: YanoljaColors.primaryLight,
+                            borderRadius:
+                                BorderRadius.circular(YanoljaRadius.sm),
                           ),
                           child: Text(
                             tag,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.brown[700],
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: YanoljaColors.primaryDark,
                             ),
                           ),
                         );
                       }).toList(),
                     ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
+                  const Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: YanoljaColors.divider,
+                  ),
+                  const SizedBox(height: 12),
                   // 가격과 편의시설
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: NumberFormat('#,###').format(hanok.price),
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 정가 취소선
+                          Text(
+                            '${YanoljaFormat.price(originalPrice)}원',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: YanoljaColors.textTertiary,
+                              decoration: TextDecoration.lineThrough,
                             ),
-                            const TextSpan(
-                              text: '원',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.black54,
+                          ),
+                          const SizedBox(height: 2),
+                          // 할인율 + 현재가
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                '$discountRate%',
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w800,
+                                  color: YanoljaColors.primary,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
+                              const SizedBox(width: 6),
+                              Text(
+                                YanoljaFormat.price(hanok.price),
+                                style: const TextStyle(
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.w800,
+                                  color: YanoljaColors.textPrimary,
+                                ),
+                              ),
+                              const Text(
+                                '원',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: YanoljaColors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                       Row(
                         children: [
                           if (hanok.hasWifi)
-                            Icon(Icons.wifi, size: 20, color: Colors.grey[600]),
+                            const Icon(Icons.wifi_rounded,
+                                size: 18, color: YanoljaColors.textTertiary),
                           if (hanok.hasParking) ...[
                             const SizedBox(width: 8),
-                            Icon(Icons.local_parking, size: 20, color: Colors.grey[600]),
+                            const Icon(Icons.local_parking_rounded,
+                                size: 18, color: YanoljaColors.textTertiary),
                           ],
                           if (hanok.hasBreakfast) ...[
                             const SizedBox(width: 8),
-                            Icon(Icons.restaurant, size: 20, color: Colors.grey[600]),
+                            const Icon(Icons.restaurant_rounded,
+                                size: 18, color: YanoljaColors.textTertiary),
                           ],
                         ],
                       ),

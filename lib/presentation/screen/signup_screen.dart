@@ -33,13 +33,20 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
-      if (result != null && mounted) {
+      if (!mounted) return;
+      if (result != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result)),
         );
+        setState(() => _isLoading = false);
+      } else {
+        // 회원가입 성공 → 이전 화면으로 복귀
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/home');
+        }
       }
-      // On successful sign up, the auth state change will handle navigation.
-      setState(() => _isLoading = false);
     }
   }
 

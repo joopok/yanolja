@@ -1,86 +1,105 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// FirebaseAuth 인스턴스를 제공하는 Provider
-final firebaseAuthProvider = Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
+/// 앱 사용자 모델
+///
+/// 이 프로젝트는 Firebase가 비활성화(GoogleService-Info.plist 미포함)되어 있어
+/// 실제 FirebaseAuth 대신 목업(mock) 인증을 사용합니다.
+/// 따라서 Firebase `User` 타입 대신 가벼운 [AppUser] 모델을 사용합니다.
+class AppUser {
+  final String email;
+  final String displayName;
 
-// 로그인 상태를 실시간으로 감지하는 StreamProvider
-final authStateChangesProvider = StreamProvider<User?>((ref) {
-  return ref.watch(firebaseAuthProvider).authStateChanges();
+  const AppUser({required this.email, required this.displayName});
+}
+
+/// 인증 상태 관리 (Firebase 미설정 환경을 위한 목업 인증)
+///
+/// 기본값을 로그인 상태로 두어 Firebase 없이도 마이 화면이
+/// 정상적으로 전체 UI를 표시하도록 합니다.
+class AuthNotifier extends StateNotifier<AppUser?> {
+  AuthNotifier() : super(_defaultUser);
+
+  /// 데모용 기본 로그인 사용자
+  static const AppUser _defaultUser = AppUser(
+    email: 'guest@yeogi.com',
+    displayName: '여기가어때',
+  );
+
+  /// 이메일 기반 로그인 (목업)
+  void signIn(String email) {
+    final trimmed = email.trim();
+    final safeEmail = trimmed.isEmpty ? 'guest@yeogi.com' : trimmed;
+    final name = safeEmail.contains('@') ? safeEmail.split('@').first : safeEmail;
+    state = AppUser(email: safeEmail, displayName: name.isEmpty ? '여기가어때' : name);
+  }
+
+  /// 로그아웃
+  void signOut() => state = null;
+}
+
+/// 현재 로그인 상태를 보유하는 Provider
+final authStateProvider =
+    StateNotifierProvider<AuthNotifier, AppUser?>((ref) => AuthNotifier());
+
+/// 기존 `.when(data/loading/error)` 호출부와 호환되도록 AsyncValue로 래핑한 Provider
+///
+/// 목업 인증은 동기적으로 상태가 결정되므로 항상 `AsyncValue.data`를 반환합니다.
+final authStateChangesProvider = Provider<AsyncValue<AppUser?>>((ref) {
+  return AsyncValue.data(ref.watch(authStateProvider));
 });
 
-// 인증 로직을 관리하는 AuthProvider
-final authProvider = Provider<AuthProvider>((ref) {
-  return AuthProvider(ref.watch(firebaseAuthProvider));
-});
+/// 인증 동작(로그인/회원가입/로그아웃)을 제공하는 Provider
+final authProvider = Provider<AuthProvider>((ref) => AuthProvider(ref));
 
+/// 인증 로직을 관리하는 AuthProvider (목업)
+///
+/// 모든 메서드는 성공 시 `null`, 실패 시 한국어 에러 메시지(String)를 반환합니다.
+/// (기존 FirebaseAuth 기반 API 시그니처를 그대로 유지합니다.)
 class AuthProvider {
-  final FirebaseAuth _auth;
+  final Ref _ref;
 
-  AuthProvider(this._auth);
+  AuthProvider(this._ref);
 
-  // 이메일/비밀번호로 회원가입
+  /// 이메일/비밀번호 회원가입 (목업)
   Future<String?> signUpWithEmailAndPassword(
       String email, String password) async {
-    try {
-      await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      return null; // 성공 시 null 반환
-    } on FirebaseAuthException catch (e) {
-      return _getErrorMessage(e.code); // 에러 메시지 반환
-    } catch (e) {
-      return '알 수 없는 오류가 발생했습니다.';
+    await Future.delayed(const Duration(milliseconds: 350));
+    if (email.isEmpty || password.isEmpty) {
+      return '이메일과 비밀번호를 입력해주세요.';
     }
+    if (!email.contains('@')) {
+      return '유효하지 않은 이메일 형식입니다.';
+    }
+    if (password.length < 6) {
+      return '비밀번호는 6자 이상이어야 합니다.';
+    }
+    _ref.read(authStateProvider.notifier).signIn(email);
+    return null;
   }
 
-  // 이메일/비밀번호로 로그인
+  /// 이메일/비밀번호 로그인 (목업)
   Future<String?> signInWithEmailAndPassword(
       String email, String password) async {
-    try {
-      await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      return null; // 성공 시 null 반환
-    } on FirebaseAuthException catch (e) {
-      return _getErrorMessage(e.code); // 에러 메시지 반환
-    } catch (e) {
-      return '알 수 없는 오류가 발생했습니다.';
+    await Future.delayed(const Duration(milliseconds: 350));
+    if (email.isEmpty || password.isEmpty) {
+      return '이메일과 비밀번호를 입력해주세요.';
     }
+    if (password.length < 6) {
+      return '비밀번호는 6자 이상이어야 합니다.';
+    }
+    _ref.read(authStateProvider.notifier).signIn(email);
+    return null;
   }
 
-  // Google로 로그인 (임시 비활성화)
+  /// Google 로그인 (목업)
   Future<String?> signInWithGoogle() async {
-    return 'Google 로그인이 현재 사용할 수 없습니다. 이메일/비밀번호로 로그인해주세요.';
+    await Future.delayed(const Duration(milliseconds: 350));
+    _ref.read(authStateProvider.notifier).signIn('google.user@gmail.com');
+    return null;
   }
 
-  // 에러 코드에 따른 메시지 반환
-  String _getErrorMessage(String errorCode) {
-    switch (errorCode) {
-      case 'email-already-in-use':
-        return '이미 사용 중인 이메일입니다.';
-      case 'invalid-email':
-        return '유효하지 않은 이메일 형식입니다.';
-      case 'weak-password':
-        return '비밀번호는 6자 이상이어야 합니다.';
-      case 'user-not-found':
-        return '등록되지 않은 이메일입니다.';
-      case 'wrong-password':
-        return '비밀번호가 일치하지 않습니다.';
-      case 'network-request-failed':
-        return '네트워크 연결을 확인해주세요.';
-      case 'too-many-requests':
-        return '로그인 시도 횟수가 너무 많습니다. 잠시 후 다시 시도해주세요.';
-      default:
-        return '로그인/회원가입에 실패했습니다. 다시 시도해주세요.';
-    }
-  }
-
-  // 로그아웃
+  /// 로그아웃
   Future<void> signOut() async {
-    await _auth.signOut();
-    // Google Sign-In은 임시로 비활성화
+    _ref.read(authStateProvider.notifier).signOut();
   }
 }

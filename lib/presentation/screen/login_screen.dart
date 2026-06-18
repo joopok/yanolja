@@ -31,12 +31,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
-      if (result != null && mounted) {
+      if (!mounted) return;
+      if (result != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result)),
         );
+        setState(() => _isLoading = false);
+      } else {
+        // 로그인 성공 → 이전 화면으로 복귀
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/home');
+        }
       }
-      setState(() => _isLoading = false);
     }
   }
 
@@ -44,12 +52,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isLoading = true);
     final auth = ref.read(authProvider);
     final result = await auth.signInWithGoogle();
-    if (result != null && mounted) {
+    if (!mounted) return;
+    if (result != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result)),
       );
+      setState(() => _isLoading = false);
+    } else {
+      // 로그인 성공 → 이전 화면으로 복귀
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/home');
+      }
     }
-    setState(() => _isLoading = false);
   }
 
   @override

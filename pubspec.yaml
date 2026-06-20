@@ -13,7 +13,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
+
+  # 다국어/로케일 (날짜 선택기 등 한글화)
+  flutter_localizations:
+    sdk: flutter
+
   # 상태관리
   flutter_riverpod: ^2.5.1
   
@@ -66,7 +70,13 @@ dependencies:
   provider: ^6.1.5
 
 dev_dependencies:
+  flutter_test:
+    sdk: flutter
   flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/brand/
+    - assets/search_icons/
+    - assets/nearby_icons/

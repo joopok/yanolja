@@ -21,16 +21,18 @@ class AuthNotifier extends StateNotifier<AppUser?> {
 
   /// 데모용 기본 로그인 사용자
   static const AppUser _defaultUser = AppUser(
-    email: 'guest@yeogi.com',
-    displayName: '여기가어때',
+    email: 'guest@nol.com',
+    displayName: 'NOL러',
   );
 
   /// 이메일 기반 로그인 (목업)
   void signIn(String email) {
     final trimmed = email.trim();
-    final safeEmail = trimmed.isEmpty ? 'guest@yeogi.com' : trimmed;
-    final name = safeEmail.contains('@') ? safeEmail.split('@').first : safeEmail;
-    state = AppUser(email: safeEmail, displayName: name.isEmpty ? '여기가어때' : name);
+    final safeEmail = trimmed.isEmpty ? 'guest@nol.com' : trimmed;
+    final name =
+        safeEmail.contains('@') ? safeEmail.split('@').first : safeEmail;
+    state =
+        AppUser(email: safeEmail, displayName: name.isEmpty ? 'NOL러' : name);
   }
 
   /// 로그아웃
@@ -95,6 +97,15 @@ class AuthProvider {
   Future<String?> signInWithGoogle() async {
     await Future.delayed(const Duration(milliseconds: 350));
     _ref.read(authStateProvider.notifier).signIn('google.user@gmail.com');
+    return null;
+  }
+
+  /// 소셜 로그인 (목업) — 카카오·네이버·Apple 등
+  ///
+  /// 실제 SDK 연동 없이 전달된 이메일로 로그인 상태를 만듭니다.
+  Future<String?> signInWithProvider(String providerEmail) async {
+    await Future.delayed(const Duration(milliseconds: 350));
+    _ref.read(authStateProvider.notifier).signIn(providerEmail);
     return null;
   }
 

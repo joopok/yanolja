@@ -5,9 +5,11 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_confirm_dialog.dart';
 import 'package:yanolja_clone/data/model/accommodation.dart';
 import 'package:yanolja_clone/presentation/provider/accommodation_provider.dart';
 import 'package:yanolja_clone/presentation/provider/saved_provider.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
 
 class SavedScreen extends ConsumerWidget {
   const SavedScreen({super.key});
@@ -38,59 +40,134 @@ class SavedScreen extends ConsumerWidget {
                   hasScrollBody: false,
                   child: _buildEmptyState(context),
                 )
-              else
+              else ...[
+                SliverToBoxAdapter(
+                  child: _buildSavedOverview(
+                    context,
+                    ref,
+                    savedAccommodations.length,
+                  ),
+                ),
                 _buildSavedList(context, ref, savedAccommodations),
+              ],
             ],
           );
         },
       ),
-      floatingActionButton: savedIds.isNotEmpty
-          ? FloatingActionButton.extended(
-              onPressed: () => _showClearAllDialog(context, ref),
-              backgroundColor: YanoljaColors.primary,
-              foregroundColor: Colors.white,
-              elevation: 2,
-              icon: const Icon(Icons.delete_sweep_outlined, size: 20),
-              label: const Text(
-                '전체 삭제',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-            )
-          : null,
     );
   }
 
-  /// 야놀자 스타일 화이트 좌측정렬 앱바
-  SliverAppBar _buildSliverAppBar(BuildContext context, int count) {
-    return SliverAppBar(
-      pinned: true,
+  Widget _buildSliverAppBar(BuildContext context, int count) {
+    return YanoljaSliverAppBar.main(
+      title: '찜',
+      subtitle: count > 0 ? '찜한 숙소 $count개' : '저장한 숙소가 없어요',
       floating: true,
       snap: true,
-      elevation: 0,
-      scrolledUnderElevation: 0.5,
-      shadowColor: YanoljaColors.shadow,
-      backgroundColor: YanoljaColors.background,
-      surfaceTintColor: YanoljaColors.background,
-      centerTitle: false,
-      titleSpacing: 20,
-      title: RichText(
-        text: TextSpan(
-          style: const TextStyle(
-            fontSize: 19,
-            fontWeight: FontWeight.w800,
+      actions: [
+        IconButton(
+          onPressed: () => context.go('/search'),
+          tooltip: '검색',
+          icon: const Icon(
+            Icons.search_rounded,
             color: YanoljaColors.textPrimary,
-            letterSpacing: -0.4,
+            size: 24,
           ),
-          children: [
-            const TextSpan(text: '찜 목록 '),
-            TextSpan(
-              text: '$count',
-              style: const TextStyle(
-                fontWeight: FontWeight.w800,
-                color: YanoljaColors.primary,
+        ),
+        const SizedBox(width: 6),
+      ],
+    );
+  }
+
+  Widget _buildSavedOverview(BuildContext context, WidgetRef ref, int count) {
+    return Container(
+      color: YanoljaColors.background,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+            child: Row(
+              children: [
+                _buildSavedTab('숙소', count: count, selected: true),
+                const SizedBox(width: 8),
+                _buildSavedTab('티켓', count: 0),
+                const SizedBox(width: 8),
+                _buildSavedTab('공연', count: 0),
+                const Spacer(),
+                TextButton(
+                  onPressed: () => _showClearAllDialog(context, ref),
+                  style: TextButton.styleFrom(
+                    foregroundColor: YanoljaColors.textSecondary,
+                    minimumSize: const Size(0, 34),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text(
+                    '편집',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: YanoljaColors.primaryLight,
+                borderRadius: BorderRadius.circular(YanoljaRadius.md),
+                border: Border.all(color: const Color(0xFFDCE5FF)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(
+                    Icons.notifications_active_rounded,
+                    color: YanoljaColors.primary,
+                    size: 22,
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      '찜한 상품의 특가와 쿠폰 소식을 바로 확인해보세요',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: YanoljaColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
+          Container(height: 8, color: YanoljaColors.surfaceAlt),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSavedTab(
+    String label, {
+    required int count,
+    bool selected = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+      decoration: BoxDecoration(
+        color: selected ? YanoljaColors.textPrimary : YanoljaColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+      ),
+      child: Text(
+        '$label $count',
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w800,
+          color: selected ? Colors.white : YanoljaColors.textSecondary,
         ),
       ),
     );
@@ -102,7 +179,7 @@ class SavedScreen extends ConsumerWidget {
     List<Accommodation> savedAccommodations,
   ) {
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 34),
       sliver: AnimationLimiter(
         child: SliverList(
           delegate: SliverChildBuilderDelegate(
@@ -116,8 +193,7 @@ class SavedScreen extends ConsumerWidget {
                   child: FadeInAnimation(
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 14),
-                      child:
-                          _buildDismissibleCard(context, ref, accommodation),
+                      child: _buildDismissibleCard(context, ref, accommodation),
                     ),
                   ),
                 ),
@@ -141,8 +217,8 @@ class SavedScreen extends ConsumerWidget {
       background: Container(
         padding: const EdgeInsets.only(right: 24),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(YanoljaRadius.md),
-          color: YanoljaColors.primary,
+          borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+          color: YanoljaColors.textPrimary,
         ),
         alignment: Alignment.centerRight,
         child: const Column(
@@ -194,15 +270,8 @@ class SavedScreen extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: YanoljaColors.surface,
-        borderRadius: BorderRadius.circular(YanoljaRadius.md),
+        borderRadius: BorderRadius.circular(YanoljaRadius.lg),
         border: Border.all(color: YanoljaColors.border, width: 1),
-        boxShadow: const [
-          BoxShadow(
-            color: YanoljaColors.shadow,
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -218,17 +287,17 @@ class SavedScreen extends ConsumerWidget {
                     imageUrl: accommodation.imageUrls.isNotEmpty
                         ? accommodation.imageUrls.first
                         : '',
-                    width: 104,
-                    height: 104,
+                    width: 112,
+                    height: 112,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
-                      width: 104,
-                      height: 104,
+                      width: 112,
+                      height: 112,
                       color: YanoljaColors.surfaceAlt,
                     ),
                     errorWidget: (context, url, error) => Container(
-                      width: 104,
-                      height: 104,
+                      width: 112,
+                      height: 112,
                       color: YanoljaColors.surfaceAlt,
                       child: const Icon(
                         Icons.image_not_supported_outlined,
@@ -250,11 +319,11 @@ class SavedScreen extends ConsumerWidget {
                       decoration: BoxDecoration(
                         color: accommodation.isNew
                             ? YanoljaColors.textPrimary
-                            : YanoljaColors.primary,
+                            : YanoljaColors.sale,
                         borderRadius: BorderRadius.circular(YanoljaRadius.sm),
                       ),
                       child: Text(
-                        accommodation.isNew ? 'NEW' : '인기',
+                        accommodation.isNew ? 'NOL특가' : '인기',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
@@ -304,7 +373,7 @@ class SavedScreen extends ConsumerWidget {
                           padding: EdgeInsets.only(left: 6),
                           child: Icon(
                             Icons.favorite_rounded,
-                            color: YanoljaColors.primary,
+                            color: YanoljaColors.sale,
                             size: 22,
                           ),
                         ),
@@ -349,7 +418,7 @@ class SavedScreen extends ConsumerWidget {
                         style: const TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w800,
-                          color: YanoljaColors.primary,
+                          color: YanoljaColors.sale,
                           letterSpacing: -0.3,
                         ),
                       ),
@@ -383,6 +452,15 @@ class SavedScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 3),
+                  const Text(
+                    '쿠폰 적용가',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: YanoljaColors.primary,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -414,18 +492,18 @@ class SavedScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             const Text(
-              '찜한 숙소가 없어요',
+              '아직 찜한 상품이 없어요',
               style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
+                fontSize: 19,
+                fontWeight: FontWeight.w900,
                 color: YanoljaColors.textPrimary,
                 letterSpacing: -0.3,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Text(
-              '마음에 드는 숙소를 찜하고\n나중에 편하게 확인하세요.',
+            const Text(
+              'NOL 특가, 숙소, 티켓을 찜하고\n가격과 혜택을 한 번에 확인하세요.',
               style: TextStyle(
                 fontSize: 14,
                 color: YanoljaColors.textSecondary,
@@ -434,18 +512,23 @@ class SavedScreen extends ConsumerWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 28),
-            ElevatedButton.icon(
-              onPressed: () => context.go('/home'),
-              icon: const Icon(Icons.home_outlined, size: 18),
-              label: const Text('홈으로 가기'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: YanoljaColors.primary,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(YanoljaRadius.md),
+            SizedBox(
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed: () => context.go('/home'),
+                icon: const Icon(Icons.local_offer_rounded, size: 18),
+                label: const Text(
+                  'NOL 특가 보러가기',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: YanoljaColors.primary,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(YanoljaRadius.md),
+                  ),
                 ),
               ),
             ),
@@ -512,99 +595,28 @@ class SavedScreen extends ConsumerWidget {
 
   Future<bool?> _showRemoveDialog(
       BuildContext context, String accommodationName) {
-    return showDialog<bool>(
+    return showYanoljaConfirmDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: YanoljaColors.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(YanoljaRadius.lg),
-          ),
-          title: const Text(
-            '찜 삭제',
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              color: YanoljaColors.textPrimary,
-            ),
-          ),
-          content: Text(
-            '$accommodationName을(를) 정말 삭제할까요?',
-            style: const TextStyle(color: YanoljaColors.textSecondary),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text(
-                '취소',
-                style: TextStyle(color: YanoljaColors.textSecondary),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: YanoljaColors.primary,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(YanoljaRadius.sm),
-                ),
-              ),
-              child: const Text('삭제'),
-            ),
-          ],
-        );
-      },
+      icon: Icons.bookmark_remove_rounded,
+      title: '찜 삭제',
+      message: '$accommodationName을(를)\n찜 목록에서 삭제할까요?',
+      confirmText: '삭제',
+      isDestructive: true,
     );
   }
 
-  void _showClearAllDialog(BuildContext context, WidgetRef ref) {
-    showDialog(
+  Future<void> _showClearAllDialog(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showYanoljaConfirmDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: YanoljaColors.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(YanoljaRadius.lg),
-          ),
-          title: const Text(
-            '전체 삭제',
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              color: YanoljaColors.textPrimary,
-            ),
-          ),
-          content: const Text(
-            '찜한 모든 숙소를 삭제할까요?\n이 작업은 되돌릴 수 없습니다.',
-            style: TextStyle(color: YanoljaColors.textSecondary, height: 1.4),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                '취소',
-                style: TextStyle(color: YanoljaColors.textSecondary),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                ref.read(savedProvider.notifier).clearAll();
-                Navigator.of(context).pop();
-                _showSnackBar(context, '모든 찜 목록이 삭제되었습니다.');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: YanoljaColors.primary,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(YanoljaRadius.sm),
-                ),
-              ),
-              child: const Text('삭제'),
-            ),
-          ],
-        );
-      },
+      icon: Icons.delete_sweep_rounded,
+      title: '전체 삭제',
+      message: '찜한 모든 숙소를 삭제할까요?\n이 작업은 되돌릴 수 없습니다.',
+      confirmText: '전체 삭제',
+      isDestructive: true,
     );
+    if (!confirmed || !context.mounted) return;
+    ref.read(savedProvider.notifier).clearAll();
+    _showSnackBar(context, '모든 찜 목록이 삭제되었습니다.');
   }
 
   void _showSnackBar(BuildContext context, String message) {

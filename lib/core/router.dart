@@ -9,18 +9,26 @@
 /// - 카테고리별 숙소 화면 (호텔, 펜션, 리조트, 한옥)
 library;
 
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:yanolja_clone/presentation/provider/accommodation_provider.dart';
 import 'package:yanolja_clone/presentation/provider/screen/detail_screen.dart';
 import 'package:yanolja_clone/presentation/provider/screen/home_screen.dart';
 import 'package:yanolja_clone/presentation/screen/login_screen.dart';
 import 'package:yanolja_clone/presentation/screen/main_shell.dart';
+import 'package:yanolja_clone/presentation/screen/map_screen.dart';
 import 'package:yanolja_clone/presentation/screen/more_screen.dart';
 import 'package:yanolja_clone/presentation/screen/nearby_screen.dart';
+import 'package:yanolja_clone/presentation/screen/nol_service_screen.dart';
 import 'package:yanolja_clone/presentation/screen/profile_screen.dart';
 import 'package:yanolja_clone/presentation/screen/saved_screen.dart';
 import 'package:yanolja_clone/presentation/screen/search_screen.dart';
+import 'package:yanolja_clone/presentation/screen/settings_screen.dart';
+import 'package:yanolja_clone/presentation/screen/forgot_password_screen.dart';
+import 'package:yanolja_clone/presentation/screen/profile_edit_screen.dart';
 import 'package:yanolja_clone/presentation/screen/signup_screen.dart';
+import 'package:yanolja_clone/presentation/screen/splash_screen.dart';
 import 'package:yanolja_clone/presentation/screen/booking_screen.dart';
 import 'package:yanolja_clone/presentation/screen/hanok_screen.dart';
 import 'package:yanolja_clone/presentation/screen/hotel_screen.dart';
@@ -28,6 +36,13 @@ import 'package:yanolja_clone/presentation/screen/pension_screen.dart';
 import 'package:yanolja_clone/presentation/screen/resort_screen.dart';
 import 'package:yanolja_clone/presentation/screen/hotel_search_screen.dart';
 import 'package:yanolja_clone/presentation/screen/masgib_screen.dart';
+import 'package:yanolja_clone/presentation/screen/all_categories_screen.dart';
+import 'package:yanolja_clone/presentation/screen/ticket_screen.dart';
+import 'package:yanolja_clone/presentation/screen/live_screen.dart';
+import 'package:yanolja_clone/presentation/screen/payment_screen.dart';
+import 'package:yanolja_clone/presentation/screen/payment_complete_screen.dart';
+import 'package:yanolja_clone/data/model/booking.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
 
 /// GoRouter 인스턴스를 제공하는 Provider
 ///
@@ -39,7 +54,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     /// 앱 시작 시 표시될 초기 경로
     /// 홈 화면이 기본 화면으로 설정되어 있습니다.
-    initialLocation: '/home',
+    initialLocation: '/splash',
 
     /// 앱의 모든 라우트 정의
     routes: [
@@ -47,8 +62,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       /// 경로: /login
       /// 사용자 인증을 위한 화면입니다.
       GoRoute(
+        path: '/splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
+
+      GoRoute(
         path: '/login',
-        builder: (context, state) => const LoginScreen(),
+        builder: (context, state) {
+          // 로그아웃 직후 진입 시 extra로 fromLogout 플래그를 전달받습니다.
+          final extra = state.extra;
+          final fromLogout = extra is Map && extra['fromLogout'] == true;
+          return LoginScreen(fromLogout: fromLogout);
+        },
       ),
 
       /// 회원가입 화면 라우트
@@ -141,6 +166,84 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const MoreScreen(),
       ),
 
+      /// 결제 확인 화면 라우트
+      /// 경로: /payment
+      /// 객실 선택 완료 후 예약 정보 확인 및 결제 진행
+      GoRoute(
+        path: '/payment',
+        builder: (context, state) {
+          final args = state.extra as PaymentArgs;
+          return PaymentScreen(args: args);
+        },
+      ),
+
+      /// 결제 완료 화면 라우트
+      /// 경로: /payment-complete
+      GoRoute(
+        path: '/payment-complete',
+        builder: (context, state) {
+          final booking = state.extra as Booking;
+          return PaymentCompleteScreen(booking: booking);
+        },
+      ),
+      GoRoute(
+        path: '/service/:type',
+        builder: (context, state) {
+          final type = state.pathParameters['type'] ?? 'deals';
+          if (type == 'settings') {
+            return const SettingsScreen();
+          }
+          return NolServiceScreen(type: type);
+        },
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
+      ),
+
+      /// 비밀번호 찾기 화면 라우트
+      /// 경로: /forgot-password
+      /// 가입 이메일로 비밀번호 재설정 링크 발송을 안내합니다.
+      GoRoute(
+        path: '/forgot-password',
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+
+      /// 프로필 수정 화면 라우트
+      /// 경로: /profile-edit
+      /// 닉네임, 이메일, 휴대폰 번호를 편집합니다.
+      GoRoute(
+        path: '/profile-edit',
+        builder: (context, state) => const ProfileEditScreen(),
+      ),
+      GoRoute(
+        path: '/map',
+        builder: (context, state) {
+          return Consumer(
+            builder: (context, ref, _) {
+              final accommodationsAsync = ref.watch(accommodationListProvider);
+              return accommodationsAsync.when(
+                data: (items) => MapScreen(accommodations: items),
+                loading: () => const Scaffold(
+                  appBar: YanoljaAppBar.sub(
+                    title: '지도',
+                    fallbackRoute: '/nearby',
+                  ),
+                  body: Center(child: CircularProgressIndicator()),
+                ),
+                error: (error, _) => Scaffold(
+                  appBar: const YanoljaAppBar.sub(
+                    title: '지도',
+                    fallbackRoute: '/nearby',
+                  ),
+                  body: Center(child: Text('지도를 불러오지 못했어요\n$error')),
+                ),
+              );
+            },
+          );
+        },
+      ),
+
       /// 숙소 상세 화면 라우트
       ///
       /// 동적 경로 파라미터를 사용하여 특정 숙소의 상세 정보를 표시합니다.
@@ -202,6 +305,31 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/masgib',
         builder: (context, state) => const MasgibScreen(),
+      ),
+
+      /// 전체 카테고리 화면
+      /// 경로: /all-categories
+      /// NOL의 모든 메뉴(티켓·국내여행·해외여행·서비스)를 모아 보여줍니다.
+      GoRoute(
+        path: '/all-categories',
+        builder: (context, state) => const AllCategoriesScreen(),
+      ),
+
+      /// NOL 티켓 화면
+      /// 경로: /ticket (?genre=뮤지컬 등으로 초기 장르 선택)
+      GoRoute(
+        path: '/ticket',
+        builder: (context, state) {
+          final genre = state.uri.queryParameters['genre'];
+          return TicketScreen(initialGenre: genre);
+        },
+      ),
+
+      /// NOL 라이브 화면
+      /// 경로: /live
+      GoRoute(
+        path: '/live',
+        builder: (context, state) => const LiveScreen(),
       ),
     ],
   );

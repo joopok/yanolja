@@ -20,7 +20,12 @@ class UserRepositoryImpl implements UserRepository {
 
   @override
   Future<UserEntity> signInWithGoogle() async {
-    throw Exception('Google sign in not implemented yet');
+    try {
+      final model = await dataSource.signInWithGoogle();
+      return UserMapper.toEntity(model);
+    } catch (e) {
+      throw Exception('Failed to sign in with Google: $e');
+    }
   }
 
   @override
@@ -64,7 +69,11 @@ class UserRepositoryImpl implements UserRepository {
 
   @override
   Future<void> deleteUser(String userId) async {
-    throw Exception('Delete user not implemented yet');
+    try {
+      await dataSource.deleteUser(userId);
+    } catch (e) {
+      throw Exception('Failed to delete user: $e');
+    }
   }
 
   @override
@@ -87,7 +96,8 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<void> removeSavedAccommodation(String userId, String accommodationId) async {
+  Future<void> removeSavedAccommodation(
+      String userId, String accommodationId) async {
     try {
       await dataSource.removeSavedAccommodation(userId, accommodationId);
     } catch (e) {

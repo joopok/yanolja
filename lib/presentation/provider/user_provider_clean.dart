@@ -26,7 +26,13 @@ final getCurrentUserUseCaseProvider = Provider((ref) {
   return GetCurrentUserUseCase(ref.watch(userRepositoryProvider));
 });
 
-// Note: UpdateUserUseCase not implemented in domain layer yet
+final updateUserUseCaseProvider = Provider((ref) {
+  return UpdateUserUseCase(ref.watch(userRepositoryProvider));
+});
+
+final deleteUserUseCaseProvider = Provider((ref) {
+  return DeleteUserUseCase(ref.watch(userRepositoryProvider));
+});
 
 final getSavedAccommodationsUseCaseProvider = Provider((ref) {
   return GetSavedAccommodationsUseCase(ref.watch(userRepositoryProvider));
@@ -41,11 +47,13 @@ final removeSavedAccommodationUseCaseProvider = Provider((ref) {
 });
 
 // State Providers
-final currentUserProvider = StateNotifierProvider<UserNotifier, AsyncValue<UserEntity?>>((ref) {
+final currentUserProvider =
+    StateNotifierProvider<UserNotifier, AsyncValue<UserEntity?>>((ref) {
   return UserNotifier(ref);
 });
 
-final savedAccommodationsProvider = StateNotifierProvider<SavedAccommodationsNotifier, AsyncValue<List<String>>>((ref) {
+final savedAccommodationsProvider = StateNotifierProvider<
+    SavedAccommodationsNotifier, AsyncValue<List<String>>>((ref) {
   return SavedAccommodationsNotifier(ref);
 });
 
@@ -101,16 +109,31 @@ class UserNotifier extends StateNotifier<AsyncValue<UserEntity?>> {
 
   Future<void> updateUser(UserEntity user) async {
     try {
-      final repository = ref.read(userRepositoryProvider);
-      await repository.updateUser(user);
+      final useCase = ref.read(updateUserUseCaseProvider);
+      await useCase(user);
       state = AsyncValue.data(user);
+    } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
+    }
+  }
+
+  Future<void> deleteCurrentUser() async {
+    final user = state.asData?.value;
+    if (user == null) return;
+
+    try {
+      final useCase = ref.read(deleteUserUseCaseProvider);
+      await useCase(user.id);
+      state = const AsyncValue.data(null);
+      ref.invalidate(savedAccommodationsProvider);
     } catch (e) {
       state = AsyncValue.error(e, StackTrace.current);
     }
   }
 }
 
-class SavedAccommodationsNotifier extends StateNotifier<AsyncValue<List<String>>> {
+class SavedAccommodationsNotifier
+    extends StateNotifier<AsyncValue<List<String>>> {
   final Ref ref;
 
   SavedAccommodationsNotifier(this.ref) : super(const AsyncValue.loading()) {
@@ -146,7 +169,7 @@ class SavedAccommodationsNotifier extends StateNotifier<AsyncValue<List<String>>
     try {
       final useCase = ref.read(saveAccommodationUseCaseProvider);
       await useCase(user.id, accommodationId);
-      
+
       final currentList = state.value ?? [];
       state = AsyncValue.data([...currentList, accommodationId]);
     } catch (e) {
@@ -162,9 +185,10 @@ class SavedAccommodationsNotifier extends StateNotifier<AsyncValue<List<String>>
     try {
       final useCase = ref.read(removeSavedAccommodationUseCaseProvider);
       await useCase(user.id, accommodationId);
-      
+
       final currentList = state.value ?? [];
-      state = AsyncValue.data(currentList.where((id) => id != accommodationId).toList());
+      state = AsyncValue.data(
+          currentList.where((id) => id != accommodationId).toList());
     } catch (e) {
       state = AsyncValue.error(e, StackTrace.current);
     }

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_bottom_nav.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
 
 /// 🍽️ 맛집 화면 — 야놀자 핑크 플랫 디자인
 /// 보라색/블루 그라데이션 및 멤버십 흔적을 제거하고
@@ -33,6 +36,7 @@ class _MasgibScreenState extends ConsumerState<MasgibScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: YanoljaColors.background,
+      bottomNavigationBar: const YanoljaBottomNav(selectedBranchIndex: 2),
       body: CustomScrollView(
         slivers: [
           _buildAppBar(),
@@ -52,23 +56,9 @@ class _MasgibScreenState extends ConsumerState<MasgibScreen>
 
   /// 화이트 좌측정렬 AppBar (테마 일관)
   Widget _buildAppBar() {
-    return SliverAppBar(
-      pinned: true,
-      backgroundColor: YanoljaColors.background,
-      surfaceTintColor: YanoljaColors.background,
-      elevation: 0,
-      scrolledUnderElevation: 0.5,
-      centerTitle: false,
-      titleSpacing: 20,
-      title: const Text(
-        '맛집',
-        style: TextStyle(
-          color: YanoljaColors.textPrimary,
-          fontSize: 20,
-          fontWeight: FontWeight.w800,
-          letterSpacing: -0.5,
-        ),
-      ),
+    return YanoljaSliverAppBar.sub(
+      title: '맛집',
+      fallbackRoute: '/nearby',
       actions: [
         IconButton(
           icon: const Icon(
@@ -76,7 +66,7 @@ class _MasgibScreenState extends ConsumerState<MasgibScreen>
             color: YanoljaColors.textPrimary,
             size: 24,
           ),
-          onPressed: () {},
+          onPressed: () => context.go('/search'),
         ),
         IconButton(
           icon: const Icon(
@@ -84,7 +74,7 @@ class _MasgibScreenState extends ConsumerState<MasgibScreen>
             color: YanoljaColors.textPrimary,
             size: 24,
           ),
-          onPressed: () {},
+          onPressed: () => context.go('/saved'),
         ),
         const SizedBox(width: 8),
       ],
@@ -218,8 +208,7 @@ class _MasgibScreenState extends ConsumerState<MasgibScreen>
                           decoration: BoxDecoration(
                             color: Colors.white,
                             shape: BoxShape.circle,
-                            border:
-                                Border.all(color: YanoljaColors.border),
+                            border: Border.all(color: YanoljaColors.border),
                           ),
                           child: const Icon(
                             Icons.restaurant_rounded,
@@ -291,8 +280,7 @@ class _MasgibScreenState extends ConsumerState<MasgibScreen>
           child: GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            gridDelegate:
-                const SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 4,
               crossAxisSpacing: 8,
               mainAxisSpacing: 16,
@@ -397,8 +385,7 @@ class _MasgibScreenState extends ConsumerState<MasgibScreen>
                   height: 44,
                   decoration: BoxDecoration(
                     color: YanoljaColors.primaryLight,
-                    borderRadius:
-                        BorderRadius.circular(YanoljaRadius.md),
+                    borderRadius: BorderRadius.circular(YanoljaRadius.md),
                   ),
                   child: const Icon(
                     Icons.local_offer_rounded,
@@ -448,8 +435,7 @@ class _MasgibScreenState extends ConsumerState<MasgibScreen>
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
                         color: YanoljaColors.primaryLight,
-                        borderRadius:
-                            BorderRadius.circular(YanoljaRadius.sm),
+                        borderRadius: BorderRadius.circular(YanoljaRadius.sm),
                       ),
                       child: Text(
                         item['tag']!,
@@ -530,8 +516,7 @@ class _MasgibScreenState extends ConsumerState<MasgibScreen>
                         ),
                         decoration: BoxDecoration(
                           color: YanoljaColors.primary,
-                          borderRadius:
-                              BorderRadius.circular(YanoljaRadius.sm),
+                          borderRadius: BorderRadius.circular(YanoljaRadius.sm),
                         ),
                         child: const Text(
                           'VIP',

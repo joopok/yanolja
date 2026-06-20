@@ -1,392 +1,611 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_bottom_nav.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
 
-class MoreScreen extends ConsumerStatefulWidget {
+class MoreScreen extends ConsumerWidget {
   const MoreScreen({super.key});
 
   @override
-  ConsumerState<MoreScreen> createState() => _MoreScreenState();
-}
-
-class _MoreScreenState extends ConsumerState<MoreScreen> {
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: YanoljaColors.background,
-      appBar: AppBar(
-        title: const Text('더보기'),
-      ),
-      body: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          _buildPromotionBanner(),
-
-          // 빠른 서비스 (그리드)
-          const YanoljaSectionHeader(
-            title: '빠른 서비스',
-            subtitle: '자주 사용하는 편리한 기능',
+      backgroundColor: YanoljaColors.surfaceAlt,
+      bottomNavigationBar: const YanoljaBottomNav(selectedBranchIndex: 0),
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          _buildAppBar(context),
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                _buildTopTabs(context),
+                _buildSearchPill(context),
+                _sectionGap(),
+                _buildCategorySection(context),
+                _sectionGap(),
+                _buildBenefitSection(context),
+                _sectionGap(),
+                _buildSupportSection(context),
+                const SizedBox(height: 42),
+              ],
+            ),
           ),
-          _buildQuickServiceGrid(),
-
-          _sectionGap(),
-
-          // 여행 서비스
-          const YanoljaSectionHeader(title: '여행 서비스'),
-          _buildServiceList(const [
-            _ServiceData(
-              icon: Icons.map_outlined,
-              title: '여행지 가이드',
-              subtitle: '숨겨진 명소 찾기',
-              badge: '추천',
-            ),
-            _ServiceData(
-              icon: Icons.camera_alt_outlined,
-              title: '포토스팟',
-              subtitle: '인생샷 찍기 좋은 곳',
-            ),
-            _ServiceData(
-              icon: Icons.restaurant_outlined,
-              title: '맛집 추천',
-              subtitle: '현지 맛집 베스트',
-              badge: 'HOT',
-            ),
-            _ServiceData(
-              icon: Icons.local_activity_outlined,
-              title: '액티비티',
-              subtitle: '특별한 체험 예약',
-            ),
-          ]),
-
-          _sectionGap(),
-
-          // 비즈니스 서비스
-          const YanoljaSectionHeader(title: '비즈니스 서비스'),
-          _buildServiceList(const [
-            _ServiceData(
-              icon: Icons.meeting_room_outlined,
-              title: '회의실 예약',
-              subtitle: '비즈니스 미팅공간',
-            ),
-            _ServiceData(
-              icon: Icons.print_outlined,
-              title: '문서 서비스',
-              subtitle: '인쇄, 팩스, 스캔',
-            ),
-            _ServiceData(
-              icon: Icons.wifi_tethering_rounded,
-              title: '컨퍼런스',
-              subtitle: '화상회의 지원',
-            ),
-            _ServiceData(
-              icon: Icons.account_balance_outlined,
-              title: '법인카드',
-              subtitle: '비즈니스 결제 솔루션',
-            ),
-          ]),
-
-          _sectionGap(),
-
-          // 고객 지원
-          const YanoljaSectionHeader(title: '고객 지원'),
-          _buildServiceList(const [
-            _ServiceData(
-              icon: Icons.chat_bubble_outline_rounded,
-              title: '24시간 채팅',
-              subtitle: '실시간 고객상담',
-              badge: 'LIVE',
-            ),
-            _ServiceData(
-              icon: Icons.phone_outlined,
-              title: '전화 상담',
-              subtitle: '1588-1234',
-            ),
-            _ServiceData(
-              icon: Icons.help_outline_rounded,
-              title: 'FAQ',
-              subtitle: '자주 묻는 질문',
-            ),
-            _ServiceData(
-              icon: Icons.feedback_outlined,
-              title: '의견 보내기',
-              subtitle: '서비스 개선 제안',
-            ),
-          ]),
-
-          const SizedBox(height: 40),
         ],
       ),
     );
   }
 
-  // 섹션 사이 회색 띠 구분
+  Widget _buildAppBar(BuildContext context) {
+    return YanoljaSliverAppBar.sub(
+      title: '전체 카테고리',
+      fallbackRoute: '/home',
+      actions: [
+        IconButton(
+          onPressed: () => context.go('/saved'),
+          tooltip: '찜',
+          icon: const Icon(
+            Icons.favorite_border_rounded,
+            color: YanoljaColors.textPrimary,
+          ),
+        ),
+        IconButton(
+          onPressed: () => context.go('/my-info'),
+          tooltip: '마이',
+          icon: const Icon(
+            Icons.person_outline_rounded,
+            color: YanoljaColors.textPrimary,
+          ),
+        ),
+        const SizedBox(width: 4),
+      ],
+    );
+  }
+
+  Widget _buildTopTabs(BuildContext context) {
+    const tabs = ['홈', '티켓', '쿠폰·혜택', '특가'];
+
+    return Container(
+      color: YanoljaColors.background,
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+      child: Row(
+        children: [
+          for (final tab in tabs) ...[
+            _TopTab(
+              label: tab,
+              selected: tab == '홈',
+              onTap: () => _handleTopTab(context, tab),
+            ),
+            if (tab != tabs.last) const SizedBox(width: 8),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchPill(BuildContext context) {
+    return Container(
+      color: YanoljaColors.background,
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          context.go('/search');
+        },
+        borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+        child: Container(
+          height: 50,
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          decoration: BoxDecoration(
+            color: YanoljaColors.surfaceAlt,
+            borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+            border: Border.all(color: YanoljaColors.border),
+          ),
+          child: const Row(
+            children: [
+              Icon(
+                Icons.search_rounded,
+                color: YanoljaColors.textSecondary,
+                size: 23,
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  '어디로 놀러갈까요?',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: YanoljaColors.textSecondary,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.mic_none_rounded,
+                color: YanoljaColors.textTertiary,
+                size: 21,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategorySection(BuildContext context) {
+    final primaryItems = [
+      _CategoryItem(
+        icon: Icons.hotel_rounded,
+        label: '호텔/리조트',
+        color: YanoljaColors.primary,
+        route: '/hotel',
+      ),
+      _CategoryItem(
+        icon: Icons.house_siding_rounded,
+        label: '펜션/풀빌라',
+        color: YanoljaColors.mint,
+        route: '/pension',
+      ),
+      _CategoryItem(
+        icon: Icons.bed_rounded,
+        label: '모텔',
+        color: YanoljaColors.primaryPurple,
+        route: '/service/motel',
+      ),
+      _CategoryItem(
+        icon: Icons.local_activity_rounded,
+        label: '국내레저',
+        color: YanoljaColors.sale,
+        route: '/service/leisure',
+      ),
+      _CategoryItem(
+        icon: Icons.directions_car_filled_rounded,
+        label: '교통/쏘카',
+        color: YanoljaColors.accentBlue,
+        route: '/service/transport',
+      ),
+      _CategoryItem(
+        icon: Icons.confirmation_number_rounded,
+        label: 'NOL 티켓',
+        color: YanoljaColors.yellow,
+        route: '/ticket',
+      ),
+      _CategoryItem(
+        icon: Icons.flight_takeoff_rounded,
+        label: '항공',
+        color: YanoljaColors.primary,
+        route: '/service/flight',
+      ),
+      _CategoryItem(
+        icon: Icons.public_rounded,
+        label: '해외숙소',
+        color: YanoljaColors.mint,
+        route: '/service/overseas',
+      ),
+      _CategoryItem(
+        icon: Icons.map_rounded,
+        label: '해외투어',
+        color: YanoljaColors.primaryPurple,
+        route: '/service/overseas-tour',
+      ),
+      _CategoryItem(
+        icon: Icons.card_travel_rounded,
+        label: '패키지',
+        color: YanoljaColors.sale,
+        route: '/service/package',
+      ),
+    ];
+
+    return Container(
+      color: YanoljaColors.background,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          YanoljaSectionHeader(
+            title: '카테고리',
+            subtitle: '숙소부터 티켓, 교통까지 한 번에',
+            padding: const EdgeInsets.fromLTRB(20, 22, 20, 14),
+            trailingText: '전체보기',
+            onTrailingTap: () => context.push('/all-categories'),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 22),
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: primaryItems.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 5,
+                mainAxisSpacing: 18,
+                crossAxisSpacing: 8,
+                childAspectRatio: 0.72,
+              ),
+              itemBuilder: (context, index) {
+                return _CategoryTile(
+                  item: primaryItems[index],
+                  onTap: () => _handleCategoryTap(context, primaryItems[index]),
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 22),
+            child: _NolDayBanner(
+              onTap: () => context.push('/service/deals'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBenefitSection(BuildContext context) {
+    final benefits = [
+      _BenefitItem(
+        icon: Icons.local_offer_rounded,
+        title: '이달의 쿠폰팩',
+        subtitle: '숙소·티켓 할인 쿠폰 모음',
+        color: YanoljaColors.primary,
+        route: '/service/coupons',
+      ),
+      _BenefitItem(
+        icon: Icons.credit_card_rounded,
+        title: 'NOL 카드',
+        subtitle: '결제할수록 커지는 추가 혜택',
+        color: YanoljaColors.primaryPurple,
+        route: '/service/nol-card',
+      ),
+      _BenefitItem(
+        icon: Icons.bolt_rounded,
+        title: '놀라운 특가',
+        subtitle: '오늘만 열리는 한정가',
+        color: YanoljaColors.sale,
+        route: '/service/deals',
+      ),
+    ];
+
+    return Container(
+      color: YanoljaColors.background,
+      child: Column(
+        children: [
+          const YanoljaSectionHeader(
+            title: '쿠폰·혜택',
+            trailingText: '전체 보기',
+            padding: EdgeInsets.fromLTRB(20, 22, 20, 12),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 22),
+            child: Column(
+              children: [
+                for (int i = 0; i < benefits.length; i++) ...[
+                  _BenefitRow(
+                    item: benefits[i],
+                    onTap: () => context.push(benefits[i].route),
+                  ),
+                  if (i != benefits.length - 1)
+                    const Divider(
+                      height: 1,
+                      color: YanoljaColors.divider,
+                      indent: 56,
+                    ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSupportSection(BuildContext context) {
+    final supportItems = [
+      _SupportItem(
+        icon: Icons.receipt_long_rounded,
+        title: '예약내역',
+        subtitle: '예약, 취소, 환불 상태 확인',
+        route: '/bookings',
+      ),
+      _SupportItem(
+        icon: Icons.support_agent_rounded,
+        title: '고객센터',
+        subtitle: '1644-1346 · 문의/안내',
+        route: '/service/support',
+      ),
+      _SupportItem(
+        icon: Icons.campaign_rounded,
+        title: '공지사항',
+        subtitle: 'NOL의 새로운 소식',
+        route: '/service/notice',
+      ),
+      _SupportItem(
+        icon: Icons.tune_rounded,
+        title: '앱 설정',
+        subtitle: '알림, 위치, 계정 관리',
+        route: '/settings',
+      ),
+    ];
+
+    return Container(
+      color: YanoljaColors.background,
+      child: Column(
+        children: [
+          const YanoljaSectionHeader(
+            title: '문의·안내',
+            padding: EdgeInsets.fromLTRB(20, 22, 20, 8),
+          ),
+          for (int i = 0; i < supportItems.length; i++) ...[
+            _SupportRow(
+              item: supportItems[i],
+              onTap: () => _handleSupportTap(context, supportItems[i]),
+            ),
+            if (i != supportItems.length - 1)
+              const Divider(
+                height: 1,
+                color: YanoljaColors.divider,
+                indent: 76,
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _sectionGap() {
     return Container(height: 8, color: YanoljaColors.surfaceAlt);
   }
 
-  // 상단 프로모션 배너 (핑크 틴트, 플랫)
-  Widget _buildPromotionBanner() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+  void _handleCategoryTap(BuildContext context, _CategoryItem item) {
+    HapticFeedback.lightImpact();
+    context.push(item.route ?? '/service/deals');
+  }
+
+  void _handleSupportTap(BuildContext context, _SupportItem item) {
+    HapticFeedback.lightImpact();
+    context.push(item.route ?? '/service/support');
+  }
+
+  void _handleTopTab(BuildContext context, String tab) {
+    HapticFeedback.selectionClick();
+    switch (tab) {
+      case '홈':
+        context.go('/home');
+        return;
+      case '티켓':
+        context.push('/service/leisure');
+        return;
+      case '쿠폰·혜택':
+        context.push('/service/coupons');
+        return;
+      case '특가':
+        context.push('/service/deals');
+        return;
+    }
+  }
+}
+
+class _TopTab extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _TopTab({
+    required this.label,
+    required this.onTap,
+    this.selected = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(YanoljaRadius.pill),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: YanoljaColors.primaryLight,
+          color: selected ? YanoljaColors.textPrimary : Colors.transparent,
+          borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w900,
+            color: selected ? Colors.white : YanoljaColors.textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CategoryItem {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final String? route;
+
+  const _CategoryItem({
+    required this.icon,
+    required this.label,
+    required this.color,
+    this.route,
+  });
+}
+
+class _CategoryTile extends StatelessWidget {
+  final _CategoryItem item;
+  final VoidCallback onTap;
+
+  const _CategoryTile({
+    required this.item,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(YanoljaRadius.md),
+      child: Column(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: item.color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(YanoljaRadius.md),
+            ),
+            child: Icon(item.icon, color: item.color, size: 25),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            item.label,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 11.5,
+              height: 1.2,
+              fontWeight: FontWeight.w700,
+              color: YanoljaColors.textPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NolDayBanner extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _NolDayBanner({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: YanoljaColors.primary,
           borderRadius: BorderRadius.circular(YanoljaRadius.lg),
-          border: Border.all(color: YanoljaColors.border),
         ),
         child: Row(
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: 42,
+              height: 42,
               decoration: BoxDecoration(
-                color: YanoljaColors.primary,
+                color: Colors.white.withValues(alpha: 0.16),
                 borderRadius: BorderRadius.circular(YanoljaRadius.md),
               ),
               child: const Icon(
-                Icons.card_giftcard_rounded,
+                Icons.local_fire_department_rounded,
                 color: Colors.white,
-                size: 26,
+                size: 24,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 13),
             const Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '첫 예약 특가',
+                    '국내여행 준비 NOLDAY',
                     style: TextStyle(
-                      color: YanoljaColors.textPrimary,
+                      color: Colors.white,
                       fontSize: 16,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w900,
                       letterSpacing: -0.3,
                     ),
                   ),
-                  SizedBox(height: 3),
+                  SizedBox(height: 4),
                   Text(
-                    '최대 50% 할인 + 무료 쿠폰팩',
+                    '호텔·펜션·티켓 특가를 한 번에 확인하세요',
                     style: TextStyle(
-                      color: YanoljaColors.textSecondary,
-                      fontSize: 13,
+                      color: Color(0xFFEAF0FF),
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 12),
-            ElevatedButton(
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                _showPromotionDialog();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: YanoljaColors.primary,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(YanoljaRadius.sm),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 10,
-                ),
-              ),
-              child: const Text(
-                '받기',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                ),
-              ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: Colors.white,
+              size: 24,
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  // 빠른 서비스 4열 그리드 (플랫 아이콘 + 라벨)
-  Widget _buildQuickServiceGrid() {
-    const items = <_QuickServiceData>[
-      _QuickServiceData(icon: Icons.qr_code_scanner_rounded, label: 'QR체크인', isNew: true),
-      _QuickServiceData(icon: Icons.directions_car_rounded, label: '렌터카'),
-      _QuickServiceData(icon: Icons.local_taxi_rounded, label: '택시호출', isHot: true),
-      _QuickServiceData(icon: Icons.flight_takeoff_rounded, label: '항공편'),
-      _QuickServiceData(icon: Icons.train_rounded, label: 'KTX'),
-      _QuickServiceData(icon: Icons.local_shipping_rounded, label: '짐배송', isNew: true),
-      _QuickServiceData(icon: Icons.wifi_rounded, label: '와이파이'),
-      _QuickServiceData(icon: Icons.translate_rounded, label: '번역'),
-    ];
+class _BenefitItem {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final String route;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-      child: GridView.count(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisCount: 4,
-        mainAxisSpacing: 20,
-        crossAxisSpacing: 12,
-        childAspectRatio: 0.82,
-        children: items
-            .map((item) => _buildQuickServiceItem(item))
-            .toList(),
-      ),
-    );
-  }
+  const _BenefitItem({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.route,
+  });
+}
 
-  Widget _buildQuickServiceItem(_QuickServiceData data) {
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        _showServiceDialog(data.label);
-      },
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: YanoljaColors.primaryLight,
-                  borderRadius: BorderRadius.circular(YanoljaRadius.md),
-                ),
-                child: Icon(
-                  data.icon,
-                  color: YanoljaColors.primary,
-                  size: 26,
-                ),
-              ),
-              if (data.isNew || data.isHot)
-                Positioned(
-                  top: -4,
-                  right: -6,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 5,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: YanoljaColors.primary,
-                      borderRadius: BorderRadius.circular(YanoljaRadius.sm),
-                    ),
-                    child: Text(
-                      data.isNew ? 'NEW' : 'HOT',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 8,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            data.label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: YanoljaColors.textPrimary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
+class _BenefitRow extends StatelessWidget {
+  final _BenefitItem item;
+  final VoidCallback onTap;
 
-  // 야놀자식 설정 리스트 (ListTile 스타일 + 얇은 divider)
-  Widget _buildServiceList(List<_ServiceData> services) {
-    return Column(
-      children: [
-        for (int i = 0; i < services.length; i++) ...[
-          _buildServiceListItem(services[i]),
-          if (i != services.length - 1)
-            const Divider(
-              height: 1,
-              thickness: 1,
-              indent: 72,
-              endIndent: 20,
-              color: YanoljaColors.divider,
-            ),
-        ],
-      ],
-    );
-  }
+  const _BenefitRow({
+    required this.item,
+    required this.onTap,
+  });
 
-  Widget _buildServiceListItem(_ServiceData data) {
+  @override
+  Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        _showServiceDialog(data.title);
-      },
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(YanoljaRadius.md),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        padding: const EdgeInsets.symmetric(vertical: 14),
         child: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                color: YanoljaColors.surfaceAlt,
-                borderRadius: BorderRadius.circular(YanoljaRadius.sm),
+                color: item.color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(YanoljaRadius.md),
               ),
-              child: Icon(
-                data.icon,
-                color: YanoljaColors.textSecondary,
-                size: 22,
-              ),
+              child: Icon(item.icon, color: item.color, size: 22),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 13),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Text(
-                        data.title,
-                        style: const TextStyle(
-                          fontSize: 15.5,
-                          fontWeight: FontWeight.w600,
-                          color: YanoljaColors.textPrimary,
-                          letterSpacing: -0.2,
-                        ),
-                      ),
-                      if (data.badge != null) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: YanoljaColors.primaryLight,
-                            borderRadius:
-                                BorderRadius.circular(YanoljaRadius.sm),
-                          ),
-                          child: Text(
-                            data.badge!,
-                            style: const TextStyle(
-                              color: YanoljaColors.primary,
-                              fontSize: 9,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 2),
                   Text(
-                    data.subtitle,
+                    item.title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w900,
+                      color: YanoljaColors.textPrimary,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    item.subtitle,
                     style: const TextStyle(
                       fontSize: 12.5,
                       color: YanoljaColors.textSecondary,
@@ -398,221 +617,91 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
             const Icon(
               Icons.chevron_right_rounded,
               color: YanoljaColors.textTertiary,
-              size: 20,
+              size: 21,
             ),
           ],
         ),
       ),
     );
   }
-
-  void _showServiceDialog(String serviceName) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: YanoljaColors.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(YanoljaRadius.lg),
-          ),
-          title: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: YanoljaColors.primaryLight,
-                  borderRadius: BorderRadius.circular(YanoljaRadius.md),
-                ),
-                child: const Icon(
-                  Icons.info_outline_rounded,
-                  color: YanoljaColors.primary,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  serviceName,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18,
-                    color: YanoljaColors.textPrimary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          content: Text(
-            '$serviceName 서비스가 곧 출시됩니다!\n더 나은 서비스로 찾아뵙겠습니다.',
-            style: const TextStyle(
-              fontSize: 15,
-              color: YanoljaColors.textSecondary,
-              height: 1.5,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                '알림 받기',
-                style: TextStyle(color: YanoljaColors.textSecondary),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: YanoljaColors.primary,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(YanoljaRadius.sm),
-                ),
-              ),
-              child: const Text('확인'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showPromotionDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: YanoljaColors.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(YanoljaRadius.lg),
-          ),
-          title: const Row(
-            children: [
-              Icon(
-                Icons.card_giftcard_rounded,
-                color: YanoljaColors.primary,
-                size: 24,
-              ),
-              SizedBox(width: 8),
-              Text(
-                '축하합니다!',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 20,
-                  color: YanoljaColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          content: const Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '첫 예약 특가 쿠폰을 받았습니다!',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: YanoljaColors.textPrimary,
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                '• 최대 50% 할인 쿠폰\n• 무료 배송 쿠폰\n• VIP 멤버십 1개월',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: YanoljaColors.textSecondary,
-                  height: 1.5,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                '나중에',
-                style: TextStyle(color: YanoljaColors.textSecondary),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _showSnackBar('쿠폰이 쿠폰함에 저장되었습니다!');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: YanoljaColors.primary,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(YanoljaRadius.sm),
-                ),
-              ),
-              child: const Text('쿠폰 받기'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(
-              Icons.check_circle_outline,
-              color: Colors.white,
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(fontWeight: FontWeight.w500),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: YanoljaColors.primary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(YanoljaRadius.sm),
-        ),
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  }
 }
 
-/// 빠른 서비스 그리드 아이템 데이터
-class _QuickServiceData {
-  final IconData icon;
-  final String label;
-  final bool isNew;
-  final bool isHot;
-
-  const _QuickServiceData({
-    required this.icon,
-    required this.label,
-    this.isNew = false,
-    this.isHot = false,
-  });
-}
-
-/// 설정 리스트 항목 데이터
-class _ServiceData {
+class _SupportItem {
   final IconData icon;
   final String title;
   final String subtitle;
-  final String? badge;
+  final String? route;
 
-  const _ServiceData({
+  const _SupportItem({
     required this.icon,
     required this.title,
     required this.subtitle,
-    this.badge,
+    this.route,
   });
+}
+
+class _SupportRow extends StatelessWidget {
+  final _SupportItem item;
+  final VoidCallback onTap;
+
+  const _SupportRow({
+    required this.item,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: YanoljaColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(YanoljaRadius.md),
+              ),
+              child: Icon(
+                item.icon,
+                color: YanoljaColors.textPrimary,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: YanoljaColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    item.subtitle,
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      color: YanoljaColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: YanoljaColors.textTertiary,
+              size: 21,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

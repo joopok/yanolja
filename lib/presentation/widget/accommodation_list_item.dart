@@ -7,7 +7,7 @@ import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/data/model/accommodation.dart';
 import 'package:yanolja_clone/presentation/provider/saved_provider.dart';
 
-// 목록의 각 항목을 표시하는 재사용 가능한 위젯 (야놀자 카드 스타일)
+// 목록의 각 항목을 표시하는 재사용 가능한 위젯 (NOL 숙소 리스트 스타일)
 class AccommodationListItem extends ConsumerStatefulWidget {
   final Accommodation accommodation;
   const AccommodationListItem({super.key, required this.accommodation});
@@ -26,29 +26,15 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // 아이템 클릭 시 상세 화면으로 이동
         context.push('/detail/${widget.accommodation.id}');
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        decoration: BoxDecoration(
-          color: YanoljaColors.surface,
-          borderRadius: BorderRadius.circular(YanoljaRadius.lg),
-          border: Border.all(color: YanoljaColors.border, width: 1),
-          boxShadow: const [
-            BoxShadow(
-              color: YanoljaColors.shadow,
-              blurRadius: 14,
-              offset: Offset(0, 6),
-            ),
-          ],
-        ),
+        margin: const EdgeInsets.fromLTRB(20, 12, 20, 14),
+        color: YanoljaColors.surface,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 이미지 섹션
             _buildImageSection(),
-            // 콘텐츠 섹션
             _buildContentSection(context),
           ],
         ),
@@ -58,21 +44,17 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
 
   Widget _buildImageSection() {
     return ClipRRect(
-      borderRadius: const BorderRadius.only(
-        topLeft: Radius.circular(YanoljaRadius.lg),
-        topRight: Radius.circular(YanoljaRadius.lg),
-      ),
+      borderRadius: BorderRadius.circular(YanoljaRadius.lg),
       child: Stack(
         children: [
-          // 메인 이미지
           SizedBox(
-            height: 200,
+            height: 186,
             width: double.infinity,
             child: widget.accommodation.imageUrls.length > 1
                 ? CarouselSlider(
                     carouselController: _carouselController,
                     options: CarouselOptions(
-                      height: 200,
+                      height: 186,
                       viewportFraction: 1.0,
                       enableInfiniteScroll: true,
                       onPageChanged: (index, reason) {
@@ -87,8 +69,6 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
                   )
                 : _buildImage(widget.accommodation.imageUrls.first),
           ),
-
-          // 상단 좌측 배지 (NEW / 인기)
           if (widget.accommodation.isNew || widget.accommodation.isPopular)
             Positioned(
               top: 12,
@@ -96,34 +76,29 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
               child: Row(
                 children: [
                   if (widget.accommodation.isNew)
-                    _buildBadge('신규', YanoljaColors.success),
+                    _buildBadge('신규', YanoljaColors.mint),
                   if (widget.accommodation.isPopular)
-                    _buildBadge('인기', YanoljaColors.primary),
+                    _buildBadge('많이 찾는 숙소', Colors.black87),
                 ],
               ),
             ),
-
-          // 하트 버튼
           Positioned(
             top: 8,
             right: 8,
             child: _buildHeartButton(context, ref),
           ),
-
-          // 이미지 인디케이터
           if (widget.accommodation.imageUrls.length > 1)
             Positioned(
               bottom: 10,
               right: 12,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.45),
                   borderRadius: BorderRadius.circular(YanoljaRadius.pill),
                 ),
                 child: Text(
-                  '${_currentImageIndex + 1} / ${widget.accommodation.imageUrls.length}',
+                  '${_currentImageIndex + 1} / ${widget.accommodation.imageUrls.length} +',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 11,
@@ -158,8 +133,7 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
 
   Widget _buildHeartButton(BuildContext context, WidgetRef ref) {
     final savedNotifier = ref.read(savedProvider.notifier);
-    final isSaved =
-        ref.watch(savedProvider).contains(widget.accommodation.id);
+    final isSaved = ref.watch(savedProvider).contains(widget.accommodation.id);
 
     return GestureDetector(
       onTap: () {
@@ -227,27 +201,27 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
 
   Widget _buildContentSection(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+      padding: const EdgeInsets.fromLTRB(0, 12, 0, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 카테고리 + 거리
           Row(
             children: [
-              Text(
-                widget.accommodation.category,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: YanoljaColors.textSecondary,
-                  letterSpacing: -0.2,
-                ),
-              ),
-              const SizedBox(width: 6),
               Container(
-                width: 1,
-                height: 10,
-                color: YanoljaColors.border,
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: YanoljaColors.primaryLight,
+                  borderRadius: BorderRadius.circular(YanoljaRadius.sm),
+                ),
+                child: Text(
+                  widget.accommodation.category,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: YanoljaColors.primary,
+                    letterSpacing: -0.2,
+                  ),
+                ),
               ),
               const SizedBox(width: 6),
               Expanded(
@@ -267,15 +241,14 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
 
           const SizedBox(height: 6),
 
-          // 숙소명
           Text(
             widget.accommodation.name,
             style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
+              fontSize: 17,
+              fontWeight: FontWeight.w900,
               color: YanoljaColors.textPrimary,
-              height: 1.3,
-              letterSpacing: -0.3,
+              height: 1.25,
+              letterSpacing: -0.4,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -283,7 +256,6 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
 
           const SizedBox(height: 6),
 
-          // 평점 + 리뷰수
           YanoljaRating(
             rating: widget.accommodation.rating,
             reviewCount: widget.accommodation.reviewCount,
@@ -297,7 +269,6 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
 
           const SizedBox(height: 12),
 
-          // 가격 (정가 취소선 + 핑크 할인율 + 굵은 현재가)
           _buildPriceSection(),
         ],
       ),
@@ -356,7 +327,6 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 정가 취소선
         Text(
           '${YanoljaFormat.price(original)}원',
           style: const TextStyle(
@@ -367,17 +337,24 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
           ),
         ),
         const SizedBox(height: 2),
-        // 할인율 + 현재가
         Row(
           crossAxisAlignment: CrossAxisAlignment.baseline,
           textBaseline: TextBaseline.alphabetic,
           children: [
+            const Text(
+              '쿠폰 적용가 ',
+              style: TextStyle(
+                fontSize: 12,
+                color: YanoljaColors.textTertiary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
             Text(
               '$rate%',
               style: const TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: YanoljaColors.primary,
+                fontWeight: FontWeight.w900,
+                color: YanoljaColors.sale,
                 letterSpacing: -0.3,
               ),
             ),

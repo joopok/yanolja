@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
 
 class PlaceholderScreen extends StatelessWidget {
   final String title;
@@ -7,8 +8,8 @@ class PlaceholderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
+      appBar: YanoljaAppBar.sub(
+        title: title,
       ),
       body: Center(
         child: Text(
@@ -18,4 +19,4 @@ class PlaceholderScreen extends StatelessWidget {
       ),
     );
   }
-} 
+}

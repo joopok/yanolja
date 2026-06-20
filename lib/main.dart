@@ -1,9 +1,11 @@
 // import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yanolja_clone/core/router.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
+import 'package:yanolja_clone/presentation/provider/settings_provider.dart';
 // import 'package:yanolja_clone/firebase_options.dart';
 
 void main() async {
@@ -45,17 +47,42 @@ class YanoljaCloneApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
+    final settings = ref.watch(nolSettingsProvider);
     return MaterialApp.router(
       title: 'NOL(야놀자)',
       debugShowCheckedModeBanner: false,
 
       // NOL 라이트 테마 (앱 전체 일관 적용)
       theme: _buildYanoljaTheme(),
+      darkTheme: _buildYanoljaTheme(),
 
-      // 야놀자 앱은 라이트 테마 기반이므로 라이트로 고정
-      themeMode: ThemeMode.light,
+      themeMode: _resolveThemeMode(settings.themeMode),
+
+      // 🇰🇷 한국어 로케일 — 날짜 선택기/기본 위젯 텍스트를 한글로 표시
+      locale: const Locale('ko', 'KR'),
+      supportedLocales: const [
+        Locale('ko', 'KR'),
+        Locale('en', 'US'),
+      ],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+
       routerConfig: router,
     );
+  }
+
+  ThemeMode _resolveThemeMode(NolThemeMode mode) {
+    switch (mode) {
+      case NolThemeMode.system:
+        return ThemeMode.system;
+      case NolThemeMode.light:
+        return ThemeMode.light;
+      case NolThemeMode.dark:
+        return ThemeMode.dark;
+    }
   }
 
   /// NOL 디자인 테마

@@ -51,6 +51,26 @@ class GetCurrentUserUseCase {
   }
 }
 
+class UpdateUserUseCase {
+  final UserRepository repository;
+
+  UpdateUserUseCase(this.repository);
+
+  Future<void> call(UserEntity user) async {
+    return await repository.updateUser(user);
+  }
+}
+
+class DeleteUserUseCase {
+  final UserRepository repository;
+
+  DeleteUserUseCase(this.repository);
+
+  Future<void> call(String userId) async {
+    return await repository.deleteUser(userId);
+  }
+}
+
 class SaveAccommodationUseCase {
   final UserRepository repository;
 

@@ -9,7 +9,7 @@ import 'package:yanolja_clone/data/model/accommodation.dart';
 import 'package:yanolja_clone/presentation/provider/search_provider.dart';
 import 'package:yanolja_clone/presentation/screen/map_screen.dart';
 import 'package:yanolja_clone/presentation/widget/animated_search_field.dart';
-import 'package:yanolja_clone/presentation/widget/google_maps_style_suggestions.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
 
 enum SearchDisplayMode { list, map }
 
@@ -68,31 +68,41 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return GestureDetector(
       onTap: () => _searchFocusNode.unfocus(),
       child: Scaffold(
-        backgroundColor: YanoljaColors.background,
+        backgroundColor: YanoljaColors.surfaceAlt,
+        appBar: YanoljaAppBar.main(
+          title: '검색',
+          subtitle: '숙소부터 공연까지 한 번에',
+          actions: [
+            IconButton(
+              onPressed: () => _openService('coupons'),
+              tooltip: '쿠폰·혜택',
+              icon: const Icon(
+                Icons.card_giftcard_outlined,
+                color: YanoljaColors.textPrimary,
+                size: 24,
+              ),
+            ),
+          ],
+        ),
         body: Column(
           children: [
-            // 🔍 상단 헤더 (화이트 / 좌측정렬)
-            _buildHeader(context),
-
-            // 🔍 검색 필드 (테마 핑크 사용)
-            AnimatedSearchField(
-              controller: _searchController,
-              focusNode: _searchFocusNode,
-              onChanged: (query) {
-                ref.read(searchProvider.notifier).updateQuery(query);
-              },
-              onSubmitted: _handleSearch,
-              onClear: () {
-                ref.read(searchProvider.notifier).updateQuery('');
-              },
-              suggestions: _getAutocompleteSuggestions(searchState.query),
-              onSuggestionTap: _handleSearch,
+            Container(
+              color: YanoljaColors.background,
+              child: AnimatedSearchField(
+                controller: _searchController,
+                focusNode: _searchFocusNode,
+                onChanged: (query) {
+                  ref.read(searchProvider.notifier).updateQuery(query);
+                },
+                onSubmitted: _handleSearch,
+                onClear: () {
+                  ref.read(searchProvider.notifier).updateQuery('');
+                },
+                suggestions: _getAutocompleteSuggestions(searchState.query),
+                onSuggestionTap: _handleSearch,
+              ),
             ),
-
-            // 📱 디스플레이 모드 토글 (검색 중일 때만 표시)
             if (searchState.query.isNotEmpty) _buildDisplayModeToggle(),
-
-            // 📋 검색 내용 영역
             Expanded(
               child: searchState.query.isEmpty
                   ? _buildSuggestions(
@@ -100,48 +110,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   : _displayMode == SearchDisplayMode.list
                       ? _buildSearchResults()
                       : _buildMapResults(searchResults),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// 🔍 상단 헤더 (야놀자 플랫 스타일 — 화이트 배경 + 하단 헤어라인)
-  Widget _buildHeader(BuildContext context) {
-    return SafeArea(
-      bottom: false,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        decoration: const BoxDecoration(
-          color: YanoljaColors.background,
-          border: Border(
-            bottom: BorderSide(color: YanoljaColors.border, width: 1),
-          ),
-        ),
-        child: Row(
-          children: [
-            IconButton(
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                context.pop();
-              },
-              icon: const Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: YanoljaColors.textPrimary,
-                size: 20,
-              ),
-            ),
-            const Expanded(
-              child: Text(
-                '여행지 검색',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: YanoljaColors.textPrimary,
-                  letterSpacing: -0.3,
-                ),
-              ),
             ),
           ],
         ),
@@ -163,10 +131,22 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     if (query.isEmpty) return [];
 
     final allSuggestions = [
-      '제주도', '부산', '서울', '강릉', '여수', '속초', '경주', '전주',
-      '호텔', '펜션', '리조트', '한옥', '게스트하우스', '캠핑',
-      '바다뷰', '오션뷰', '풀빌라', '스파', '온천', '수영장',
-      '애견동반', '바베큐', '카페', '레스토랑',
+      '콘서트',
+      '뮤지컬',
+      '제주 숙소',
+      '도쿄 항공권',
+      '부산 오션뷰',
+      '서울 호캉스',
+      '강릉 펜션',
+      '호텔',
+      '펜션',
+      '리조트',
+      '프리미엄 숙소',
+      '글램핑',
+      '워터파크',
+      '전시',
+      '액티비티',
+      '쿠폰 혜택',
     ];
 
     return allSuggestions
@@ -176,7 +156,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         .toList();
   }
 
-  /// 📱 디스플레이 모드 토글 (목록 / 지도) — 핑크 세그먼트
+  /// 목록 / 지도 세그먼트
   Widget _buildDisplayModeToggle() {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 10, 16, 4),
@@ -184,7 +164,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Container(
-            padding: const EdgeInsets.all(3),
+            padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               color: YanoljaColors.surfaceAlt,
               borderRadius: BorderRadius.circular(YanoljaRadius.pill),
@@ -224,7 +204,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
         decoration: BoxDecoration(
-          color: isSelected ? YanoljaColors.primary : Colors.transparent,
+          color: isSelected ? YanoljaColors.textPrimary : Colors.transparent,
           borderRadius: BorderRadius.circular(YanoljaRadius.pill),
         ),
         child: Row(
@@ -250,34 +230,329 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 
-  /// 🗂️ 검색어 없을 때 — 최근/인기/추천 제안 (위젯 재사용, 테마 핑크)
+  /// 검색어 없을 때: NOL 서비스 허브
   Widget _buildSuggestions(
     BuildContext context,
     SearchState searchState,
     List<String> suggestedSearches,
     List<String> popularSearches,
   ) {
-    return GoogleMapsStyleSuggestions(
-      suggestions: _getAutocompleteSuggestions(searchState.query),
-      recentSearches: searchState.recentSearches,
-      popularSearches: popularSearches,
-      onSuggestionTap: _handleSearch,
-      onRecentSearchDelete: (search) {
-        ref.read(searchProvider.notifier).removeRecentSearch(search);
-      },
-      onClearAllRecents: () {
-        ref.read(searchProvider.notifier).clearRecentSearches();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('모든 검색 기록이 삭제되었습니다.'),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(YanoljaRadius.md),
+    final shortcuts = [
+      const _SearchShortcut(
+        label: '숙소',
+        assetPath: 'assets/search_icons/stay.png',
+        subtitle: '국내 숙소',
+        route: '/hotelSearch',
+      ),
+      const _SearchShortcut(
+        label: '항공',
+        assetPath: 'assets/search_icons/flight.png',
+        subtitle: '항공권',
+        route: '/service/flight',
+      ),
+      const _SearchShortcut(
+        label: '티켓',
+        assetPath: 'assets/search_icons/ticket.png',
+        subtitle: '레저·입장권',
+        route: '/service/leisure',
+      ),
+      const _SearchShortcut(
+        label: '쿠폰·혜택',
+        assetPath: 'assets/search_icons/coupon.png',
+        subtitle: '할인 모음',
+        route: '/service/coupons',
+      ),
+      const _SearchShortcut(
+        label: '액티비티',
+        assetPath: 'assets/search_icons/activity.png',
+        subtitle: '놀거리',
+        route: '/service/leisure',
+      ),
+      const _SearchShortcut(
+        label: '공연·전시',
+        assetPath: 'assets/search_icons/culture.png',
+        subtitle: '컬처',
+        route: '/service/performance',
+      ),
+    ];
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+      children: [
+        _buildShortcutGrid(shortcuts),
+        if (searchState.recentSearches.isNotEmpty) ...[
+          const SizedBox(height: 22),
+          _buildRecentSection(searchState.recentSearches),
+        ],
+        const SizedBox(height: 22),
+        _buildPopularRanking(popularSearches),
+        const SizedBox(height: 22),
+        _buildSuggestChips(suggestedSearches),
+      ],
+    );
+  }
+
+  Widget _buildShortcutGrid(List<_SearchShortcut> shortcuts) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+      decoration: BoxDecoration(
+        color: YanoljaColors.background,
+        borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+        border: Border.all(color: YanoljaColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(2, 0, 2, 12),
+            child: Text(
+              '무엇을 찾으세요?',
+              style: TextStyle(
+                color: YanoljaColors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.4,
+              ),
             ),
-            margin: const EdgeInsets.all(16),
           ),
-        );
-      },
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.zero,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              childAspectRatio: 0.78,
+            ),
+            itemCount: shortcuts.length,
+            itemBuilder: (context, index) {
+              final item = shortcuts[index];
+              return InkWell(
+                onTap: () => _openShortcut(item),
+                borderRadius: BorderRadius.circular(YanoljaRadius.md),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(18),
+                        child: Image.asset(
+                          item.assetPath,
+                          width: 62,
+                          height: 62,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        item.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: YanoljaColors.textPrimary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        item.subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: YanoljaColors.textTertiary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecentSection(List<String> recents) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(
+          '최근 검색',
+          trailing: TextButton(
+            onPressed: () {
+              ref.read(searchProvider.notifier).clearRecentSearches();
+              _showSnack('최근 검색어를 모두 지웠어요');
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: YanoljaColors.textSecondary,
+              minimumSize: Size.zero,
+              padding: EdgeInsets.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const Text('전체삭제'),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: recents.take(8).map((item) {
+            return InputChip(
+              label: Text(item),
+              onPressed: () => _handleSearch(item),
+              onDeleted: () =>
+                  ref.read(searchProvider.notifier).removeRecentSearch(item),
+              deleteIcon: const Icon(Icons.close_rounded, size: 15),
+              backgroundColor: YanoljaColors.surfaceAlt,
+              side: BorderSide.none,
+              labelStyle: const TextStyle(
+                color: YanoljaColors.textPrimary,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPopularRanking(List<String> popularSearches) {
+    final rankings = {
+      '제주 숙소',
+      '도쿄 항공권',
+      '콘서트',
+      '부산 오션뷰',
+      ...popularSearches,
+    }.take(8).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('실시간 인기 검색어'),
+        const SizedBox(height: 10),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+            border: Border.all(color: YanoljaColors.border),
+          ),
+          child: Column(
+            children: rankings.asMap().entries.map((entry) {
+              final index = entry.key;
+              final keyword = entry.value;
+              return InkWell(
+                onTap: () => _handleSearch(keyword),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                  decoration: BoxDecoration(
+                    border: index == rankings.length - 1
+                        ? null
+                        : const Border(
+                            bottom: BorderSide(color: YanoljaColors.divider),
+                          ),
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 22,
+                        child: Text(
+                          '${index + 1}',
+                          style: TextStyle(
+                            color: index < 3
+                                ? YanoljaColors.primary
+                                : YanoljaColors.textTertiary,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          keyword,
+                          style: const TextStyle(
+                            color: YanoljaColors.textPrimary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                      ),
+                      const Icon(
+                        Icons.north_east_rounded,
+                        color: YanoljaColors.textTertiary,
+                        size: 15,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSuggestChips(List<String> suggestions) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('이런 검색은 어때요?'),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: suggestions.map((item) {
+            return ActionChip(
+              onPressed: () => _handleSearch(item),
+              label: Text(item),
+              avatar: const Icon(
+                Icons.search_rounded,
+                size: 15,
+                color: YanoljaColors.primary,
+              ),
+              backgroundColor: YanoljaColors.primaryLight,
+              side: BorderSide.none,
+              labelStyle: const TextStyle(
+                color: YanoljaColors.primaryDark,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.2,
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionTitle(String title, {Widget? trailing}) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(
+              color: YanoljaColors.textPrimary,
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.4,
+            ),
+          ),
+        ),
+        if (trailing != null) trailing,
+      ],
     );
   }
 
@@ -288,7 +563,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return MapScreen(accommodations: searchResults);
   }
 
-  /// 📋 검색 결과 (야놀자 플랫 카드 리스트)
+  /// 검색 결과 리스트
   Widget _buildSearchResults() {
     final searchState = ref.watch(searchProvider);
     final searchResults = ref.watch(searchResultsProvider);
@@ -307,27 +582,63 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         // 🔢 검색 결과 건수 헤더
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 12),
           color: YanoljaColors.background,
-          child: RichText(
-            text: TextSpan(
-              style: const TextStyle(
-                fontSize: 14,
-                color: YanoljaColors.textSecondary,
-                letterSpacing: -0.2,
-              ),
-              children: [
-                const TextSpan(text: '검색 결과 '),
-                TextSpan(
-                  text: '${searchResults.length}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    color: YanoljaColors.primary,
+          child: Row(
+            children: [
+              Expanded(
+                child: RichText(
+                  text: TextSpan(
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: YanoljaColors.textSecondary,
+                      letterSpacing: -0.2,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: "'${searchState.query}' ",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: YanoljaColors.textPrimary,
+                        ),
+                      ),
+                      const TextSpan(text: '검색 결과 '),
+                      TextSpan(
+                        text: '${searchResults.length}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: YanoljaColors.primary,
+                        ),
+                      ),
+                      const TextSpan(text: '개'),
+                    ],
                   ),
                 ),
-                const TextSpan(text: '건'),
-              ],
-            ),
+              ),
+              TextButton.icon(
+                onPressed: _toggleDisplayMode,
+                style: TextButton.styleFrom(
+                  foregroundColor: YanoljaColors.textPrimary,
+                  minimumSize: Size.zero,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                icon: Icon(
+                  _displayMode == SearchDisplayMode.list
+                      ? Icons.map_rounded
+                      : Icons.view_list_rounded,
+                  size: 17,
+                ),
+                label: Text(
+                  _displayMode == SearchDisplayMode.list ? '지도' : '목록',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
 
@@ -338,7 +649,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         Expanded(
           child: AnimationLimiter(
             child: ListView.separated(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.only(top: 2, bottom: 18),
               itemCount: searchResults.length,
               separatorBuilder: (_, __) => const Divider(
                 height: 1,
@@ -367,10 +678,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 
-  /// 🏨 야놀자 플랫 검색 결과 카드 (이미지 radius 12 + 정가 취소선 + 핑크 할인율 + 굵은 현재가)
+  /// NOL 검색 결과 카드
   Widget _buildResultCard(Accommodation accommodation, String query) {
     final rate = YanoljaFormat.discountRate(accommodation.id);
     final original = YanoljaFormat.originalPrice(accommodation.price, rate);
+    const imageWidth = 112.0;
+    const imageHeight = 136.0;
 
     return Material(
       color: YanoljaColors.background,
@@ -381,146 +694,185 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           context.push('/detail/${accommodation.id}');
         },
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 썸네일
               Hero(
                 tag: 'search-${accommodation.id}',
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(YanoljaRadius.md),
-                  child: CachedNetworkImage(
-                    imageUrl: accommodation.imageUrls.first,
-                    width: 108,
-                    height: 108,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      width: 108,
-                      height: 108,
-                      color: YanoljaColors.surfaceAlt,
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      width: 108,
-                      height: 108,
-                      color: YanoljaColors.surfaceAlt,
-                      child: const Icon(
-                        Icons.image_not_supported_outlined,
-                        color: YanoljaColors.textTertiary,
-                        size: 28,
+                  borderRadius: BorderRadius.circular(14),
+                  child: Stack(
+                    children: [
+                      CachedNetworkImage(
+                        imageUrl: accommodation.imageUrls.first,
+                        width: imageWidth,
+                        height: imageHeight,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          width: imageWidth,
+                          height: imageHeight,
+                          color: YanoljaColors.surfaceAlt,
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          width: imageWidth,
+                          height: imageHeight,
+                          color: YanoljaColors.surfaceAlt,
+                          child: const Icon(
+                            Icons.image_not_supported_outlined,
+                            color: YanoljaColors.textTertiary,
+                            size: 28,
+                          ),
+                        ),
                       ),
-                    ),
+                      Positioned(
+                        left: 7,
+                        top: 7,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.62),
+                            borderRadius:
+                                BorderRadius.circular(YanoljaRadius.pill),
+                          ),
+                          child: const Text(
+                            'NOL특가',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
               const SizedBox(width: 14),
-
-              // 정보
               Expanded(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 카테고리 배지
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: YanoljaColors.surfaceAlt,
-                        borderRadius: BorderRadius.circular(YanoljaRadius.sm),
-                      ),
-                      child: Text(
-                        accommodation.category,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: YanoljaColors.textSecondary,
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: YanoljaColors.primaryLight,
+                            borderRadius:
+                                BorderRadius.circular(YanoljaRadius.sm),
+                          ),
+                          child: Text(
+                            accommodation.category,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: YanoljaColors.primary,
+                            ),
+                          ),
                         ),
-                      ),
+                        if (accommodation.isPopular) ...[
+                          const SizedBox(width: 5),
+                          const Flexible(
+                            child: Text(
+                              '많이 찾는 숙소',
+                              style: TextStyle(
+                                color: YanoljaColors.textTertiary,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 6),
-
-                    // 이름
                     Text(
                       accommodation.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 15.5,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
                         color: YanoljaColors.textPrimary,
-                        letterSpacing: -0.3,
+                        letterSpacing: -0.35,
                       ),
                     ),
                     const SizedBox(height: 3),
-
-                    // 주소
                     Text(
-                      accommodation.address,
+                      '${_shortAddress(accommodation.address)} · 도심 ${accommodation.distanceFromCenter.toStringAsFixed(1)}km',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 12.5,
+                        fontSize: 12,
                         color: YanoljaColors.textSecondary,
                         letterSpacing: -0.2,
                       ),
                     ),
-                    const SizedBox(height: 6),
-
-                    // 평점
+                    const SizedBox(height: 5),
                     YanoljaRating(
                       rating: accommodation.rating,
                       reviewCount: accommodation.reviewCount,
+                      fontSize: 12,
                     ),
                     const SizedBox(height: 8),
-
-                    // 가격 (정가 취소선 + 핑크 할인율 + 굵은 현재가)
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          '${YanoljaFormat.price(original)}원',
-                          style: const TextStyle(
-                            fontSize: 11.5,
-                            color: YanoljaColors.textTertiary,
-                            decoration: TextDecoration.lineThrough,
-                            decorationColor: YanoljaColors.textTertiary,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
                           '$rate%',
                           style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: YanoljaColors.primary,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w900,
+                            color: YanoljaColors.sale,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Flexible(
+                          child: Text(
+                            '${YanoljaFormat.price(accommodation.price)}원',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: YanoljaColors.textPrimary,
+                              letterSpacing: -0.5,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 3),
+                        const Text(
+                          '부터',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: YanoljaColors.textTertiary,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 1),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Text(
-                          YanoljaFormat.price(accommodation.price),
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: YanoljaColors.textPrimary,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        const SizedBox(width: 1),
-                        const Text(
-                          '원',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: YanoljaColors.textPrimary,
-                          ),
-                        ),
-                      ],
+                    Text(
+                      '${YanoljaFormat.price(original)}원',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: YanoljaColors.textTertiary,
+                        decoration: TextDecoration.lineThrough,
+                        decorationColor: YanoljaColors.textTertiary,
+                      ),
                     ),
                   ],
                 ),
@@ -530,6 +882,33 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         ),
       ),
     );
+  }
+
+  String _shortAddress(String address) {
+    final parts = address.split(' ');
+    if (parts.length >= 2) return '${parts[0]} ${parts[1]}';
+    return address;
+  }
+
+  void _showSnack(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+  }
+
+  void _openService(String type) {
+    HapticFeedback.selectionClick();
+    context.push('/service/$type');
+  }
+
+  void _openShortcut(_SearchShortcut shortcut) {
+    HapticFeedback.selectionClick();
+    context.push(shortcut.route);
   }
 
   /// 🔄 로딩 위젯
@@ -604,4 +983,18 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       ),
     );
   }
+}
+
+class _SearchShortcut {
+  final String label;
+  final String assetPath;
+  final String subtitle;
+  final String route;
+
+  const _SearchShortcut({
+    required this.label,
+    required this.assetPath,
+    required this.subtitle,
+    required this.route,
+  });
 }

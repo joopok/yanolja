@@ -97,8 +97,7 @@ class _MainShellState extends State<MainShell> {
     return NavigationDestination(
       icon: Icon(
         isSelected ? selectedIcon : icon,
-        color:
-            isSelected ? YanoljaColors.primary : YanoljaColors.textTertiary,
+        color: isSelected ? YanoljaColors.primary : YanoljaColors.textTertiary,
         size: 24,
       ),
       selectedIcon: Icon(
@@ -229,60 +228,42 @@ class _MainShellState extends State<MainShell> {
                     icon: Icons.favorite_outline_rounded,
                     title: '찜한 숙소',
                     subtitle: '내가 찜한 숙소들',
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showComingSoonDialog(context, '찜한 숙소');
-                    },
+                    onTap: () => _openMenuRoute(context, '/saved'),
                   ),
                   _buildMenuCard(
                     context,
                     icon: Icons.history_rounded,
                     title: '예약 내역',
                     subtitle: '나의 예약 기록',
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showComingSoonDialog(context, '예약 내역');
-                    },
+                    onTap: () => _openMenuRoute(context, '/bookings'),
                   ),
                   _buildMenuCard(
                     context,
                     icon: Icons.card_giftcard_rounded,
                     title: '쿠폰함',
                     subtitle: '할인 쿠폰 모음',
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showComingSoonDialog(context, '쿠폰함');
-                    },
+                    onTap: () => _openMenuRoute(context, '/service/coupons'),
                   ),
                   _buildMenuCard(
                     context,
                     icon: Icons.support_agent_rounded,
                     title: '고객센터',
                     subtitle: '문의 및 도움말',
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showComingSoonDialog(context, '고객센터');
-                    },
+                    onTap: () => _openMenuRoute(context, '/service/support'),
                   ),
                   _buildMenuCard(
                     context,
                     icon: Icons.settings_outlined,
                     title: '설정',
                     subtitle: '앱 환경설정',
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showComingSoonDialog(context, '설정');
-                    },
+                    onTap: () => _openMenuRoute(context, '/settings'),
                   ),
                   _buildMenuCard(
                     context,
                     icon: Icons.info_outline_rounded,
                     title: '앱 정보',
                     subtitle: '버전 및 정보',
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showComingSoonDialog(context, '앱 정보');
-                    },
+                    onTap: () => _openMenuRoute(context, '/service/app-info'),
                   ),
                 ],
               ),
@@ -359,21 +340,11 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
-  void _showComingSoonDialog(BuildContext context, String feature) {
+  void _openMenuRoute(BuildContext sheetContext, String route) {
     HapticFeedback.lightImpact();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('기능 준비중'),
-        content: Text('$feature 기능을 준비중입니다.\n조금만 기다려주세요!'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('확인'),
-          ),
-        ],
-      ),
-    );
+    Navigator.pop(sheetContext);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.push(route);
+    });
   }
 }

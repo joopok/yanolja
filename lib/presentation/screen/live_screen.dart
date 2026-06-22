@@ -24,18 +24,30 @@ class LiveScreen extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 28),
         children: [
           _buildHero(),
-          _buildSectionTitle('지금 라이브 중', live: true),
-          for (final live in _liveNow)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
-              child: _LiveCard(live: live),
+          YanoljaEntrance(
+            delay: const Duration(milliseconds: 90),
+            child: _buildSectionTitle('지금 라이브 중', live: true),
+          ),
+          for (var i = 0; i < _liveNow.length; i++)
+            YanoljaEntrance(
+              delay: YanoljaMotion.stagger(i, start: 120, step: 45),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
+                child: _LiveCard(live: _liveNow[i]),
+              ),
             ),
           const SizedBox(height: 8),
-          _buildSectionTitle('방송 예정'),
-          for (final live in _upcoming)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-              child: _UpcomingRow(live: live),
+          YanoljaEntrance(
+            delay: const Duration(milliseconds: 170),
+            child: _buildSectionTitle('방송 예정'),
+          ),
+          for (var i = 0; i < _upcoming.length; i++)
+            YanoljaEntrance(
+              delay: YanoljaMotion.stagger(i, start: 210, step: 40),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                child: _UpcomingRow(live: _upcoming[i]),
+              ),
             ),
         ],
       ),

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/data/model/accommodation.dart';
 import 'package:yanolja_clone/presentation/provider/saved_provider.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 
 // 목록의 각 항목을 표시하는 재사용 가능한 위젯 (NOL 숙소 리스트 스타일)
 class AccommodationListItem extends ConsumerStatefulWidget {
@@ -24,19 +25,21 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        context.push('/detail/${widget.accommodation.id}');
-      },
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(20, 12, 20, 14),
-        color: YanoljaColors.surface,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildImageSection(),
-            _buildContentSection(context),
-          ],
+    return YanoljaEntrance(
+      child: YanoljaPressable(
+        onTap: () {
+          context.push('/detail/${widget.accommodation.id}');
+        },
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(20, 12, 20, 14),
+          color: YanoljaColors.surface,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildImageSection(),
+              _buildContentSection(context),
+            ],
+          ),
         ),
       ),
     );
@@ -159,21 +162,26 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
           ),
         );
       },
-      child: Container(
-        width: 40,
-        height: 40,
-        alignment: Alignment.center,
-        child: Icon(
-          isSaved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-          color: isSaved ? YanoljaColors.primary : Colors.white,
-          size: 26,
-          shadows: const [
-            Shadow(
-              color: Color(0x40000000),
-              blurRadius: 4,
-              offset: Offset(0, 1),
-            ),
-          ],
+      child: AnimatedScale(
+        duration: YanoljaMotion.fast,
+        curve: YanoljaMotion.curve,
+        scale: isSaved ? 1.08 : 1,
+        child: Container(
+          width: 40,
+          height: 40,
+          alignment: Alignment.center,
+          child: Icon(
+            isSaved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+            color: isSaved ? YanoljaColors.primary : Colors.white,
+            size: 26,
+            shadows: const [
+              Shadow(
+                color: Color(0x40000000),
+                blurRadius: 4,
+                offset: Offset(0, 1),
+              ),
+            ],
+          ),
         ),
       ),
     );

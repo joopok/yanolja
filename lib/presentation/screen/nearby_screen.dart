@@ -870,7 +870,7 @@ class _NearServiceTab extends StatelessWidget {
             AnimatedScale(
               scale: selected ? 1.08 : 1.0,
               duration: const Duration(milliseconds: 180),
-              curve: Curves.easeOutBack,
+              curve: Curves.easeOutCubic,
               child: _NearbyIcon(asset: iconAsset, size: 34),
             ),
             const SizedBox(height: 5),

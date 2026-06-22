@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 
 /// NOL 스타일 하단 탭바.
 ///
@@ -137,12 +138,26 @@ class _YanoljaNavItem extends StatelessWidget {
         children: [
           AnimatedScale(
             scale: isSelected ? 1.04 : 1.0,
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOutBack,
-            child: Icon(
-              isSelected ? tab.activeIcon : tab.icon,
-              size: 25,
-              color: color,
+            duration: YanoljaMotion.base,
+            curve: YanoljaMotion.curve,
+            child: AnimatedContainer(
+              duration: YanoljaMotion.base,
+              curve: YanoljaMotion.curve,
+              padding: EdgeInsets.symmetric(
+                horizontal: isSelected ? 10 : 0,
+                vertical: isSelected ? 3 : 0,
+              ),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? YanoljaColors.primaryLight
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+              ),
+              child: Icon(
+                isSelected ? tab.activeIcon : tab.icon,
+                size: 25,
+                color: color,
+              ),
             ),
           ),
           const SizedBox(height: 4),

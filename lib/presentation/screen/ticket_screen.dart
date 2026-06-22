@@ -71,7 +71,11 @@ class _TicketScreenState extends State<TicketScreen>
       body: Column(
         children: [
           _buildHero(),
-          _buildTabBar(),
+          YanoljaEntrance(
+            delay: const Duration(milliseconds: 90),
+            beginOffset: const Offset(0, 0.025),
+            child: _buildTabBar(),
+          ),
           Expanded(
             child: TabBarView(
               controller: _tabController,
@@ -138,7 +142,10 @@ class _TicketScreenState extends State<TicketScreen>
         childAspectRatio: 0.58,
       ),
       itemCount: shows.length,
-      itemBuilder: (context, index) => _ShowCard(show: shows[index]),
+      itemBuilder: (context, index) => YanoljaEntrance(
+        delay: YanoljaMotion.stagger(index, start: 30, step: 35),
+        child: _ShowCard(show: shows[index]),
+      ),
     );
   }
 

@@ -10,6 +10,7 @@ import 'package:yanolja_clone/presentation/provider/search_provider.dart';
 import 'package:yanolja_clone/presentation/screen/map_screen.dart';
 import 'package:yanolja_clone/presentation/widget/animated_search_field.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 
 enum SearchDisplayMode { list, map }
 
@@ -86,23 +87,30 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         ),
         body: Column(
           children: [
-            Container(
-              color: YanoljaColors.background,
-              child: AnimatedSearchField(
-                controller: _searchController,
-                focusNode: _searchFocusNode,
-                onChanged: (query) {
-                  ref.read(searchProvider.notifier).updateQuery(query);
-                },
-                onSubmitted: _handleSearch,
-                onClear: () {
-                  ref.read(searchProvider.notifier).updateQuery('');
-                },
-                suggestions: _getAutocompleteSuggestions(searchState.query),
-                onSuggestionTap: _handleSearch,
+            YanoljaEntrance(
+              child: Container(
+                color: YanoljaColors.background,
+                child: AnimatedSearchField(
+                  controller: _searchController,
+                  focusNode: _searchFocusNode,
+                  onChanged: (query) {
+                    ref.read(searchProvider.notifier).updateQuery(query);
+                  },
+                  onSubmitted: _handleSearch,
+                  onClear: () {
+                    ref.read(searchProvider.notifier).updateQuery('');
+                  },
+                  suggestions: _getAutocompleteSuggestions(searchState.query),
+                  onSuggestionTap: _handleSearch,
+                ),
               ),
             ),
-            if (searchState.query.isNotEmpty) _buildDisplayModeToggle(),
+            if (searchState.query.isNotEmpty)
+              YanoljaEntrance(
+                delay: const Duration(milliseconds: 60),
+                beginOffset: const Offset(0, 0.025),
+                child: _buildDisplayModeToggle(),
+              ),
             Expanded(
               child: searchState.query.isEmpty
                   ? _buildSuggestions(
@@ -279,15 +287,24 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
       children: [
-        _buildShortcutGrid(shortcuts),
+        YanoljaEntrance(child: _buildShortcutGrid(shortcuts)),
         if (searchState.recentSearches.isNotEmpty) ...[
           const SizedBox(height: 22),
-          _buildRecentSection(searchState.recentSearches),
+          YanoljaEntrance(
+            delay: const Duration(milliseconds: 70),
+            child: _buildRecentSection(searchState.recentSearches),
+          ),
         ],
         const SizedBox(height: 22),
-        _buildPopularRanking(popularSearches),
+        YanoljaEntrance(
+          delay: const Duration(milliseconds: 110),
+          child: _buildPopularRanking(popularSearches),
+        ),
         const SizedBox(height: 22),
-        _buildSuggestChips(suggestedSearches),
+        YanoljaEntrance(
+          delay: const Duration(milliseconds: 160),
+          child: _buildSuggestChips(suggestedSearches),
+        ),
       ],
     );
   }
@@ -328,48 +345,51 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             itemCount: shortcuts.length,
             itemBuilder: (context, index) {
               final item = shortcuts[index];
-              return InkWell(
-                onTap: () => _openShortcut(item),
-                borderRadius: BorderRadius.circular(YanoljaRadius.md),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(18),
-                        child: Image.asset(
-                          item.assetPath,
-                          width: 62,
-                          height: 62,
-                          fit: BoxFit.cover,
+              return YanoljaEntrance(
+                delay: YanoljaMotion.stagger(index, start: 0, step: 22),
+                beginOffset: const Offset(0, 0.03),
+                child: YanoljaPressable(
+                  onTap: () => _openShortcut(item),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(18),
+                          child: Image.asset(
+                            item.assetPath,
+                            width: 62,
+                            height: 62,
+                            fit: BoxFit.cover,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        item.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: YanoljaColors.textPrimary,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.2,
+                        const SizedBox(height: 8),
+                        Text(
+                          item.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: YanoljaColors.textPrimary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.2,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        item.subtitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: YanoljaColors.textTertiary,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: -0.1,
+                        const SizedBox(height: 2),
+                        Text(
+                          item.subtitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: YanoljaColors.textTertiary,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.1,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -449,7 +469,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             children: rankings.asMap().entries.map((entry) {
               final index = entry.key;
               final keyword = entry.value;
-              return InkWell(
+              return YanoljaPressable(
                 onTap: () => _handleSearch(keyword),
                 child: Container(
                   padding:

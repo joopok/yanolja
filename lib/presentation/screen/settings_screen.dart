@@ -332,7 +332,13 @@ class SettingsScreen extends ConsumerWidget {
       child: Row(
         children: [
           for (int i = 0; i < statusItems.length; i++) ...[
-            Expanded(child: _StatusCard(item: statusItems[i])),
+            Expanded(
+              child: YanoljaEntrance(
+                delay: YanoljaMotion.stagger(i, start: 60, step: 35),
+                beginOffset: const Offset(0, 0.03),
+                child: _StatusCard(item: statusItems[i]),
+              ),
+            ),
             if (i != statusItems.length - 1) const SizedBox(width: 9),
           ],
         ],
@@ -578,28 +584,30 @@ class _SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      color: YanoljaColors.background,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          YanoljaSectionHeader(
-            title: title,
-            subtitle: subtitle,
-            padding: const EdgeInsets.fromLTRB(20, 22, 20, 8),
-          ),
-          for (int i = 0; i < children.length; i++) ...[
-            children[i],
-            if (i != children.length - 1)
-              const Divider(
-                height: 1,
-                color: YanoljaColors.divider,
-                indent: 78,
-              ),
+    return YanoljaEntrance(
+      child: Container(
+        margin: const EdgeInsets.only(top: 8),
+        color: YanoljaColors.background,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            YanoljaSectionHeader(
+              title: title,
+              subtitle: subtitle,
+              padding: const EdgeInsets.fromLTRB(20, 22, 20, 8),
+            ),
+            for (int i = 0; i < children.length; i++) ...[
+              children[i],
+              if (i != children.length - 1)
+                const Divider(
+                  height: 1,
+                  color: YanoljaColors.divider,
+                  indent: 78,
+                ),
+            ],
+            const SizedBox(height: 8),
           ],
-          const SizedBox(height: 8),
-        ],
+        ),
       ),
     );
   }
@@ -840,10 +848,12 @@ class _ModePill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return YanoljaPressable(
+      pressedScale: 0.985,
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
+        duration: YanoljaMotion.base,
+        curve: YanoljaMotion.curve,
         height: 44,
         alignment: Alignment.center,
         decoration: BoxDecoration(

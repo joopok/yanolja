@@ -34,7 +34,7 @@ Future<bool> showYanoljaConfirmDialog({
     transitionBuilder: (context, animation, _, child) {
       final curved = CurvedAnimation(
         parent: animation,
-        curve: Curves.easeOutBack,
+        curve: Curves.easeOutCubic,
         reverseCurve: Curves.easeInCubic,
       );
       return Opacity(
@@ -77,9 +77,8 @@ class _ConfirmDialogBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color accent =
         isDestructive ? YanoljaColors.sale : YanoljaColors.primary;
-    final Color badgeBg = isDestructive
-        ? const Color(0xFFFFEAF0)
-        : YanoljaColors.primaryLight;
+    final Color badgeBg =
+        isDestructive ? const Color(0xFFFFEAF0) : YanoljaColors.primaryLight;
 
     return Center(
       child: Padding(

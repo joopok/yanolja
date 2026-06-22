@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 
 enum YanoljaAppBarVariant { main, sub, detail, modal }
 
@@ -113,11 +114,15 @@ class YanoljaAppBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: false,
       title: Opacity(
         opacity: titleOpacity.clamp(0.0, 1.0).toDouble(),
-        child: _YanoljaAppBarTitle(
-          title: title,
-          subtitle: subtitle,
-          variant: variant,
-          color: foregroundColor,
+        child: YanoljaEntrance(
+          duration: YanoljaMotion.base,
+          beginOffset: const Offset(0, 0.025),
+          child: _YanoljaAppBarTitle(
+            title: title,
+            subtitle: subtitle,
+            variant: variant,
+            color: foregroundColor,
+          ),
         ),
       ),
       actions: _withActionGap(actions),
@@ -293,11 +298,15 @@ class YanoljaSliverAppBar extends StatelessWidget {
       centerTitle: false,
       title: Opacity(
         opacity: titleOpacity.clamp(0.0, 1.0).toDouble(),
-        child: _YanoljaAppBarTitle(
-          title: title,
-          subtitle: subtitle,
-          variant: variant,
-          color: foregroundColor,
+        child: YanoljaEntrance(
+          duration: YanoljaMotion.base,
+          beginOffset: const Offset(0, 0.025),
+          child: _YanoljaAppBarTitle(
+            title: title,
+            subtitle: subtitle,
+            variant: variant,
+            color: foregroundColor,
+          ),
         ),
       ),
       actions: _withActionGap(actions),

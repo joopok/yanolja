@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/data/model/booking.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 
 /// 결제 완료 화면 — 성공 애니메이션 · 예약 번호 · 요약 · 후속 액션
 class PaymentCompleteScreen extends StatefulWidget {
@@ -28,20 +29,22 @@ class _PaymentCompleteScreenState extends State<PaymentCompleteScreen>
       vsync: this,
       duration: const Duration(milliseconds: 900),
     );
-    _badgeScale = CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.0, 0.6, curve: Curves.elasticOut),
+    _badgeScale = Tween<double>(begin: 0.82, end: 1).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.55, curve: YanoljaMotion.curve),
+      ),
     );
     _contentFade = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.4, 1.0, curve: Curves.easeOut),
+      curve: const Interval(0.32, 1.0, curve: YanoljaMotion.curve),
     );
     _contentSlide = Tween<Offset>(
       begin: const Offset(0, 0.15),
       end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.4, 1.0, curve: Curves.easeOutCubic),
+      curve: const Interval(0.32, 1.0, curve: YanoljaMotion.curve),
     ));
     _controller.forward();
   }

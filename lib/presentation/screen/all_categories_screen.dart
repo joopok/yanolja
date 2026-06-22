@@ -30,7 +30,10 @@ class AllCategoriesScreen extends StatelessWidget {
             _buildHeroBanner(context),
             const SizedBox(height: 24),
             for (var i = 0; i < nolMenuGroups.length; i++) ...[
-              _buildGroup(context, nolMenuGroups[i]),
+              YanoljaEntrance(
+                delay: YanoljaMotion.stagger(i, start: 90, step: 55),
+                child: _buildGroup(context, nolMenuGroups[i]),
+              ),
               if (i != nolMenuGroups.length - 1) const SizedBox(height: 26),
             ],
           ],
@@ -104,7 +107,12 @@ class AllCategoriesScreen extends StatelessWidget {
           crossAxisSpacing: 8,
           childAspectRatio: 0.82,
           children: [
-            for (final item in group.items) _buildMenuTile(context, item),
+            for (var i = 0; i < group.items.length; i++)
+              YanoljaEntrance(
+                delay: YanoljaMotion.stagger(i, start: 0, step: 18),
+                beginOffset: const Offset(0, 0.03),
+                child: _buildMenuTile(context, group.items[i]),
+              ),
           ],
         ),
       ],

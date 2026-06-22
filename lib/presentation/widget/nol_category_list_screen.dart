@@ -8,6 +8,7 @@ import 'package:yanolja_clone/presentation/provider/accommodation_provider.dart'
 import 'package:yanolja_clone/presentation/widget/accommodation_list_item.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_bottom_nav.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 
 typedef AccommodationMatcher = bool Function(Accommodation accommodation);
 typedef AccommodationFilterMatcher = bool Function(
@@ -148,7 +149,12 @@ class _NolCategoryListScreenState extends ConsumerState<NolCategoryListScreen> {
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
                 SliverToBoxAdapter(child: _buildHeaderPanel()),
-                SliverToBoxAdapter(child: _buildCountAndSortRow(filtered)),
+                SliverToBoxAdapter(
+                  child: YanoljaEntrance(
+                    delay: const Duration(milliseconds: 90),
+                    child: _buildCountAndSortRow(filtered),
+                  ),
+                ),
                 if (filtered.isEmpty)
                   SliverFillRemaining(
                     hasScrollBody: false,
@@ -482,10 +488,19 @@ class _NolCategoryListScreenState extends ConsumerState<NolCategoryListScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSearchPill(),
-          _buildShortcutTabs(),
-          _buildBenefitBanner(),
-          _buildFilterBar(),
+          YanoljaEntrance(child: _buildSearchPill()),
+          YanoljaEntrance(
+            delay: const Duration(milliseconds: 50),
+            child: _buildShortcutTabs(),
+          ),
+          YanoljaEntrance(
+            delay: const Duration(milliseconds: 90),
+            child: _buildBenefitBanner(),
+          ),
+          YanoljaEntrance(
+            delay: const Duration(milliseconds: 130),
+            child: _buildFilterBar(),
+          ),
           const SizedBox(height: 6),
         ],
       ),
@@ -495,9 +510,8 @@ class _NolCategoryListScreenState extends ConsumerState<NolCategoryListScreen> {
   Widget _buildSearchPill() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-      child: GestureDetector(
+      child: YanoljaPressable(
         onTap: () => context.go('/search'),
-        behavior: HitTestBehavior.opaque,
         child: Container(
           height: 48,
           padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -556,9 +570,8 @@ class _NolCategoryListScreenState extends ConsumerState<NolCategoryListScreen> {
         children: shortcuts.map((shortcut) {
           final isHome = shortcut.label == '홈';
           return Expanded(
-            child: GestureDetector(
+            child: YanoljaPressable(
               onTap: () => _handleShortcutTap(shortcut.label),
-              behavior: HitTestBehavior.opaque,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -594,7 +607,7 @@ class _NolCategoryListScreenState extends ConsumerState<NolCategoryListScreen> {
   Widget _buildBenefitBanner() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
-      child: GestureDetector(
+      child: YanoljaPressable(
         onTap: () => context.push('/service/coupons'),
         child: Container(
           padding: const EdgeInsets.all(16),
@@ -683,10 +696,12 @@ class _NolCategoryListScreenState extends ConsumerState<NolCategoryListScreen> {
           final filter = widget.filters[index];
           final selected = _selectedFilter == filter;
 
-          return GestureDetector(
+          return YanoljaPressable(
+            pressedScale: 0.985,
             onTap: () => setState(() => _selectedFilter = filter),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
+              duration: YanoljaMotion.base,
+              curve: YanoljaMotion.curve,
               padding: const EdgeInsets.symmetric(horizontal: 15),
               alignment: Alignment.center,
               decoration: BoxDecoration(

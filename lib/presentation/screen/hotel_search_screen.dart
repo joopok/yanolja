@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_date_range_sheet.dart';
 
 class HotelSearchScreen extends StatefulWidget {
@@ -39,12 +40,27 @@ class _HotelSearchScreenState extends State<HotelSearchScreen> {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          SliverToBoxAdapter(child: _buildTabs()),
-          SliverToBoxAdapter(child: _buildSearchPanel()),
+          SliverToBoxAdapter(child: YanoljaEntrance(child: _buildTabs())),
+          SliverToBoxAdapter(
+            child: YanoljaEntrance(
+              delay: const Duration(milliseconds: 55),
+              child: _buildSearchPanel(),
+            ),
+          ),
           SliverToBoxAdapter(child: _sectionGap()),
-          SliverToBoxAdapter(child: _buildPopularRegions()),
+          SliverToBoxAdapter(
+            child: YanoljaEntrance(
+              delay: const Duration(milliseconds: 105),
+              child: _buildPopularRegions(),
+            ),
+          ),
           SliverToBoxAdapter(child: _sectionGap()),
-          SliverToBoxAdapter(child: _buildBenefitPanel()),
+          SliverToBoxAdapter(
+            child: YanoljaEntrance(
+              delay: const Duration(milliseconds: 155),
+              child: _buildBenefitPanel(),
+            ),
+          ),
           const SliverToBoxAdapter(child: SizedBox(height: 92)),
         ],
       ),
@@ -94,13 +110,15 @@ class _HotelSearchScreenState extends State<HotelSearchScreen> {
           children: [
             for (final tab in _tabs)
               Expanded(
-                child: GestureDetector(
+                child: YanoljaPressable(
+                  pressedScale: 0.985,
                   onTap: () {
                     HapticFeedback.selectionClick();
                     setState(() => _selectedTab = tab);
                   },
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 160),
+                    duration: YanoljaMotion.base,
+                    curve: YanoljaMotion.curve,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: _selectedTab == tab
@@ -217,13 +235,15 @@ class _HotelSearchScreenState extends State<HotelSearchScreen> {
               itemBuilder: (context, index) {
                 final region = _regions[index];
                 final selected = _selectedRegion == region;
-                return GestureDetector(
+                return YanoljaPressable(
+                  pressedScale: 0.985,
                   onTap: () {
                     HapticFeedback.selectionClick();
                     setState(() => _selectedRegion = region);
                   },
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 160),
+                    duration: YanoljaMotion.base,
+                    curve: YanoljaMotion.curve,
                     alignment: Alignment.center,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(

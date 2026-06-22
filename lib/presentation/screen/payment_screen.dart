@@ -7,6 +7,8 @@ import 'package:yanolja_clone/data/model/accommodation.dart';
 import 'package:yanolja_clone/data/model/booking.dart';
 import 'package:yanolja_clone/presentation/provider/auth_provider.dart';
 import 'package:yanolja_clone/presentation/provider/booking_provider.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 
 /// 결제 화면으로 전달되는 예약 정보
 class PaymentArgs {
@@ -148,31 +150,28 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       children: [
         Scaffold(
           backgroundColor: YanoljaColors.surfaceAlt,
-          appBar: AppBar(
-            title: const Text('예약 확인 및 결제'),
-            backgroundColor: Colors.white,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-              onPressed: () => context.pop(),
-            ),
+          appBar: YanoljaAppBar.sub(
+            title: '예약 확인 및 결제',
+            fallbackRoute: '/detail/${_acc.id}',
+            onBackPress: () => context.pop(),
           ),
           body: ListView(
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
             children: [
-              _buildAccommodationCard(),
+              _reveal(0, _buildAccommodationCard()),
               const SizedBox(height: 12),
-              _buildScheduleCard(),
+              _reveal(1, _buildScheduleCard()),
               const SizedBox(height: 12),
-              _buildBookerCard(user),
+              _reveal(2, _buildBookerCard(user)),
               const SizedBox(height: 12),
-              _buildPaymentMethodCard(),
+              _reveal(3, _buildPaymentMethodCard()),
               const SizedBox(height: 12),
-              _buildPriceCard(),
+              _reveal(4, _buildPriceCard()),
               const SizedBox(height: 12),
-              _buildTermsCard(),
+              _reveal(5, _buildTermsCard()),
               const SizedBox(height: 8),
-              _buildNotice(),
+              _reveal(6, _buildNotice()),
             ],
           ),
           bottomNavigationBar: _buildBottomBar(),
@@ -183,6 +182,13 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   }
 
   // ───────────────────────── 카드 공통 셸
+  Widget _reveal(int index, Widget child) {
+    return YanoljaEntrance(
+      delay: YanoljaMotion.stagger(index, start: 30, step: 45),
+      child: child,
+    );
+  }
+
   Widget _card({required Widget child, EdgeInsets? padding}) {
     return Container(
       width: double.infinity,
@@ -191,6 +197,13 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         color: YanoljaColors.surface,
         borderRadius: BorderRadius.circular(YanoljaRadius.lg),
         border: Border.all(color: YanoljaColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.035),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: child,
     );
@@ -474,14 +487,15 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
   Widget _methodTile(int index, _PayMethod method) {
     final selected = _selectedMethod == index;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    return YanoljaPressable(
+      pressedScale: 0.985,
       onTap: () {
         HapticFeedback.selectionClick();
         setState(() => _selectedMethod = index);
       },
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
+        duration: YanoljaMotion.base,
+        curve: YanoljaMotion.curve,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
         decoration: BoxDecoration(
           color: selected ? YanoljaColors.primaryLight : YanoljaColors.surface,
@@ -528,13 +542,20 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                 ],
               ),
             ),
-            Icon(
-              selected
-                  ? Icons.radio_button_checked_rounded
-                  : Icons.radio_button_unchecked_rounded,
-              size: 22,
-              color:
-                  selected ? YanoljaColors.primary : YanoljaColors.textTertiary,
+            AnimatedSwitcher(
+              duration: YanoljaMotion.fast,
+              switchInCurve: YanoljaMotion.curve,
+              switchOutCurve: YanoljaMotion.curve,
+              child: Icon(
+                selected
+                    ? Icons.radio_button_checked_rounded
+                    : Icons.radio_button_unchecked_rounded,
+                key: ValueKey(selected),
+                size: 22,
+                color: selected
+                    ? YanoljaColors.primary
+                    : YanoljaColors.textTertiary,
+              ),
             ),
           ],
         ),
@@ -628,8 +649,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       child: Column(
         children: [
           // 전체 동의
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
+          YanoljaPressable(
+            pressedScale: 0.985,
             onTap: () {
               HapticFeedback.selectionClick();
               final next = !_allAgreed;
@@ -666,8 +687,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               indent: 10,
               endIndent: 10),
           for (int i = 0; i < _terms.length; i++)
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
+            YanoljaPressable(
+              pressedScale: 0.985,
               onTap: () {
                 HapticFeedback.selectionClick();
                 setState(() => _agreed[i] = !_agreed[i]);
@@ -701,7 +722,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   Widget _checkIcon(bool checked, {bool large = false}) {
     final size = large ? 26.0 : 22.0;
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 140),
+      duration: YanoljaMotion.fast,
+      curve: YanoljaMotion.curve,
       width: size,
       height: size,
       decoration: BoxDecoration(
@@ -809,42 +831,46 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       child: ColoredBox(
         color: Colors.black.withValues(alpha: 0.55),
         child: Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 3,
-                    color: YanoljaColors.primary,
+          child: YanoljaEntrance(
+            duration: YanoljaMotion.base,
+            beginOffset: const Offset(0, 0.02),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      color: YanoljaColors.primary,
+                    ),
                   ),
-                ),
-                SizedBox(height: 18),
-                Text(
-                  '결제를 진행하고 있어요',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: YanoljaColors.textPrimary,
+                  SizedBox(height: 18),
+                  Text(
+                    '결제를 진행하고 있어요',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: YanoljaColors.textPrimary,
+                    ),
                   ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  '잠시만 기다려 주세요',
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    color: YanoljaColors.textTertiary,
-                    fontWeight: FontWeight.w500,
+                  SizedBox(height: 4),
+                  Text(
+                    '잠시만 기다려 주세요',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: YanoljaColors.textTertiary,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

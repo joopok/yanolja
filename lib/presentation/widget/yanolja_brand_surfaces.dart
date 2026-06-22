@@ -1,6 +1,88 @@
 import 'package:flutter/material.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 
+class YanoljaMotion {
+  static const Duration fast = Duration(milliseconds: 140);
+  static const Duration base = Duration(milliseconds: 220);
+  static const Duration entrance = Duration(milliseconds: 360);
+  static const Curve curve = Curves.easeOutCubic;
+
+  const YanoljaMotion._();
+
+  static Duration stagger(int index, {int start = 40, int step = 55}) {
+    return Duration(milliseconds: start + (index * step));
+  }
+
+  static bool reduce(BuildContext context) {
+    return MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+  }
+}
+
+class YanoljaEntrance extends StatefulWidget {
+  final Widget child;
+  final Duration delay;
+  final Duration duration;
+  final Offset beginOffset;
+  final double beginScale;
+
+  const YanoljaEntrance({
+    super.key,
+    required this.child,
+    this.delay = Duration.zero,
+    this.duration = YanoljaMotion.entrance,
+    this.beginOffset = const Offset(0, 0.045),
+    this.beginScale = 0.985,
+  });
+
+  @override
+  State<YanoljaEntrance> createState() => _YanoljaEntranceState();
+}
+
+class _YanoljaEntranceState extends State<YanoljaEntrance>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _opacity;
+  late final Animation<double> _scale;
+  late final Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: widget.duration);
+    final curved =
+        CurvedAnimation(parent: _controller, curve: YanoljaMotion.curve);
+    _opacity = Tween<double>(begin: 0, end: 1).animate(curved);
+    _scale = Tween<double>(begin: widget.beginScale, end: 1).animate(curved);
+    _slide = Tween<Offset>(
+      begin: widget.beginOffset,
+      end: Offset.zero,
+    ).animate(curved);
+
+    Future<void>.delayed(widget.delay, () {
+      if (mounted) _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (YanoljaMotion.reduce(context)) return widget.child;
+
+    return FadeTransition(
+      opacity: _opacity,
+      child: SlideTransition(
+        position: _slide,
+        child: ScaleTransition(scale: _scale, child: widget.child),
+      ),
+    );
+  }
+}
+
 class YanoljaPremiumHero extends StatelessWidget {
   final String badge;
   final String title;
@@ -11,6 +93,7 @@ class YanoljaPremiumHero extends StatelessWidget {
   final EdgeInsetsGeometry margin;
   final EdgeInsetsGeometry padding;
   final double? minHeight;
+  final Duration delay;
 
   const YanoljaPremiumHero({
     super.key,
@@ -23,88 +106,92 @@ class YanoljaPremiumHero extends StatelessWidget {
     this.margin = EdgeInsets.zero,
     this.padding = const EdgeInsets.all(20),
     this.minHeight,
+    this.delay = Duration.zero,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: margin,
-      constraints: BoxConstraints(minHeight: minHeight ?? 0),
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: gradient,
+    return YanoljaEntrance(
+      delay: delay,
+      child: Container(
+        margin: margin,
+        constraints: BoxConstraints(minHeight: minHeight ?? 0),
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: gradient,
+          ),
+          borderRadius: BorderRadius.circular(YanoljaRadius.xl),
+          boxShadow: [
+            BoxShadow(
+              color: gradient.last.withValues(alpha: 0.24),
+              blurRadius: 28,
+              offset: const Offset(0, 14),
+            ),
+          ],
         ),
-        borderRadius: BorderRadius.circular(YanoljaRadius.xl),
-        boxShadow: [
-          BoxShadow(
-            color: gradient.last.withValues(alpha: 0.24),
-            blurRadius: 28,
-            offset: const Offset(0, 14),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          const Positioned.fill(
-              child: CustomPaint(painter: _HeroLinePainter())),
-          Positioned(
-            right: -18,
-            top: -18,
-            child: Icon(
-              icon,
-              size: 126,
-              color: Colors.white.withValues(alpha: 0.13),
+        child: Stack(
+          children: [
+            const Positioned.fill(
+                child: CustomPaint(painter: _HeroLinePainter())),
+            Positioned(
+              right: -18,
+              top: -18,
+              child: Icon(
+                icon,
+                size: 126,
+                color: Colors.white.withValues(alpha: 0.13),
+              ),
             ),
-          ),
-          Padding(
-            padding: padding,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                YanoljaGlassBadge(label: badge),
-                const SizedBox(height: 16),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 280),
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 25,
-                      height: 1.16,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0,
+            Padding(
+              padding: padding,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  YanoljaGlassBadge(label: badge),
+                  const SizedBox(height: 16),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 280),
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 25,
+                        height: 1.16,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 10),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 310),
-                  child: Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.88),
-                      fontSize: 13.5,
-                      height: 1.42,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0,
+                  const SizedBox(height: 10),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 310),
+                    child: Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.88),
+                        fontSize: 13.5,
+                        height: 1.42,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0,
+                      ),
                     ),
                   ),
-                ),
-                if (metrics.isNotEmpty) ...[
-                  const SizedBox(height: 18),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: metrics,
-                  ),
+                  if (metrics.isNotEmpty) ...[
+                    const SizedBox(height: 18),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: metrics,
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -203,12 +290,14 @@ class YanoljaPressable extends StatefulWidget {
   final Widget child;
   final VoidCallback? onTap;
   final BorderRadius? borderRadius;
+  final double pressedScale;
 
   const YanoljaPressable({
     super.key,
     required this.child,
     this.onTap,
     this.borderRadius,
+    this.pressedScale = 0.97,
   });
 
   @override
@@ -225,18 +314,22 @@ class _YanoljaPressableState extends State<YanoljaPressable> {
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion = YanoljaMotion.reduce(context);
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTapDown: widget.onTap == null ? null : (_) => _setPressed(true),
       onTapCancel: widget.onTap == null ? null : () => _setPressed(false),
       onTapUp: widget.onTap == null ? null : (_) => _setPressed(false),
       onTap: widget.onTap,
-      child: AnimatedScale(
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOutCubic,
-        scale: _pressed ? 0.97 : 1,
-        child: widget.child,
-      ),
+      child: reduceMotion
+          ? widget.child
+          : AnimatedScale(
+              duration: YanoljaMotion.fast,
+              curve: YanoljaMotion.curve,
+              scale: _pressed ? widget.pressedScale : 1,
+              child: widget.child,
+            ),
     );
   }
 }

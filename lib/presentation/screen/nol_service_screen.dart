@@ -47,24 +47,42 @@ class _NolServiceScreenState extends State<NolServiceScreen> {
         slivers: [
           _buildAppBar(context),
           SliverToBoxAdapter(child: _buildHero()),
-          SliverToBoxAdapter(child: _buildFilterRail()),
-          SliverToBoxAdapter(child: _buildActionPanel()),
-          SliverToBoxAdapter(child: _buildSectionHeader(deals.length)),
+          SliverToBoxAdapter(
+            child: YanoljaEntrance(
+              delay: const Duration(milliseconds: 70),
+              child: _buildFilterRail(),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: YanoljaEntrance(
+              delay: const Duration(milliseconds: 110),
+              child: _buildActionPanel(),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: YanoljaEntrance(
+              delay: const Duration(milliseconds: 150),
+              child: _buildSectionHeader(deals.length),
+            ),
+          ),
           SliverList.separated(
             itemCount: deals.length,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
-              return Padding(
-                padding: EdgeInsets.fromLTRB(
-                  20,
-                  index == 0 ? 0 : 0,
-                  20,
-                  index == deals.length - 1 ? 24 : 0,
-                ),
-                child: _ServiceDealCard(
-                  deal: deals[index],
-                  accentColor: _config.accentColor,
-                  onTap: () => _showDealSheet(deals[index]),
+              return YanoljaEntrance(
+                delay: YanoljaMotion.stagger(index, start: 180, step: 40),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    index == 0 ? 0 : 0,
+                    20,
+                    index == deals.length - 1 ? 24 : 0,
+                  ),
+                  child: _ServiceDealCard(
+                    deal: deals[index],
+                    accentColor: _config.accentColor,
+                    onTap: () => _showDealSheet(deals[index]),
+                  ),
                 ),
               );
             },
@@ -126,13 +144,15 @@ class _NolServiceScreenState extends State<NolServiceScreen> {
             final filter = _config.filters[index];
             final selected = filter == _selectedFilter;
 
-            return GestureDetector(
+            return YanoljaPressable(
+              pressedScale: 0.985,
               onTap: () {
                 HapticFeedback.selectionClick();
                 setState(() => _selectedFilter = filter);
               },
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
+                duration: YanoljaMotion.base,
+                curve: YanoljaMotion.curve,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
@@ -640,9 +660,8 @@ class _ServiceDealCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return YanoljaPressable(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(YanoljaRadius.lg),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(

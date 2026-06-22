@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_bottom_nav.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 
 class MoreScreen extends ConsumerWidget {
   const MoreScreen({super.key});
@@ -21,14 +22,26 @@ class MoreScreen extends ConsumerWidget {
           SliverToBoxAdapter(
             child: Column(
               children: [
-                _buildTopTabs(context),
-                _buildSearchPill(context),
+                YanoljaEntrance(child: _buildTopTabs(context)),
+                YanoljaEntrance(
+                  delay: const Duration(milliseconds: 55),
+                  child: _buildSearchPill(context),
+                ),
                 _sectionGap(),
-                _buildCategorySection(context),
+                YanoljaEntrance(
+                  delay: const Duration(milliseconds: 100),
+                  child: _buildCategorySection(context),
+                ),
                 _sectionGap(),
-                _buildBenefitSection(context),
+                YanoljaEntrance(
+                  delay: const Duration(milliseconds: 150),
+                  child: _buildBenefitSection(context),
+                ),
                 _sectionGap(),
-                _buildSupportSection(context),
+                YanoljaEntrance(
+                  delay: const Duration(milliseconds: 200),
+                  child: _buildSupportSection(context),
+                ),
                 const SizedBox(height: 42),
               ],
             ),
@@ -222,9 +235,14 @@ class MoreScreen extends ConsumerWidget {
                 childAspectRatio: 0.72,
               ),
               itemBuilder: (context, index) {
-                return _CategoryTile(
-                  item: primaryItems[index],
-                  onTap: () => _handleCategoryTap(context, primaryItems[index]),
+                return YanoljaEntrance(
+                  delay: YanoljaMotion.stagger(index, start: 0, step: 18),
+                  beginOffset: const Offset(0, 0.03),
+                  child: _CategoryTile(
+                    item: primaryItems[index],
+                    onTap: () =>
+                        _handleCategoryTap(context, primaryItems[index]),
+                  ),
                 );
               },
             ),

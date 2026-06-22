@@ -9,6 +9,7 @@ import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/data/model/accommodation.dart';
 import 'package:yanolja_clone/presentation/provider/accommodation_provider.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 
 /// NOL(야놀자) 스타일 홈 화면
 ///
@@ -82,10 +83,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ],
             ),
-            SliverToBoxAdapter(child: _buildHeader()),
-            SliverToBoxAdapter(child: _buildCategoryGrid()),
-            SliverToBoxAdapter(child: _buildBannerCarousel()),
-            SliverToBoxAdapter(child: _buildBenefitShortcuts()),
+            SliverToBoxAdapter(child: YanoljaEntrance(child: _buildHeader())),
+            SliverToBoxAdapter(
+              child: YanoljaEntrance(
+                delay: const Duration(milliseconds: 60),
+                child: _buildCategoryGrid(),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: YanoljaEntrance(
+                delay: const Duration(milliseconds: 110),
+                child: _buildBannerCarousel(),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: YanoljaEntrance(
+                delay: const Duration(milliseconds: 160),
+                child: _buildBenefitShortcuts(),
+              ),
+            ),
             SliverToBoxAdapter(child: const _SectionDivider()),
             ...accommodations.when(
               data: (data) => _buildContentSlivers(data),
@@ -109,7 +125,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GestureDetector(
+          YanoljaPressable(
             onTap: () => context.go('/search'),
             child: Container(
               height: 56,
@@ -145,7 +161,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          GestureDetector(
+          YanoljaPressable(
             onTap: () => _openService('news'),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
@@ -291,7 +307,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               childAspectRatio: 0.7,
             ),
             itemCount: items.length,
-            itemBuilder: (context, i) => _buildCategoryItem(items[i]),
+            itemBuilder: (context, i) => YanoljaEntrance(
+              delay: YanoljaMotion.stagger(i, start: 0, step: 20),
+              beginOffset: const Offset(0, 0.03),
+              child: _buildCategoryItem(items[i]),
+            ),
           ),
           const SizedBox(height: 14),
           _buildAllCategoriesButton(),
@@ -302,12 +322,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   /// 전체 카테고리 화면 진입 버튼
   Widget _buildAllCategoriesButton() {
-    return InkWell(
+    return YanoljaPressable(
       onTap: () {
         HapticFeedback.lightImpact();
         context.push('/all-categories');
       },
-      borderRadius: BorderRadius.circular(999),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8),
         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -338,12 +357,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildCategoryItem(_Category item) {
-    return InkWell(
+    return YanoljaPressable(
       onTap: () {
         HapticFeedback.lightImpact();
         item.onTap();
       },
-      borderRadius: BorderRadius.circular(16),
       child: Column(
         children: [
           Container(
@@ -461,7 +479,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildBannerCard(_PromoBanner banner) {
-    return GestureDetector(
+    return YanoljaPressable(
       onTap: () => context.push('/detail/${banner.id}'),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 5),
@@ -639,7 +657,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          GestureDetector(
+          YanoljaPressable(
             onTap: () => _openService('first-benefit'),
             child: Container(
               width: double.infinity,
@@ -795,7 +813,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
               itemCount: items.length,
               separatorBuilder: (_, __) => const SizedBox(width: 14),
-              itemBuilder: (context, i) => _buildHorizontalCard(items[i]),
+              itemBuilder: (context, i) => YanoljaEntrance(
+                delay: YanoljaMotion.stagger(i, start: 0, step: 35),
+                child: _buildHorizontalCard(items[i]),
+              ),
             ),
           ),
         ],
@@ -808,7 +829,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final original = YanoljaFormat.originalPrice(a.price, rate);
     final image = a.imageUrls.isNotEmpty ? a.imageUrls.first : _fallbackImage;
 
-    return GestureDetector(
+    return YanoljaPressable(
       onTap: () {
         HapticFeedback.lightImpact();
         context.push('/detail/${a.id}');
@@ -918,7 +939,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         padding: EdgeInsets.symmetric(horizontal: 20),
         child: Divider(height: 1, color: YanoljaColors.divider),
       ),
-      itemBuilder: (context, i) => _buildVerticalCard(items[i]),
+      itemBuilder: (context, i) => YanoljaEntrance(
+        delay: YanoljaMotion.stagger(i, start: 0, step: 35),
+        child: _buildVerticalCard(items[i]),
+      ),
     );
   }
 
@@ -927,12 +951,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final original = YanoljaFormat.originalPrice(a.price, rate);
     final image = a.imageUrls.isNotEmpty ? a.imageUrls.first : _fallbackImage;
 
-    return GestureDetector(
+    return YanoljaPressable(
       onTap: () {
         HapticFeedback.lightImpact();
         context.push('/detail/${a.id}');
       },
-      behavior: HitTestBehavior.opaque,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
         child: Row(

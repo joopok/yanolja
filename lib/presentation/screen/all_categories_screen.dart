@@ -18,7 +18,7 @@ class AllCategoriesScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: YanoljaColors.background,
       appBar: const YanoljaAppBar.sub(
-        title: '전체 카테고리',
+        title: '전체메뉴',
         fallbackRoute: '/home',
       ),
       body: SafeArea(
@@ -28,7 +28,9 @@ class AllCategoriesScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
             _buildHeroBanner(context),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
+            _buildQuickDock(context),
+            const SizedBox(height: 28),
             for (var i = 0; i < nolMenuGroups.length; i++) ...[
               YanoljaEntrance(
                 delay: YanoljaMotion.stagger(i, start: 90, step: 55),
@@ -47,15 +49,108 @@ class AllCategoriesScreen extends StatelessWidget {
     return YanoljaPressable(
       onTap: () => context.push('/search'),
       child: const YanoljaPremiumHero(
-        badge: 'ALL CATEGORIES',
-        title: 'NOL의 모든 여행을\n한 곳에서',
-        subtitle: '숙소, 티켓, 항공, 혜택까지 필요한 메뉴를 빠르게 찾아보세요',
-        icon: Icons.grid_view_rounded,
+        badge: 'ALL MENU',
+        title: '필요한 메뉴를\n오른쪽 버튼에서 바로',
+        subtitle: '숙소, 티켓, 항공, 혜택까지 자주 쓰는 기능을 한 화면에 모았어요',
+        icon: Icons.menu_rounded,
         gradient: [YanoljaColors.primary, YanoljaColors.primaryPurple],
         metrics: [
           YanoljaHeroMetric(label: '메뉴', value: '24개'),
-          YanoljaHeroMetric(label: '검색', value: '탭해서 시작'),
+          YanoljaHeroMetric(label: '빠른검색', value: '탭해서 시작'),
         ],
+      ),
+    );
+  }
+
+  /// 자주 쓰는 메뉴를 먼저 보여주는 빠른 이동 영역
+  Widget _buildQuickDock(BuildContext context) {
+    final quickItems = nolQuickMenu
+        .where((item) => item.route != '/all-categories')
+        .take(6)
+        .toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(left: 2, bottom: 12),
+          child: Text(
+            '빠른 이동',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w900,
+              color: YanoljaColors.textPrimary,
+              letterSpacing: -0.3,
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 92,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: quickItems.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (context, index) {
+              final item = quickItems[index];
+              return YanoljaEntrance(
+                delay: YanoljaMotion.stagger(index, start: 35, step: 24),
+                beginOffset: const Offset(0.03, 0),
+                child: _buildQuickTile(context, item),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickTile(BuildContext context, NolMenuItem item) {
+    return YanoljaPressable(
+      onTap: () => context.push(item.route),
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        width: 108,
+        padding: const EdgeInsets.fromLTRB(13, 12, 13, 11),
+        decoration: BoxDecoration(
+          color: item.color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: item.color.withValues(alpha: 0.13)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: item.color.withValues(alpha: 0.10),
+                    blurRadius: 12,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Icon(item.icon, color: item.color, size: 20),
+            ),
+            const Spacer(),
+            Text(
+              item.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: YanoljaColors.textPrimary,
+                letterSpacing: -0.2,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

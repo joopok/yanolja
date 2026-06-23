@@ -59,6 +59,8 @@ const List<_Term> _terms = [
   _Term('취소·환불 규정 동의 (필수)'),
 ];
 
+enum _CheckoutStepState { done, active, ready, pending }
+
 class PaymentScreen extends ConsumerStatefulWidget {
   final PaymentArgs args;
   const PaymentScreen({super.key, required this.args});
@@ -81,6 +83,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   }
 
   bool get _allAgreed => _agreed.every((e) => e);
+  bool get _canPay => _allAgreed && !_isProcessing;
 
   Accommodation get _acc => widget.args.accommodation;
   int get _nights => widget.args.nights;
@@ -159,19 +162,21 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
             children: [
-              _reveal(0, _buildAccommodationCard()),
+              _reveal(0, _buildCheckoutProgressCard()),
               const SizedBox(height: 12),
-              _reveal(1, _buildScheduleCard()),
+              _reveal(1, _buildAccommodationCard()),
               const SizedBox(height: 12),
-              _reveal(2, _buildBookerCard(user)),
+              _reveal(2, _buildScheduleCard()),
               const SizedBox(height: 12),
-              _reveal(3, _buildPaymentMethodCard()),
+              _reveal(3, _buildBookerCard(user)),
               const SizedBox(height: 12),
-              _reveal(4, _buildPriceCard()),
+              _reveal(4, _buildPaymentMethodCard()),
               const SizedBox(height: 12),
-              _reveal(5, _buildTermsCard()),
+              _reveal(5, _buildPriceCard()),
+              const SizedBox(height: 12),
+              _reveal(6, _buildTermsCard()),
               const SizedBox(height: 8),
-              _reveal(6, _buildNotice()),
+              _reveal(7, _buildNotice()),
             ],
           ),
           bottomNavigationBar: _buildBottomBar(),
@@ -217,6 +222,151 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         fontWeight: FontWeight.w900,
         color: YanoljaColors.textPrimary,
         letterSpacing: -0.3,
+      ),
+    );
+  }
+
+  Widget _buildCheckoutProgressCard() {
+    return _card(
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: YanoljaColors.primaryLight,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.payments_rounded,
+                  color: YanoljaColors.primary,
+                  size: 23,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '결제 직전 단계예요',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: YanoljaColors.textPrimary,
+                        letterSpacing: -0.4,
+                      ),
+                    ),
+                    SizedBox(height: 3),
+                    Text(
+                      '일정과 금액을 확인하고 약관 동의만 완료하면 예약됩니다',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: YanoljaColors.textSecondary,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              _progressStep(
+                icon: Icons.event_available_rounded,
+                label: '일정 선택',
+                state: _CheckoutStepState.done,
+              ),
+              _progressConnector(active: true),
+              _progressStep(
+                icon: Icons.credit_card_rounded,
+                label: '결제 확인',
+                state: _CheckoutStepState.active,
+              ),
+              _progressConnector(active: _allAgreed),
+              _progressStep(
+                icon: Icons.check_circle_rounded,
+                label: '예약 완료',
+                state: _allAgreed
+                    ? _CheckoutStepState.ready
+                    : _CheckoutStepState.pending,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _progressStep({
+    required IconData icon,
+    required String label,
+    required _CheckoutStepState state,
+  }) {
+    final color = switch (state) {
+      _CheckoutStepState.done => YanoljaColors.success,
+      _CheckoutStepState.active => YanoljaColors.primary,
+      _CheckoutStepState.ready => YanoljaColors.textPrimary,
+      _CheckoutStepState.pending => YanoljaColors.textTertiary,
+    };
+    final backgroundColor = switch (state) {
+      _CheckoutStepState.done => YanoljaColors.success.withValues(alpha: 0.12),
+      _CheckoutStepState.active => YanoljaColors.primaryLight,
+      _CheckoutStepState.ready => YanoljaColors.surfaceAlt,
+      _CheckoutStepState.pending => YanoljaColors.surfaceAlt,
+    };
+
+    return SizedBox(
+      width: 70,
+      child: Column(
+        children: [
+          AnimatedContainer(
+            duration: YanoljaMotion.base,
+            curve: YanoljaMotion.curve,
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              shape: BoxShape.circle,
+              border: Border.all(color: color.withValues(alpha: 0.18)),
+            ),
+            child: Icon(icon, size: 20, color: color),
+          ),
+          const SizedBox(height: 7),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w900,
+              color: color,
+              letterSpacing: -0.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _progressConnector({required bool active}) {
+    return Expanded(
+      child: AnimatedContainer(
+        duration: YanoljaMotion.base,
+        curve: YanoljaMotion.curve,
+        height: 3,
+        margin: const EdgeInsets.only(bottom: 23),
+        decoration: BoxDecoration(
+          color: active ? YanoljaColors.primary : YanoljaColors.border,
+          borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+        ),
       ),
     );
   }
@@ -645,9 +795,40 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   // ───────────────────────── 약관 동의
   Widget _buildTermsCard() {
     return _card(
-      padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 10),
       child: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 8, 10, 6),
+            child: Row(
+              children: [
+                _sectionLabel('결제 전 확인'),
+                const Spacer(),
+                AnimatedContainer(
+                  duration: YanoljaMotion.base,
+                  curve: YanoljaMotion.curve,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: _allAgreed
+                        ? YanoljaColors.success.withValues(alpha: 0.12)
+                        : YanoljaColors.surfaceAlt,
+                    borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+                  ),
+                  child: Text(
+                    _allAgreed ? '결제 가능' : '필수 3개',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w900,
+                      color: _allAgreed
+                          ? YanoljaColors.success
+                          : YanoljaColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
           // 전체 동의
           YanoljaPressable(
             pressedScale: 0.985,
@@ -761,60 +942,122 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   // ───────────────────────── 하단 결제 바
   Widget _buildBottomBar() {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: YanoljaColors.border)),
+        border: const Border(top: BorderSide(color: YanoljaColors.border)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 18,
+            offset: const Offset(0, -6),
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
+              Row(
                 children: [
-                  const Text(
-                    '총 결제 금액',
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: YanoljaColors.textTertiary,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _payMethods[_selectedMethod].label,
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
+                            color: YanoljaColors.primary,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${YanoljaFormat.price(_totalPrice)}원',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: YanoljaColors.textPrimary,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${YanoljaFormat.price(_totalPrice)}원',
-                    style: const TextStyle(
-                      fontSize: 19,
-                      fontWeight: FontWeight.w900,
-                      color: YanoljaColors.textPrimary,
-                      letterSpacing: -0.5,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: SizedBox(
+                      height: 54,
+                      child: ElevatedButton(
+                        onPressed: _canPay ? _pay : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: YanoljaColors.primary,
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: const Color(0xFFD7DEFF),
+                          disabledForegroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(YanoljaRadius.md),
+                          ),
+                        ),
+                        child: AnimatedSwitcher(
+                          duration: YanoljaMotion.fast,
+                          child: Text(
+                            _allAgreed
+                                ? '${YanoljaFormat.price(_totalPrice)}원 결제하기'
+                                : '약관 동의 후 결제',
+                            key: ValueKey(_allAgreed),
+                            style: const TextStyle(
+                              fontSize: 15.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: SizedBox(
-                  height: 54,
-                  child: ElevatedButton(
-                    onPressed: _isProcessing ? null : _pay,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: YanoljaColors.primary,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: const Color(0xFFB9C6FF),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(YanoljaRadius.md),
+              AnimatedSwitcher(
+                duration: YanoljaMotion.fast,
+                child: Padding(
+                  key: ValueKey(_allAgreed),
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _allAgreed
+                            ? Icons.verified_rounded
+                            : Icons.info_outline_rounded,
+                        size: 15,
+                        color: _allAgreed
+                            ? YanoljaColors.success
+                            : YanoljaColors.textTertiary,
                       ),
-                    ),
-                    child: Text(
-                      '${YanoljaFormat.price(_totalPrice)}원 결제하기',
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w900),
-                    ),
+                      const SizedBox(width: 5),
+                      Expanded(
+                        child: Text(
+                          _allAgreed
+                              ? '필수 확인이 끝났어요. 결제를 진행할 수 있습니다.'
+                              : '아래 필수 약관에 동의하면 결제 버튼이 활성화됩니다.',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: _allAgreed
+                                ? YanoljaColors.success
+                                : YanoljaColors.textTertiary,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

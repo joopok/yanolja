@@ -125,9 +125,23 @@ class YanoljaAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
       ),
-      actions: _withActionGap(actions),
+      actions: _buildActions(),
       bottom: bottom,
     );
+  }
+
+  List<Widget>? _buildActions() {
+    final mergedActions = <Widget>[
+      if (actions != null) ...actions!,
+      if (variant == YanoljaAppBarVariant.main) const _YanoljaAllMenuAction(),
+    ];
+
+    if (mergedActions.isEmpty) return null;
+
+    return [
+      ...mergedActions,
+      const SizedBox(width: 6),
+    ];
   }
 
   Widget? _buildDefaultLeading(BuildContext context) {
@@ -309,10 +323,24 @@ class YanoljaSliverAppBar extends StatelessWidget {
           ),
         ),
       ),
-      actions: _withActionGap(actions),
+      actions: _buildActions(),
       flexibleSpace: flexibleSpace,
       bottom: bottom,
     );
+  }
+
+  List<Widget>? _buildActions() {
+    final mergedActions = <Widget>[
+      if (actions != null) ...actions!,
+      if (variant == YanoljaAppBarVariant.main) const _YanoljaAllMenuAction(),
+    ];
+
+    if (mergedActions.isEmpty) return null;
+
+    return [
+      ...mergedActions,
+      const SizedBox(width: 6),
+    ];
   }
 
   Widget? _buildDefaultLeading(BuildContext context) {
@@ -401,10 +429,49 @@ class _YanoljaAppBarTitle extends StatelessWidget {
   }
 }
 
-List<Widget>? _withActionGap(List<Widget>? actions) {
-  if (actions == null || actions.isEmpty) return actions;
-  return [
-    ...actions,
-    const SizedBox(width: 6),
-  ];
+class _YanoljaAllMenuAction extends StatelessWidget {
+  const _YanoljaAllMenuAction();
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: '전체메뉴',
+      child: Semantics(
+        button: true,
+        label: '전체메뉴 열기',
+        child: YanoljaPressable(
+          onTap: () {
+            HapticFeedback.selectionClick();
+            context.push('/all-categories');
+          },
+          borderRadius: BorderRadius.circular(14),
+          pressedScale: 0.94,
+          child: Container(
+            width: 38,
+            height: 38,
+            margin: const EdgeInsets.only(left: 2),
+            decoration: BoxDecoration(
+              color: YanoljaColors.primaryLight,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: YanoljaColors.primary.withValues(alpha: 0.14),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: YanoljaColors.primary.withValues(alpha: 0.08),
+                  blurRadius: 14,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.menu_rounded,
+              color: YanoljaColors.primary,
+              size: 23,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

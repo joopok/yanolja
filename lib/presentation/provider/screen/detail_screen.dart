@@ -12,6 +12,7 @@ import 'package:yanolja_clone/presentation/provider/saved_provider.dart';
 import 'package:yanolja_clone/presentation/widget/fullscreen_image_gallery.dart'; // 풀스크린 갤러리 import
 import 'package:yanolja_clone/presentation/screen/payment_screen.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_date_range_sheet.dart';
 
 /// 🏨 숙소 상세 화면 (에디토리얼 프리미엄 리디자인)
@@ -40,6 +41,18 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
   final ScrollController _scrollController = ScrollController();
 
   static const double _heroHeight = 340;
+
+  bool get _hasSelectedStay =>
+      _selectedDateRange != null && _selectedDateRange!.duration.inDays > 0;
+
+  int get _selectedNights =>
+      _hasSelectedStay ? _selectedDateRange!.duration.inDays : 0;
+
+  String get _selectedStaySummary {
+    final range = _selectedDateRange;
+    if (range == null) return '체크인/체크아웃 날짜를 먼저 선택해 주세요';
+    return '${_fmtDate(range.start)} - ${_fmtDate(range.end)} ($_selectedNights박)';
+  }
 
   @override
   void initState() {
@@ -75,6 +88,28 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
         _selectedDateRange = newDateRange;
       });
     }
+  }
+
+  void _continueBooking(BuildContext context, Accommodation accommodation) {
+    if (!_hasSelectedStay) {
+      _selectDateRange(context);
+      return;
+    }
+
+    final user = ref.read(authStateChangesProvider).asData?.value;
+    if (user == null) {
+      context.push('/login');
+      return;
+    }
+
+    context.push(
+      '/payment',
+      extra: PaymentArgs(
+        accommodation: accommodation,
+        dateRange: _selectedDateRange!,
+        nights: _selectedNights,
+      ),
+    );
   }
 
   void _openGallery(
@@ -210,7 +245,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
         },
       ),
       bottomNavigationBar:
-          _buildBookingBottomBar(context, ref, detailAsyncValue.asData?.value),
+          _buildBookingBottomBar(context, detailAsyncValue.asData?.value),
     );
   }
 
@@ -692,12 +727,24 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: () => _selectDateRange(context),
-                          icon: const Icon(Icons.calendar_today_rounded,
-                              size: 17),
-                          label: const Text('날짜 선택'),
+                          onPressed: () => _continueBooking(context, a),
+                          icon: Icon(
+                            _hasSelectedStay
+                                ? Icons.payment_rounded
+                                : Icons.calendar_today_rounded,
+                            size: 17,
+                          ),
+                          label: AnimatedSwitcher(
+                            duration: YanoljaMotion.fast,
+                            child: Text(
+                              _hasSelectedStay ? '결제하기' : '날짜 선택',
+                              key: ValueKey(_hasSelectedStay),
+                            ),
+                          ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: YanoljaColors.primary,
+                            backgroundColor: _hasSelectedStay
+                                ? YanoljaColors.textPrimary
+                                : YanoljaColors.primary,
                             foregroundColor: Colors.white,
                             elevation: 0,
                             minimumSize: const Size(0, 48),
@@ -1651,10 +1698,9 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
 
   // ───────────────────────────────────────────── 예약 바
   Widget _buildBookingBottomBar(
-      BuildContext context, WidgetRef ref, Accommodation? accommodation) {
+      BuildContext context, Accommodation? accommodation) {
     if (accommodation == null) return const SizedBox.shrink();
-    final nights =
-        _selectedDateRange != null ? _selectedDateRange!.duration.inDays : 0;
+    final nights = _selectedNights;
     final unitPrice = accommodation.price;
     final totalPrice = nights > 0 ? nights * unitPrice : unitPrice;
 
@@ -1689,18 +1735,27 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.calendar_today_rounded,
-                              size: 13, color: YanoljaColors.textSecondary),
+                          Icon(
+                            _hasSelectedStay
+                                ? Icons.event_available_rounded
+                                : Icons.calendar_today_rounded,
+                            size: 14,
+                            color: _hasSelectedStay
+                                ? YanoljaColors.primary
+                                : YanoljaColors.textSecondary,
+                          ),
                           const SizedBox(width: 5),
                           Flexible(
                             child: Text(
-                              _selectedDateRange == null
-                                  ? '날짜를 선택하세요'
-                                  : '${_fmtDate(_selectedDateRange!.start)} - ${_fmtDate(_selectedDateRange!.end)} ($nights박)',
-                              style: const TextStyle(
+                              _selectedStaySummary,
+                              style: TextStyle(
                                 fontSize: 12.5,
-                                fontWeight: FontWeight.w600,
-                                color: YanoljaColors.textSecondary,
+                                fontWeight: _hasSelectedStay
+                                    ? FontWeight.w900
+                                    : FontWeight.w600,
+                                color: _hasSelectedStay
+                                    ? YanoljaColors.primary
+                                    : YanoljaColors.textSecondary,
                                 letterSpacing: -0.2,
                               ),
                               maxLines: 1,
@@ -1712,58 +1767,66 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                         ],
                       ),
                       const SizedBox(height: 5),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const Text(
-                            '쿠폰 적용가',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                color: YanoljaColors.textTertiary,
-                                letterSpacing: -0.2),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            '$rate%',
-                            style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                                color: YanoljaColors.sale,
-                                letterSpacing: -0.4),
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            '${YanoljaFormat.price(original)}원',
-                            style: const TextStyle(
-                                fontSize: 12,
-                                color: YanoljaColors.textTertiary,
-                                decoration: TextDecoration.lineThrough),
-                          ),
-                        ],
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Text(
+                              '쿠폰 적용가',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  color: YanoljaColors.textTertiary,
+                                  letterSpacing: -0.2),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '$rate%',
+                              style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  color: YanoljaColors.sale,
+                                  letterSpacing: -0.4),
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              '${YanoljaFormat.price(original)}원',
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  color: YanoljaColors.textTertiary,
+                                  decoration: TextDecoration.lineThrough),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 1),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          Text(
-                            '${YanoljaFormat.price(totalPrice)}원',
-                            style: const TextStyle(
-                                fontSize: 19,
-                                fontWeight: FontWeight.w800,
-                                color: YanoljaColors.textPrimary,
-                                letterSpacing: -0.5),
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            nights > 0 ? '/ $nights박' : '부터',
-                            style: const TextStyle(
-                                fontSize: 12,
-                                color: YanoljaColors.textTertiary,
-                                fontWeight: FontWeight.w700),
-                          ),
-                        ],
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Text(
+                              '${YanoljaFormat.price(totalPrice)}원',
+                              style: const TextStyle(
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.w800,
+                                  color: YanoljaColors.textPrimary,
+                                  letterSpacing: -0.5),
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              nights > 0 ? '/ $nights박' : '부터',
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  color: YanoljaColors.textTertiary,
+                                  fontWeight: FontWeight.w700),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 2),
                       const Text(
@@ -1781,29 +1844,18 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
               const SizedBox(width: 16),
               SizedBox(
                 height: 54,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_selectedDateRange == null) {
-                      _selectDateRange(context);
-                      return;
-                    }
-                    final user =
-                        ref.read(authStateChangesProvider).asData?.value;
-                    if (user == null) {
-                      context.push('/login');
-                    } else {
-                      context.push(
-                        '/payment',
-                        extra: PaymentArgs(
-                          accommodation: accommodation,
-                          dateRange: _selectedDateRange!,
-                          nights: nights,
-                        ),
-                      );
-                    }
-                  },
+                child: ElevatedButton.icon(
+                  onPressed: () => _continueBooking(context, accommodation),
+                  icon: Icon(
+                    _hasSelectedStay
+                        ? Icons.payment_rounded
+                        : Icons.calendar_today_rounded,
+                    size: 18,
+                  ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: YanoljaColors.primary,
+                    backgroundColor: _hasSelectedStay
+                        ? YanoljaColors.textPrimary
+                        : YanoljaColors.primary,
                     foregroundColor: Colors.white,
                     elevation: 0,
                     // 전역 테마의 minimumSize(Size.fromHeight=무한 너비)를 덮어써
@@ -1815,7 +1867,13 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                     textStyle: const TextStyle(
                         fontSize: 16, fontWeight: FontWeight.w800),
                   ),
-                  child: const Text('객실 선택'),
+                  label: AnimatedSwitcher(
+                    duration: YanoljaMotion.fast,
+                    child: Text(
+                      _hasSelectedStay ? '결제하기' : '날짜 선택',
+                      key: ValueKey(_hasSelectedStay),
+                    ),
+                  ),
                 ),
               ),
             ],

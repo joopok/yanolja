@@ -8,9 +8,11 @@ import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/data/model/accommodation.dart';
 import 'package:yanolja_clone/presentation/provider/accommodation_provider.dart';
 import 'package:yanolja_clone/presentation/provider/auth_provider.dart';
+import 'package:yanolja_clone/presentation/provider/review_provider.dart';
 import 'package:yanolja_clone/presentation/provider/saved_provider.dart';
 import 'package:yanolja_clone/presentation/widget/fullscreen_image_gallery.dart'; // 풀스크린 갤러리 import
 import 'package:yanolja_clone/presentation/screen/payment_screen.dart';
+import 'package:yanolja_clone/presentation/widget/social_share_sheet.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_date_range_sheet.dart';
@@ -129,7 +131,9 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
             FullscreenImageGallery(
           imageUrls: accommodation.imageUrls,
           initialIndex: safeIndex,
-          heroTag: 'accommodation-image-$safeIndex',
+          heroTag: accommodation.imageUrls.length == 1
+              ? 'accommodation-image-0'
+              : null,
         ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
@@ -141,38 +145,18 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
 
   Future<void> _shareAccommodation(Accommodation accommodation) async {
     HapticFeedback.lightImpact();
-    final shareText = [
-      accommodation.name,
-      accommodation.address,
-      '${YanoljaFormat.price(accommodation.price)}원부터',
-      '여기가어때에서 확인하기',
-    ].join('\n');
-
-    await Clipboard.setData(ClipboardData(text: shareText));
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: const Text(
-            '숙소 정보를 복사했어요',
-            style: TextStyle(fontWeight: FontWeight.w700),
-          ),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: YanoljaColors.textPrimary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(YanoljaRadius.md),
-          ),
-          margin: const EdgeInsets.all(16),
-          duration: const Duration(seconds: 1),
-        ),
-      );
+    await showYanoljaSocialShareSheet(
+      context: context,
+      data: YanoljaShareData.accommodation(accommodation),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final detailAsyncValue =
         ref.watch(accommodationDetailProvider(widget.accommodationId));
+    final reviewFeedAsync =
+        ref.watch(reviewFeedProvider(widget.accommodationId));
 
     return Scaffold(
       backgroundColor: YanoljaColors.background,
@@ -230,10 +214,15 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                         ),
                         _buildSectionDivider(),
                         _sectionTitle('실제 이용객 후기',
-                            action: accommodation.reviews.isNotEmpty
-                                ? '전체 보기'
-                                : null),
-                        _buildReviewSection(context, accommodation),
+                            action: '전체 보기',
+                            onAction: () => context.push(
+                                  '/detail/${accommodation.id}/reviews',
+                                )),
+                        _buildReviewSection(
+                          context,
+                          accommodation,
+                          reviewFeedAsync,
+                        ),
                         const SizedBox(height: 48),
                       ],
                     ),
@@ -315,25 +304,25 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                 items: accommodation.imageUrls.asMap().entries.map((entry) {
                   final index = entry.key;
                   final imageUrl = entry.value;
+                  final image = CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) =>
+                        Container(color: YanoljaColors.surfaceAlt),
+                    errorWidget: (context, url, error) => Container(
+                      color: YanoljaColors.surfaceAlt,
+                      child: const Icon(Icons.image_not_supported_outlined,
+                          size: 48, color: YanoljaColors.textTertiary),
+                    ),
+                  );
                   return GestureDetector(
                     onTap: () => _openGallery(context, accommodation,
                         initialIndex: index),
-                    child: Hero(
-                      tag: 'accommodation-image-$index',
-                      child: CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        width: double.infinity,
-                        height: double.infinity,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) =>
-                            Container(color: YanoljaColors.surfaceAlt),
-                        errorWidget: (context, url, error) => Container(
-                          color: YanoljaColors.surfaceAlt,
-                          child: const Icon(Icons.image_not_supported_outlined,
-                              size: 48, color: YanoljaColors.textTertiary),
-                        ),
-                      ),
-                    ),
+                    child: imageCount == 1
+                        ? Hero(tag: 'accommodation-image-0', child: image)
+                        : image,
                   );
                 }).toList(),
               ),
@@ -1468,15 +1457,23 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
 
   // ───────────────────────────────────────────── 후기 (요약 + 카드)
   Widget _buildReviewSection(
-      BuildContext context, Accommodation accommodation) {
-    final reviews = accommodation.reviews;
+    BuildContext context,
+    Accommodation accommodation,
+    AsyncValue<List<ReviewFeedItem>> reviewFeedAsync,
+  ) {
+    final reviews = reviewFeedAsync.asData?.value ??
+        accommodation.reviews
+            .map((review) => ReviewFeedItem.fromMock(accommodation.id, review))
+            .toList();
+    final previewReviews = reviews.take(2).toList();
+    final storedCount = reviews.where((review) => review.isEditable).length;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildRatingSummary(accommodation),
+          _buildRatingSummary(accommodation, storedCount),
           if (reviews.isEmpty)
             const Padding(
               padding: EdgeInsets.only(top: 16),
@@ -1486,12 +1483,17 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
             )
           else ...[
             const SizedBox(height: 16),
-            ...List.generate(reviews.length, (index) {
-              final review = reviews[index];
+            ...List.generate(previewReviews.length, (index) {
+              final review = previewReviews[index];
               return Padding(
                 padding: EdgeInsets.only(
-                    bottom: index == reviews.length - 1 ? 0 : 12),
-                child: _buildReviewCard(review),
+                    bottom: index == previewReviews.length - 1 ? 0 : 12),
+                child: _buildReviewCard(
+                  review,
+                  onTap: () => context.push(
+                    '/detail/${accommodation.id}/reviews/${review.id}',
+                  ),
+                ),
               );
             }),
           ],
@@ -1500,7 +1502,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
     );
   }
 
-  Widget _buildRatingSummary(Accommodation a) {
+  Widget _buildRatingSummary(Accommodation a, int storedReviewCount) {
     final bars = _ratingBars(a.rating);
     return Container(
       padding: const EdgeInsets.all(18),
@@ -1538,7 +1540,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                '${YanoljaFormat.price(a.reviewCount)}개 후기',
+                '${YanoljaFormat.price(a.reviewCount + storedReviewCount)}개 후기',
                 style: const TextStyle(
                     fontSize: 11.5,
                     color: YanoljaColors.textSecondary,
@@ -1590,17 +1592,21 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
     );
   }
 
-  Widget _buildReviewCard(Review review) {
+  Widget _buildReviewCard(
+    ReviewFeedItem review, {
+    required VoidCallback onTap,
+  }) {
     final initial =
         review.userName.isNotEmpty ? review.userName.characters.first : '익';
-    return Container(
-      decoration: BoxDecoration(
-        color: YanoljaColors.surface,
-        borderRadius: BorderRadius.circular(YanoljaRadius.lg),
-        border: Border.all(color: YanoljaColors.border),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+    return YanoljaPressable(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: YanoljaColors.surface,
+          borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+          border: Border.all(color: YanoljaColors.border),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1636,6 +1642,18 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                             color: YanoljaColors.textPrimary,
                             letterSpacing: -0.3),
                       ),
+                      if (review.isEditable)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 3),
+                          child: Text(
+                            '내가 작성한 후기',
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              color: YanoljaColors.primary,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: 3),
                       Row(
                         children: List.generate(
@@ -1661,7 +1679,20 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
             ),
             const SizedBox(height: 12),
             Text(
+              review.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 14.5,
+                fontWeight: FontWeight.w900,
+                color: YanoljaColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
               review.comment,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                   fontSize: 14,
                   color: YanoljaColors.textSecondary,
@@ -1675,6 +1706,12 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                 const SizedBox(width: 16),
                 _buildReviewReaction(
                     Icons.thumb_down_alt_outlined, review.dislikes),
+                const Spacer(),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  size: 18,
+                  color: YanoljaColors.textTertiary,
+                ),
               ],
             ),
           ],
@@ -1887,7 +1924,11 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
   Widget _buildSectionDivider() =>
       Container(height: 8, color: YanoljaColors.surfaceAlt);
 
-  Widget _sectionTitle(String title, {String? action}) {
+  Widget _sectionTitle(
+    String title, {
+    String? action,
+    VoidCallback? onAction,
+  }) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 26, 20, 14),
       child: Row(
@@ -1910,16 +1951,22 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
           ),
           const Spacer(),
           if (action != null)
-            Row(
-              children: [
-                Text(action,
-                    style: const TextStyle(
-                        fontSize: 13,
-                        color: YanoljaColors.textSecondary,
-                        fontWeight: FontWeight.w500)),
-                const Icon(Icons.chevron_right_rounded,
-                    size: 18, color: YanoljaColors.textTertiary),
-              ],
+            YanoljaPressable(
+              onTap: onAction,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  children: [
+                    Text(action,
+                        style: const TextStyle(
+                            fontSize: 13,
+                            color: YanoljaColors.textSecondary,
+                            fontWeight: FontWeight.w500)),
+                    const Icon(Icons.chevron_right_rounded,
+                        size: 18, color: YanoljaColors.textTertiary),
+                  ],
+                ),
+              ),
             ),
         ],
       ),

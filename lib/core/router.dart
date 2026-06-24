@@ -21,6 +21,7 @@ import 'package:yanolja_clone/presentation/screen/map_screen.dart';
 import 'package:yanolja_clone/presentation/screen/more_screen.dart';
 import 'package:yanolja_clone/presentation/screen/nearby_screen.dart';
 import 'package:yanolja_clone/presentation/screen/nol_service_screen.dart';
+import 'package:yanolja_clone/presentation/screen/notification_screen.dart';
 import 'package:yanolja_clone/presentation/screen/profile_screen.dart';
 import 'package:yanolja_clone/presentation/screen/saved_screen.dart';
 import 'package:yanolja_clone/presentation/screen/search_screen.dart';
@@ -41,6 +42,9 @@ import 'package:yanolja_clone/presentation/screen/ticket_screen.dart';
 import 'package:yanolja_clone/presentation/screen/live_screen.dart';
 import 'package:yanolja_clone/presentation/screen/payment_screen.dart';
 import 'package:yanolja_clone/presentation/screen/payment_complete_screen.dart';
+import 'package:yanolja_clone/presentation/screen/review_detail_screen.dart';
+import 'package:yanolja_clone/presentation/screen/review_editor_screen.dart';
+import 'package:yanolja_clone/presentation/screen/review_list_screen.dart';
 import 'package:yanolja_clone/data/model/booking.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
 
@@ -201,6 +205,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SettingsScreen(),
       ),
 
+      /// 알림 목록 화면 라우트
+      /// 경로: /notifications
+      /// 안 읽은 알림 개수가 홈 상단 벨 배지에 반영된다.
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationScreen(),
+      ),
+
       /// 비밀번호 찾기 화면 라우트
       /// 경로: /forgot-password
       /// 가입 이메일로 비밀번호 재설정 링크 발송을 안내합니다.
@@ -256,6 +268,32 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           return DetailScreen(accommodationId: id);
+        },
+      ),
+      GoRoute(
+        path: '/detail/:id/reviews',
+        builder: (context, state) {
+          return ReviewListScreen(
+            accommodationId: state.pathParameters['id']!,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/detail/:id/reviews/:reviewId',
+        builder: (context, state) {
+          return ReviewDetailScreen(
+            accommodationId: state.pathParameters['id']!,
+            reviewId: state.pathParameters['reviewId']!,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/detail/:id/review-editor',
+        builder: (context, state) {
+          return ReviewEditorScreen(
+            accommodationId: state.pathParameters['id']!,
+            reviewId: state.uri.queryParameters['reviewId'],
+          );
         },
       ),
 

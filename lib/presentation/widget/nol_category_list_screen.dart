@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/data/model/accommodation.dart';
@@ -164,17 +163,8 @@ class _NolCategoryListScreenState extends ConsumerState<NolCategoryListScreen> {
                   SliverList.builder(
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
-                      return AnimationConfiguration.staggeredList(
-                        position: index,
-                        duration: const Duration(milliseconds: 220),
-                        child: SlideAnimation(
-                          verticalOffset: 14,
-                          child: FadeInAnimation(
-                            child: AccommodationListItem(
-                              accommodation: filtered[index],
-                            ),
-                          ),
-                        ),
+                      return AccommodationListItem(
+                        accommodation: filtered[index],
                       );
                     },
                   ),

@@ -113,7 +113,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 duration: const Duration(milliseconds: 240),
                 curve: Curves.easeOut,
                 alignment: Alignment.topCenter,
-                child: _emailMode ? _buildEmailSection() : _buildSocialSection(),
+                child:
+                    _emailMode ? _buildEmailSection() : _buildSocialSection(),
               ),
               const SizedBox(height: 18),
               _buildLoginLink(),
@@ -203,9 +204,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         const SizedBox(height: 14),
         Center(
           child: TextButton(
-            onPressed: _isLoading
-                ? null
-                : () => setState(() => _emailMode = true),
+            onPressed:
+                _isLoading ? null : () => setState(() => _emailMode = true),
             style: TextButton.styleFrom(
               foregroundColor: YanoljaColors.textSecondary,
             ),
@@ -393,9 +393,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           const SizedBox(height: 6),
           Center(
             child: TextButton(
-              onPressed: _isLoading
-                  ? null
-                  : () => setState(() => _emailMode = false),
+              onPressed:
+                  _isLoading ? null : () => setState(() => _emailMode = false),
               style: TextButton.styleFrom(
                 foregroundColor: YanoljaColors.textSecondary,
               ),
@@ -549,20 +548,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        backgroundColor: YanoljaColors.textPrimary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(YanoljaRadius.md),
-        ),
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 2),
-      ),
+    YanoljaToast.show(
+      context,
+      message,
+      icon: Icons.info_rounded,
     );
   }
 }

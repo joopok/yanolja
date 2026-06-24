@@ -43,23 +43,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     await Future.delayed(const Duration(milliseconds: 900));
     if (!mounted) return;
     setState(() => _isSaving = false);
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: const Text(
-            '프로필이 저장되었어요',
-            style: TextStyle(fontWeight: FontWeight.w600),
-          ),
-          backgroundColor: YanoljaColors.textPrimary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(YanoljaRadius.md),
-          ),
-          margin: const EdgeInsets.all(16),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+    YanoljaToast.show(context, '프로필 변경사항을 저장했어요');
     if (context.canPop()) context.pop();
   }
 
@@ -227,23 +211,11 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
   void _pickAvatarColorHint() {
     HapticFeedback.selectionClick();
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: const Text(
-            '프로필 사진은 닉네임 첫 글자로 자동 생성돼요',
-            style: TextStyle(fontWeight: FontWeight.w600),
-          ),
-          backgroundColor: YanoljaColors.textPrimary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(YanoljaRadius.md),
-          ),
-          margin: const EdgeInsets.all(16),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+    YanoljaToast.show(
+      context,
+      '프로필 이미지는 닉네임 첫 글자로 자동 생성돼요',
+      icon: Icons.info_rounded,
+    );
   }
 
   Widget _buildSection({

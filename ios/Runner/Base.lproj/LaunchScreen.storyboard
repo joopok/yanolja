@@ -16,13 +16,41 @@
                     <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" image="LaunchImage" translatesAutoresizingMaskIntoConstraints="NO" id="YRO-k0-Ey4">
-                            </imageView>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="brand-card">
+                                <subviews>
+                                    <imageView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleAspectFit" image="LaunchImage" translatesAutoresizingMaskIntoConstraints="NO" id="YRO-k0-Ey4"/>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="여기가어때" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="brand-title">
+                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="30"/>
+                                        <color key="textColor" red="0.1019607843" green="0.1019607843" blue="0.1019607843" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="오늘의 여행을 켜는 가장 빠른 패스" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="YES" minimumScaleFactor="0.8" translatesAutoresizingMaskIntoConstraints="NO" id="brand-subtitle">
+                                        <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="14"/>
+                                        <color key="textColor" red="0.4352941176" green="0.4352941176" blue="0.4352941176" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                                <color key="backgroundColor" white="1" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstItem="YRO-k0-Ey4" firstAttribute="centerX" secondItem="brand-card" secondAttribute="centerX" id="launch-image-centerX"/>
+                                    <constraint firstItem="YRO-k0-Ey4" firstAttribute="top" secondItem="brand-card" secondAttribute="top" id="launch-image-top"/>
+                                    <constraint firstItem="YRO-k0-Ey4" firstAttribute="width" constant="128" id="launch-image-width"/>
+                                    <constraint firstItem="YRO-k0-Ey4" firstAttribute="height" constant="142" id="launch-image-height"/>
+                                    <constraint firstItem="brand-title" firstAttribute="top" secondItem="YRO-k0-Ey4" secondAttribute="bottom" constant="18" id="brand-title-top"/>
+                                    <constraint firstItem="brand-title" firstAttribute="leading" secondItem="brand-card" secondAttribute="leading" id="brand-title-leading"/>
+                                    <constraint firstItem="brand-title" firstAttribute="trailing" secondItem="brand-card" secondAttribute="trailing" id="brand-title-trailing"/>
+                                    <constraint firstItem="brand-subtitle" firstAttribute="top" secondItem="brand-title" secondAttribute="bottom" constant="8" id="brand-subtitle-top"/>
+                                    <constraint firstItem="brand-subtitle" firstAttribute="leading" secondItem="brand-card" secondAttribute="leading" id="brand-subtitle-leading"/>
+                                    <constraint firstItem="brand-subtitle" firstAttribute="trailing" secondItem="brand-card" secondAttribute="trailing" id="brand-subtitle-trailing"/>
+                                    <constraint firstAttribute="bottom" secondItem="brand-subtitle" secondAttribute="bottom" id="brand-card-bottom"/>
+                                </constraints>
+                            </view>
                         </subviews>
-                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <color key="backgroundColor" red="0.968627451" green="0.9803921569" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="YRO-k0-Ey4" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="1a2-6s-vTC"/>
-                            <constraint firstItem="YRO-k0-Ey4" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="4X2-HB-R7a"/>
+                            <constraint firstItem="brand-card" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="brand-card-centerX"/>
+                            <constraint firstItem="brand-card" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" constant="-12" id="brand-card-centerY"/>
+                            <constraint firstItem="brand-card" firstAttribute="width" constant="280" id="brand-card-width"/>
                         </constraints>
                     </view>
                 </viewController>

@@ -1,21 +1,24 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
 
 /// 🖼️ 풀스크린 이미지 갤러리 (Instagram/Pinterest 스타일)
 class FullscreenImageGallery extends StatefulWidget {
   final List<String> imageUrls;
   final int initialIndex;
-  final String heroTag;
+  final String? heroTag;
 
   const FullscreenImageGallery({
     super.key,
     required this.imageUrls,
     this.initialIndex = 0,
-    required this.heroTag,
+    this.heroTag,
   });
 
   @override
@@ -30,16 +33,26 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery>
   late AnimationController _overlayController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _overlayAnimation;
+  Timer? _overlayHideTimer;
 
   int _currentIndex = 0;
   bool _showOverlay = true;
   bool _isZoomed = false;
 
+  int get _safeInitialIndex => _safeIndex(widget.initialIndex);
+  int get _safeCurrentIndex => _safeIndex(_currentIndex);
+
+  int _safeIndex(int index) {
+    if (widget.imageUrls.isEmpty) return 0;
+    return index.clamp(0, widget.imageUrls.length - 1).toInt();
+  }
+
   @override
   void initState() {
     super.initState();
-    _currentIndex = widget.initialIndex;
-    _pageController = PageController(initialPage: widget.initialIndex);
+    final initialIndex = _safeInitialIndex;
+    _currentIndex = initialIndex;
+    _pageController = PageController(initialPage: initialIndex);
     _thumbnailController = ScrollController();
 
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
@@ -68,15 +81,33 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery>
     _overlayController.forward();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _syncThumbnailStrip(widget.initialIndex, jump: true);
+      _syncThumbnailStrip(initialIndex, jump: true);
     });
 
     // 3초 후 자동으로 UI 숨김
-    Future.delayed(const Duration(seconds: 3), () {
+    _overlayHideTimer = Timer(const Duration(seconds: 3), () {
       if (mounted && _showOverlay) {
         _setOverlayVisible(false);
       }
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant FullscreenImageGallery oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.imageUrls.length != widget.imageUrls.length &&
+        widget.imageUrls.isNotEmpty) {
+      final nextIndex = _safeCurrentIndex;
+      if (nextIndex != _currentIndex) {
+        _currentIndex = nextIndex;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_pageController.hasClients) {
+            _pageController.jumpToPage(nextIndex);
+          }
+          _syncThumbnailStrip(nextIndex, jump: true);
+        });
+      }
+    }
   }
 
   @override
@@ -85,6 +116,7 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery>
     _thumbnailController.dispose();
     _animationController.dispose();
     _overlayController.dispose();
+    _overlayHideTimer?.cancel();
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
     super.dispose();
   }
@@ -159,22 +191,15 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery>
 
   String get _currentImageUrl {
     if (widget.imageUrls.isEmpty) return '';
-    final index = _currentIndex.clamp(0, widget.imageUrls.length - 1).toInt();
-    return widget.imageUrls[index];
+    return widget.imageUrls[_safeCurrentIndex];
   }
 
   void _showGallerySnack(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          style: const TextStyle(fontWeight: FontWeight.w700),
-        ),
-        backgroundColor: Colors.black87,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
+    YanoljaToast.show(
+      context,
+      message,
+      icon: Icons.photo_library_rounded,
     );
   }
 
@@ -237,6 +262,27 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery>
     );
   }
 
+  Widget _buildCounterPill() {
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.13),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+      ),
+      child: Text(
+        '${_safeCurrentIndex + 1} / ${widget.imageUrls.length}',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.imageUrls.isEmpty) {
@@ -266,7 +312,7 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery>
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: const Color(0xFF050608),
         extendBodyBehindAppBar: true,
         body: FadeTransition(
           opacity: _fadeAnimation,
@@ -285,9 +331,10 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery>
                     minScale: PhotoViewComputedScale.contained * 0.8,
                     maxScale: PhotoViewComputedScale.covered * 3.0,
                     filterQuality: FilterQuality.high,
-                    heroAttributes: index == widget.initialIndex
-                        ? PhotoViewHeroAttributes(tag: widget.heroTag)
-                        : null,
+                    heroAttributes:
+                        widget.heroTag != null && index == _safeInitialIndex
+                            ? PhotoViewHeroAttributes(tag: widget.heroTag!)
+                            : null,
                     onTapUp: (context, details, controllerValue) {
                       final isZoomed = (controllerValue.scale ?? 1.0) > 1.03;
                       if (!isZoomed) {
@@ -355,12 +402,14 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery>
                   child: FadeTransition(
                     opacity: _overlayAnimation,
                     child: YanoljaAppBar.modal(
-                      title:
-                          '${_currentIndex + 1} / ${widget.imageUrls.length}',
+                      title: '사진 전체보기',
                       backgroundColor: Colors.black.withValues(alpha: 0.58),
                       foregroundColor: Colors.white,
                       onBackPress: _closeGallery,
-                      actions: [_buildGalleryMenuButton()],
+                      actions: [
+                        _buildCounterPill(),
+                        _buildGalleryMenuButton(),
+                      ],
                     ),
                   ),
                 ),
@@ -377,7 +426,7 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery>
                     child: FadeTransition(
                       opacity: _overlayAnimation,
                       child: Container(
-                        height: MediaQuery.of(context).padding.bottom + 118,
+                        height: MediaQuery.of(context).padding.bottom + 134,
                         padding: EdgeInsets.only(
                           bottom: MediaQuery.of(context).padding.bottom + 14,
                           top: 14,
@@ -399,18 +448,32 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              '사진 ${_currentIndex + 1}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.2,
-                              ),
+                            Row(
+                              children: [
+                                Text(
+                                  '전체 사진',
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.92),
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Text(
+                                  '사진 ${_safeCurrentIndex + 1}',
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.62),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 10),
                             SizedBox(
-                              height: 66,
+                              height: 72,
                               child: ListView.separated(
                                 controller: _thumbnailController,
                                 scrollDirection: Axis.horizontal,
@@ -434,12 +497,12 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery>
                                       duration:
                                           const Duration(milliseconds: 180),
                                       curve: Curves.easeOut,
-                                      width: isSelected ? 66 : 58,
-                                      height: isSelected ? 66 : 58,
+                                      width: isSelected ? 72 : 62,
+                                      height: isSelected ? 72 : 62,
                                       padding:
                                           EdgeInsets.all(isSelected ? 3 : 0),
                                       decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(16),
                                         border: Border.all(
                                           color: isSelected
                                               ? Colors.white
@@ -449,7 +512,7 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery>
                                         ),
                                       ),
                                       child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(9),
+                                        borderRadius: BorderRadius.circular(12),
                                         child: CachedNetworkImage(
                                           imageUrl: widget.imageUrls[index],
                                           fit: BoxFit.cover,

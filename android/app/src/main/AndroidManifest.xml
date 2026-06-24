@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 음성 검색: 마이크 녹음 권한 -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <application
         android:label="여기가어때"
         android:name="${applicationName}"
@@ -40,6 +42,10 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- 음성 검색: 기기의 음성 인식 서비스 조회 -->
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
         </intent>
     </queries>
 </manifest>

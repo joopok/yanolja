@@ -324,17 +324,10 @@ class _ShowCard extends StatelessWidget {
     return YanoljaPressable(
       onTap: () {
         HapticFeedback.selectionClick();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${show.title} 예매는 준비 중이에요'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: YanoljaColors.textPrimary,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(YanoljaRadius.md),
-            ),
-            margin: const EdgeInsets.all(16),
-            duration: const Duration(seconds: 2),
-          ),
+        YanoljaToast.show(
+          context,
+          '${show.title} 예매는 곧 열릴 예정이에요',
+          icon: Icons.confirmation_number_rounded,
         );
       },
       child: Column(

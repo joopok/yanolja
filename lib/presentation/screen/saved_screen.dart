@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
@@ -180,27 +179,16 @@ class SavedScreen extends ConsumerWidget {
   ) {
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 34),
-      sliver: AnimationLimiter(
-        child: SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final accommodation = savedAccommodations[index];
-              return AnimationConfiguration.staggeredList(
-                position: index,
-                duration: const Duration(milliseconds: 300),
-                child: SlideAnimation(
-                  verticalOffset: 20.0,
-                  child: FadeInAnimation(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 14),
-                      child: _buildDismissibleCard(context, ref, accommodation),
-                    ),
-                  ),
-                ),
-              );
-            },
-            childCount: savedAccommodations.length,
-          ),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final accommodation = savedAccommodations[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: _buildDismissibleCard(context, ref, accommodation),
+            );
+          },
+          childCount: savedAccommodations.length,
         ),
       ),
     );
@@ -599,8 +587,8 @@ class SavedScreen extends ConsumerWidget {
       context: context,
       icon: Icons.bookmark_remove_rounded,
       title: '찜 삭제',
-      message: '$accommodationName을(를)\n찜 목록에서 삭제할까요?',
-      confirmText: '삭제',
+      message: '$accommodationName을(를)\n찜 목록에서 삭제합니다.',
+      confirmText: '찜 삭제',
       isDestructive: true,
     );
   }
@@ -609,9 +597,9 @@ class SavedScreen extends ConsumerWidget {
     final confirmed = await showYanoljaConfirmDialog(
       context: context,
       icon: Icons.delete_sweep_rounded,
-      title: '전체 삭제',
-      message: '찜한 모든 숙소를 삭제할까요?\n이 작업은 되돌릴 수 없습니다.',
-      confirmText: '전체 삭제',
+      title: '찜 목록을 비울까요?',
+      message: '저장한 모든 숙소가 삭제됩니다.\n이 작업은 되돌릴 수 없어요.',
+      confirmText: '모두 삭제',
       isDestructive: true,
     );
     if (!confirmed || !context.mounted) return;
@@ -620,17 +608,6 @@ class SavedScreen extends ConsumerWidget {
   }
 
   void _showSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: YanoljaColors.textPrimary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(YanoljaRadius.md),
-        ),
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    YanoljaToast.show(context, message);
   }
 }

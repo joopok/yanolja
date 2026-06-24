@@ -3,6 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yanolja_clone/data/model/accommodation.dart';
 import 'package:yanolja_clone/presentation/provider/accommodation_provider.dart';
 
+/// 홈·더보기 화면의 검색바 마이크 탭 → 검색 화면(/search)의 음성 검색을 깨우는 시그널.
+/// 탭할 때마다 값이 증가하고, 검색 화면이 변화를 감지해 음성 인식을 시작한다.
+/// (검색 탭은 indexedStack으로 keep-alive 되어 라우트 extra로는 깨울 수 없으므로 시그널을 사용.)
+final voiceSearchSignalProvider = StateProvider<int>((ref) => 0);
+
 // 검색 상태를 관리하는 클래스
 class SearchState {
   final String query;

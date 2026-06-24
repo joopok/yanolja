@@ -174,17 +174,10 @@ class _Live {
 
 void _showLivePrep(BuildContext context, String title) {
   HapticFeedback.lightImpact();
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text('$title 라이브는 준비 중이에요'),
-      behavior: SnackBarBehavior.floating,
-      backgroundColor: YanoljaColors.textPrimary,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(YanoljaRadius.md),
-      ),
-      margin: const EdgeInsets.all(16),
-      duration: const Duration(seconds: 2),
-    ),
+  YanoljaToast.show(
+    context,
+    '$title 라이브는 곧 열릴 예정이에요',
+    icon: Icons.live_tv_rounded,
   );
 }
 

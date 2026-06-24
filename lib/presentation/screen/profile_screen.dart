@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/presentation/provider/auth_provider.dart';
+import 'package:yanolja_clone/presentation/provider/notification_provider.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_confirm_dialog.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
 
@@ -40,6 +41,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _buildLoggedInView(AppUser user) {
+    final unread = ref.watch(unreadNotificationCountProvider);
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
@@ -50,7 +52,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             _buildHeaderIcon(
               icon: Icons.notifications_none_rounded,
               label: '알림',
-              onTap: () => context.push('/service/notifications'),
+              badgeCount: unread,
+              onTap: () => context.push('/notifications'),
             ),
             _buildHeaderIcon(
               icon: Icons.settings_outlined,
@@ -198,17 +201,48 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
+    int badgeCount = 0,
   }) {
     return Semantics(
-      label: label,
+      label: badgeCount > 0 ? '$label, 안 읽음 $badgeCount건' : label,
       button: true,
-      child: IconButton(
-        onPressed: () {
-          HapticFeedback.selectionClick();
-          onTap();
-        },
-        icon: Icon(icon, color: YanoljaColors.textPrimary, size: 24),
-        tooltip: label,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          IconButton(
+            onPressed: () {
+              HapticFeedback.selectionClick();
+              onTap();
+            },
+            icon: Icon(icon, color: YanoljaColors.textPrimary, size: 24),
+            tooltip: label,
+          ),
+          if (badgeCount > 0)
+            Positioned(
+              right: 4,
+              top: 4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                constraints: const BoxConstraints(minWidth: 17),
+                height: 17,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: YanoljaColors.sale,
+                  borderRadius: BorderRadius.circular(9),
+                  border: Border.all(color: Colors.white, width: 1.5),
+                ),
+                child: Text(
+                  badgeCount > 9 ? '9+' : '$badgeCount',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w800,
+                    height: 1,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -910,29 +944,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        backgroundColor: YanoljaColors.textPrimary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(YanoljaRadius.md),
-        ),
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    YanoljaToast.show(context, message);
   }
 
   Future<void> _showLogoutDialog() async {
     final confirmed = await showYanoljaConfirmDialog(
       context: context,
       icon: Icons.logout_rounded,
-      title: '로그아웃',
-      message: '현재 계정에서 로그아웃할까요?\n언제든 다시 로그인할 수 있어요.',
+      title: '로그아웃할까요?',
+      message: '현재 계정에서 나갑니다.\n예약 내역은 다시 로그인하면 그대로 확인할 수 있어요.',
       confirmText: '로그아웃',
       isDestructive: true,
     );

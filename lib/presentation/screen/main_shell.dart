@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_confirm_dialog.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_bottom_nav.dart';
 
 /// NOL(야놀자) 스타일 메인 셸
@@ -18,12 +20,35 @@ class MainShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: navigationShell,
-      bottomNavigationBar: YanoljaBottomNav(
-        selectedBranchIndex: navigationShell.currentIndex,
-        onBranchTap: _onTap,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        if (navigationShell.currentIndex != 0) {
+          HapticFeedback.selectionClick();
+          navigationShell.goBranch(0, initialLocation: true);
+          return;
+        }
+        final shouldExit = await showYanoljaConfirmDialog(
+          context: context,
+          icon: Icons.logout_rounded,
+          title: '앱을 종료할까요?',
+          message: '진행 중인 검색과 선택 내용은 저장되지 않을 수 있어요.',
+          confirmText: '종료',
+          cancelText: '계속 둘러보기',
+          isDestructive: true,
+        );
+        if (shouldExit) {
+          await SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: navigationShell,
+        bottomNavigationBar: YanoljaBottomNav(
+          selectedBranchIndex: navigationShell.currentIndex,
+          onBranchTap: _onTap,
+        ),
       ),
     );
   }

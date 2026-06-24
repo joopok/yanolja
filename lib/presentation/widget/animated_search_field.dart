@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 
 class AnimatedSearchField extends StatefulWidget {
@@ -25,12 +26,16 @@ class AnimatedSearchField extends StatefulWidget {
   });
 
   @override
-  State<AnimatedSearchField> createState() => _AnimatedSearchFieldState();
+  AnimatedSearchFieldState createState() => AnimatedSearchFieldState();
 }
 
-class _AnimatedSearchFieldState extends State<AnimatedSearchField> {
+class AnimatedSearchFieldState extends State<AnimatedSearchField> {
   bool _isFocused = false;
   bool _hasText = false;
+
+  // 음성 검색
+  final stt.SpeechToText _speech = stt.SpeechToText();
+  bool _isListening = false;
 
   @override
   void initState() {
@@ -44,6 +49,9 @@ class _AnimatedSearchFieldState extends State<AnimatedSearchField> {
   void dispose() {
     widget.focusNode.removeListener(_handleFocus);
     widget.controller.removeListener(_handleText);
+    if (_isListening) {
+      _speech.cancel();
+    }
     super.dispose();
   }
 
@@ -57,6 +65,125 @@ class _AnimatedSearchFieldState extends State<AnimatedSearchField> {
     final hasText = widget.controller.text.isNotEmpty;
     if (_hasText == hasText) return;
     setState(() => _hasText = hasText);
+  }
+
+  /// 외부(홈/더보기 검색바의 마이크)에서 음성 검색을 시작시키는 진입점.
+  void startVoiceSearch() {
+    if (!_isListening) _toggleListening();
+  }
+
+  /// 마이크 아이콘 탭 → 음성 인식 시작/중지.
+  ///
+  /// 인식된 텍스트는 실시간으로 검색창에 반영되고, 최종 결과가 나오면
+  /// 곧바로 검색을 실행한다. 기기에서 음성 인식을 쓸 수 없으면 안내한다.
+  Future<void> _toggleListening() async {
+    if (_isListening) {
+      await _speech.stop();
+      if (mounted) setState(() => _isListening = false);
+      return;
+    }
+
+    HapticFeedback.mediumImpact();
+
+    try {
+      final available = await _speech.initialize(
+        onStatus: (status) {
+          if ((status == 'done' || status == 'notListening') && mounted) {
+            setState(() => _isListening = false);
+          }
+        },
+        onError: (error) {
+          if (mounted) setState(() => _isListening = false);
+          debugPrint('🎙️ 음성 인식 오류: ${error.errorMsg}');
+        },
+      );
+
+      if (!available) {
+        if (mounted) {
+          setState(() => _isListening = false);
+          _showSpeechUnavailable();
+        }
+        return;
+      }
+
+      if (!mounted) return;
+      widget.focusNode.unfocus();
+      setState(() => _isListening = true);
+
+      await _speech.listen(
+        onResult: (result) {
+          if (!mounted) return;
+          final words = result.recognizedWords;
+          widget.controller.value = TextEditingValue(
+            text: words,
+            selection: TextSelection.collapsed(offset: words.length),
+          );
+          widget.onChanged(words);
+          if (result.finalResult) {
+            setState(() => _isListening = false);
+            if (words.trim().isNotEmpty) {
+              widget.onSubmitted(words.trim());
+            }
+          }
+        },
+        listenOptions: stt.SpeechListenOptions(
+          localeId: 'ko_KR',
+          listenMode: stt.ListenMode.search,
+          cancelOnError: true,
+          partialResults: true,
+        ),
+      );
+    } catch (e) {
+      // MissingPluginException(전체 재빌드 전 hot restart) 등 플랫폼 예외를
+      // 잡아 크래시 없이 안내한다.
+      debugPrint('🎙️ 음성 검색 사용 불가: $e');
+      if (mounted) {
+        setState(() => _isListening = false);
+        _showSpeechUnavailable();
+      }
+    }
+  }
+
+  void _showSpeechUnavailable() {
+    YanoljaToast.show(
+      context,
+      '음성 검색을 사용할 수 없어요. 마이크 권한을 확인해 주세요.',
+      icon: Icons.mic_off_rounded,
+    );
+  }
+
+  /// 검색창 우측의 음성 검색 버튼. 듣는 중에는 컬러 칩으로 활성 상태를 표시한다.
+  Widget _buildMicButton() {
+    final listening = _isListening;
+    return Padding(
+      padding: const EdgeInsets.only(left: 2),
+      child: Semantics(
+        button: true,
+        label: listening ? '음성 검색 중지' : '음성으로 검색',
+        child: GestureDetector(
+          onTap: _toggleListening,
+          behavior: HitTestBehavior.opaque,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color:
+                  listening ? YanoljaColors.primary : YanoljaColors.surfaceAlt,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: listening ? YanoljaColors.primary : YanoljaColors.border,
+              ),
+            ),
+            child: Icon(
+              listening ? Icons.mic_rounded : Icons.mic_none_rounded,
+              color: listening ? Colors.white : YanoljaColors.textSecondary,
+              size: 20,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -73,10 +200,12 @@ class _AnimatedSearchFieldState extends State<AnimatedSearchField> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(YanoljaRadius.pill),
               border: Border.all(
-                color: _isFocused
-                    ? YanoljaColors.textPrimary
-                    : YanoljaColors.border,
-                width: _isFocused ? 1.4 : 1,
+                color: _isListening
+                    ? YanoljaColors.primary
+                    : _isFocused
+                        ? YanoljaColors.textPrimary
+                        : YanoljaColors.border,
+                width: (_isListening || _isFocused) ? 1.4 : 1,
               ),
               boxShadow: [
                 BoxShadow(
@@ -107,15 +236,17 @@ class _AnimatedSearchFieldState extends State<AnimatedSearchField> {
                       fontWeight: FontWeight.w700,
                       letterSpacing: -0.2,
                     ),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       isDense: true,
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       filled: false,
-                      hintText: '지역, 숙소, 공연 검색',
+                      hintText: _isListening ? '듣고 있어요…' : '지역, 숙소, 공연 검색',
                       hintStyle: TextStyle(
-                        color: YanoljaColors.textTertiary,
+                        color: _isListening
+                            ? YanoljaColors.primary
+                            : YanoljaColors.textTertiary,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         letterSpacing: -0.2,
@@ -138,16 +269,9 @@ class _AnimatedSearchFieldState extends State<AnimatedSearchField> {
                       color: YanoljaColors.textTertiary,
                       size: 20,
                     ),
-                  )
-                else
-                  const Padding(
-                    padding: EdgeInsets.only(right: 16),
-                    child: Icon(
-                      Icons.mic_none_rounded,
-                      color: YanoljaColors.textSecondary,
-                      size: 21,
-                    ),
                   ),
+                _buildMicButton(),
+                const SizedBox(width: 8),
               ],
             ),
           ),

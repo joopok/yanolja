@@ -108,6 +108,7 @@ class YanoljaAppBar extends StatelessWidget implements PreferredSizeWidget {
       elevation: 0,
       scrolledUnderElevation: 0.5,
       shadowColor: YanoljaColors.shadow,
+      leadingWidth: hasLeading ? 60 : null,
       leading: leading ?? _buildDefaultLeading(context),
       automaticallyImplyLeading: false,
       titleSpacing: hasLeading ? 0 : 20,
@@ -146,22 +147,18 @@ class YanoljaAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   Widget? _buildDefaultLeading(BuildContext context) {
     if (!showBackButton) return null;
-    return IconButton(
-      tooltip: useCloseButton ? '닫기' : '뒤로',
-      icon: Icon(
-        useCloseButton ? Icons.close_rounded : Icons.arrow_back_ios_new_rounded,
-        size: useCloseButton ? 24 : 20,
-      ),
+    return _YanoljaBackButton(
+      useCloseButton: useCloseButton,
       onPressed: () => _handleBack(context),
     );
   }
 
   void _handleBack(BuildContext context) {
+    HapticFeedback.selectionClick();
     if (onBackPress != null) {
       onBackPress!();
       return;
     }
-    HapticFeedback.selectionClick();
     if (context.canPop()) {
       context.pop();
     } else {
@@ -345,27 +342,73 @@ class YanoljaSliverAppBar extends StatelessWidget {
 
   Widget? _buildDefaultLeading(BuildContext context) {
     if (!showBackButton) return null;
-    return IconButton(
-      tooltip: useCloseButton ? '닫기' : '뒤로',
-      icon: Icon(
-        useCloseButton ? Icons.close_rounded : Icons.arrow_back_ios_new_rounded,
-        size: useCloseButton ? 24 : 20,
-      ),
+    return _YanoljaBackButton(
+      useCloseButton: useCloseButton,
       onPressed: () => _handleBack(context),
     );
   }
 
   void _handleBack(BuildContext context) {
+    HapticFeedback.selectionClick();
     if (onBackPress != null) {
       onBackPress!();
       return;
     }
-    HapticFeedback.selectionClick();
     if (context.canPop()) {
       context.pop();
     } else {
       context.go(fallbackRoute ?? '/home');
     }
+  }
+}
+
+class _YanoljaBackButton extends StatelessWidget {
+  final bool useCloseButton;
+  final VoidCallback onPressed;
+
+  const _YanoljaBackButton({
+    required this.useCloseButton,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final icon =
+        useCloseButton ? Icons.close_rounded : Icons.arrow_back_ios_new_rounded;
+    final label = useCloseButton ? '닫기' : '이전 화면';
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 10),
+      child: Center(
+        child: Tooltip(
+          message: label,
+          child: Semantics(
+            button: true,
+            label: label,
+            child: YanoljaPressable(
+              onTap: onPressed,
+              borderRadius: BorderRadius.circular(14),
+              pressedScale: 0.94,
+              child: Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: YanoljaColors.surfaceAlt,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: YanoljaColors.border),
+                ),
+                child: Icon(
+                  icon,
+                  size: useCloseButton ? 22 : 18,
+                  color: YanoljaColors.textPrimary,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -449,7 +492,10 @@ class _YanoljaAllMenuAction extends StatelessWidget {
           child: Container(
             width: 38,
             height: 38,
-            margin: const EdgeInsets.only(left: 2),
+            // 화면 우측 끝과 너무 붙지 않도록 여백 확보.
+            // 기본 trailing(SizedBox 6) + 우측 14 = 화면 끝에서 20px,
+            // 좌측 titleSpacing(20) 및 본문 패딩(20)과 시각적으로 정렬된다.
+            margin: const EdgeInsets.only(left: 2, right: 14),
             decoration: BoxDecoration(
               color: YanoljaColors.primaryLight,
               borderRadius: BorderRadius.circular(14),

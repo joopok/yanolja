@@ -68,7 +68,7 @@ class YanoljaBottomNav extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 58,
+          height: 64,
           child: Row(
             children: _tabs.map((tab) {
               final isSelected = selectedBranchIndex == tab.branch;
@@ -127,7 +127,7 @@ class _YanoljaNavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color =
-        isSelected ? YanoljaColors.textPrimary : YanoljaColors.textSecondary;
+        isSelected ? YanoljaColors.primary : YanoljaColors.textSecondary;
 
     return InkWell(
       onTap: onTap,
@@ -144,14 +144,19 @@ class _YanoljaNavItem extends StatelessWidget {
               duration: YanoljaMotion.base,
               curve: YanoljaMotion.curve,
               padding: EdgeInsets.symmetric(
-                horizontal: isSelected ? 10 : 0,
-                vertical: isSelected ? 3 : 0,
+                horizontal: isSelected ? 12 : 0,
+                vertical: isSelected ? 4 : 0,
               ),
               decoration: BoxDecoration(
                 color: isSelected
                     ? YanoljaColors.primaryLight
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+                border: Border.all(
+                  color: isSelected
+                      ? YanoljaColors.primary.withValues(alpha: 0.12)
+                      : Colors.transparent,
+                ),
               ),
               child: Icon(
                 isSelected ? tab.activeIcon : tab.icon,

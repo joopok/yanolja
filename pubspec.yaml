@@ -27,9 +27,6 @@ dependencies:
   # 네트워크 이미지 캐싱
   cached_network_image: ^3.3.1
 
-  # 애니메이션
-  flutter_staggered_animations: ^1.1.1
-
   # 숫자, 날짜 포맷팅
   intl: ^0.20.2
 
@@ -67,12 +64,22 @@ dependencies:
   firebase_auth: ^5.6.0
   google_sign_in: ^7.0.0
   google_maps_flutter: ^2.12.3
+  font_awesome_flutter: ^11.0.0
   provider: ^6.1.5
+  sqflite: ^2.4.2
+  url_launcher: ^6.3.2
+
+  # 음성 검색 (마이크 → 음성 인식)
+  speech_to_text: ^7.0.0
+
+  # 앱 아이콘 배지 (미확인 알림 수를 홈스크린 아이콘에 표시)
+  app_badge_plus: ^1.2.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  sqflite_common_ffi: ^2.3.6
 
 flutter:
   uses-material-design: true

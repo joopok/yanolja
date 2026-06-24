@@ -1,9 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Modify this file to customize your launch splash screen -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#F8FBFF" />
+            <gradient
+                android:angle="315"
+                android:endColor="#E3FAF7"
+                android:centerColor="#EEF3FF"
+                android:startColor="#F8FBFF" />
+        </shape>
+    </item>
+
+    <item
+        android:gravity="top|right"
+        android:right="-96dp"
+        android:top="72dp">
+        <shape android:shape="rectangle">
+            <size
+                android:width="220dp"
+                android:height="72dp" />
+            <corners android:radius="26dp" />
+            <solid android:color="#80FFFFFF" />
+        </shape>
+    </item>
+
+    <item
+        android:bottom="88dp"
+        android:gravity="bottom|left"
+        android:left="-32dp">
+        <shape android:shape="rectangle">
+            <size
+                android:width="192dp"
+                android:height="58dp" />
+            <corners android:radius="24dp" />
+            <solid android:color="#1F315BFF" />
         </shape>
     </item>
 

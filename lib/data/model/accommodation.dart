@@ -23,13 +23,16 @@ class Review {
   });
 
   factory Review.fromMap(Map<String, dynamic> map) {
+    final dateValue = map['date'];
     return Review(
-      id: map['id'] ?? '',
-      userName: map['userName'] ?? '',
+      id: map['id']?.toString() ?? map['author']?.toString() ?? '',
+      userName: map['userName'] ?? map['author'] ?? '실제 이용객',
       userAvatar: map['userAvatar'] ?? '',
       rating: (map['rating'] ?? 0.0).toDouble(),
       comment: map['comment'] ?? '',
-      date: DateTime.parse(map['date'] ?? DateTime.now().toIso8601String()),
+      date: dateValue is String
+          ? DateTime.tryParse(dateValue) ?? DateTime.now()
+          : DateTime.now(),
       photos: List<String>.from(map['photos'] ?? []),
       likes: map['likes'] ?? 0,
       dislikes: map['dislikes'] ?? 0,
@@ -185,17 +188,25 @@ class Accommodation {
       checkInTime: map['checkInTime'] ?? '15:00',
       checkOutTime: map['checkOutTime'] ?? '11:00',
       reviews: (map['reviews'] as List<dynamic>?)
-          ?.map((reviewMap) => Review.fromMap(reviewMap as Map<String, dynamic>))
-          .toList() ?? [],
+              ?.map((reviewMap) =>
+                  Review.fromMap(reviewMap as Map<String, dynamic>))
+              .toList() ??
+          [],
       latitude: (map['latitude'] as num?)?.toDouble(),
       longitude: (map['longitude'] as num?)?.toDouble(),
       nearbyAttractions: (map['nearbyAttractions'] as List<dynamic>?)
-          ?.map((attractionMap) => Attraction.fromMap(attractionMap as Map<String, dynamic>))
-          .toList() ?? [],
+              ?.map((attractionMap) =>
+                  Attraction.fromMap(attractionMap as Map<String, dynamic>))
+              .toList() ??
+          [],
       nearbyRestaurants: (map['nearbyRestaurants'] as List<dynamic>?)
-          ?.map((restaurantMap) => Restaurant.fromMap(restaurantMap as Map<String, dynamic>))
-          .toList() ?? [],
-      seasonalImages: map['seasonalImages'] != null ? SeasonalImages.fromMap(map['seasonalImages']) : null,
+              ?.map((restaurantMap) =>
+                  Restaurant.fromMap(restaurantMap as Map<String, dynamic>))
+              .toList() ??
+          [],
+      seasonalImages: map['seasonalImages'] != null
+          ? SeasonalImages.fromMap(map['seasonalImages'])
+          : null,
       theme: map['theme'],
       tags: map['tags'] != null ? List<String>.from(map['tags']) : null,
     );

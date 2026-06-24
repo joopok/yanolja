@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 class GoogleMapsStyleSuggestions extends StatelessWidget {
   final List<String> suggestions;
@@ -23,7 +22,7 @@ class GoogleMapsStyleSuggestions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Container(
       color: theme.colorScheme.surface,
       child: SingleChildScrollView(
@@ -39,26 +38,16 @@ class GoogleMapsStyleSuggestions extends StatelessWidget {
                 Icons.lightbulb_outline_rounded,
               ),
               ...suggestions.asMap().entries.map((entry) {
-                final index = entry.key;
                 final suggestion = entry.value;
-                return AnimationConfiguration.staggeredList(
-                  position: index,
-                  duration: const Duration(milliseconds: 375),
-                  child: SlideAnimation(
-                    verticalOffset: 30.0,
-                    child: FadeInAnimation(
-                      child: _buildSuggestionTile(
-                        context,
-                        suggestion,
-                        Icons.search_rounded,
-                        onTap: () => onSuggestionTap(suggestion),
-                      ),
-                    ),
-                  ),
+                return _buildSuggestionTile(
+                  context,
+                  suggestion,
+                  Icons.search_rounded,
+                  onTap: () => onSuggestionTap(suggestion),
                 );
               }),
             ],
-            
+
             // 🕐 최근 검색어
             if (recentSearches.isNotEmpty) ...[
               _buildSectionHeader(
@@ -77,34 +66,24 @@ class GoogleMapsStyleSuggestions extends StatelessWidget {
                 ),
               ),
               ...recentSearches.asMap().entries.map((entry) {
-                final index = entry.key;
                 final search = entry.value;
-                return AnimationConfiguration.staggeredList(
-                  position: index,
-                  duration: const Duration(milliseconds: 300),
-                  child: SlideAnimation(
-                    horizontalOffset: -30.0,
-                    child: FadeInAnimation(
-                      child: _buildSuggestionTile(
-                        context,
-                        search,
-                        Icons.access_time_rounded,
-                        onTap: () => onSuggestionTap(search),
-                        trailing: IconButton(
-                          icon: Icon(
-                            Icons.close_rounded,
-                            size: 16,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          onPressed: () => onRecentSearchDelete?.call(search),
-                        ),
-                      ),
+                return _buildSuggestionTile(
+                  context,
+                  search,
+                  Icons.access_time_rounded,
+                  onTap: () => onSuggestionTap(search),
+                  trailing: IconButton(
+                    icon: Icon(
+                      Icons.close_rounded,
+                      size: 16,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
+                    onPressed: () => onRecentSearchDelete?.call(search),
                   ),
                 );
               }),
             ],
-            
+
             // 🔥 인기 검색어
             if (popularSearches.isNotEmpty) ...[
               _buildSectionHeader(
@@ -114,7 +93,7 @@ class GoogleMapsStyleSuggestions extends StatelessWidget {
               ),
               _buildPopularSearchGrid(context, popularSearches),
             ],
-            
+
             // 📍 추천 위치 (구글 맵 스타일)
             _buildSectionHeader(
               context,
@@ -135,7 +114,7 @@ class GoogleMapsStyleSuggestions extends StatelessWidget {
     Widget? trailing,
   }) {
     final theme = Theme.of(context);
-    
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Row(
@@ -175,7 +154,7 @@ class GoogleMapsStyleSuggestions extends StatelessWidget {
     Widget? trailing,
   }) {
     final theme = Theme.of(context);
-    
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -211,7 +190,7 @@ class GoogleMapsStyleSuggestions extends StatelessWidget {
 
   Widget _buildPopularSearchGrid(BuildContext context, List<String> searches) {
     final theme = Theme.of(context);
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: GridView.builder(
@@ -226,63 +205,53 @@ class GoogleMapsStyleSuggestions extends StatelessWidget {
         itemCount: searches.length,
         itemBuilder: (context, index) {
           final search = searches[index];
-          return AnimationConfiguration.staggeredGrid(
-            position: index,
-            duration: const Duration(milliseconds: 375),
-            columnCount: 2,
-            child: ScaleAnimation(
-              scale: 0.95,
-              child: FadeInAnimation(
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      onSuggestionTap(search);
-                    },
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
+          return Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                onSuggestionTap(search);
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainer,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: theme.colorScheme.outline.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      margin: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainer,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: theme.colorScheme.outline.withValues(alpha: 0.2),
+                        color: theme.colorScheme.primary,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${index + 1}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 32,
-                            height: 32,
-                            margin: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primary,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Center(
-                              child: Text(
-                                '${index + 1}',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              search,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                fontWeight: FontWeight.w500,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
+                    ),
+                    Expanded(
+                      child: Text(
+                        search,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),
@@ -294,7 +263,7 @@ class GoogleMapsStyleSuggestions extends StatelessWidget {
 
   Widget _buildRecommendedPlaces(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     final recommendedPlaces = [
       {
         'name': '제주도',
@@ -325,88 +294,76 @@ class GoogleMapsStyleSuggestions extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
-        children: recommendedPlaces.asMap().entries.map((entry) {
-          final index = entry.key;
-          final place = entry.value;
-          
-          return AnimationConfiguration.staggeredList(
-            position: index,
-            duration: const Duration(milliseconds: 400),
-            child: SlideAnimation(
-              verticalOffset: 50.0,
-              child: FadeInAnimation(
+        children: recommendedPlaces.map((place) {
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  onSuggestionTap(place['name'] as String);
+                },
+                borderRadius: BorderRadius.circular(16),
                 child: Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        onSuggestionTap(place['name'] as String);
-                      },
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        (place['color'] as Color).withValues(alpha: 0.1),
+                        (place['color'] as Color).withValues(alpha: 0.05),
+                      ],
+                    ),
+                    border: Border.all(
+                      color: (place['color'] as Color).withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          gradient: LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: [
-                              (place['color'] as Color).withValues(alpha: 0.1),
-                              (place['color'] as Color).withValues(alpha: 0.05),
-                            ],
-                          ),
-                          border: Border.all(
-                            color: (place['color'] as Color).withValues(alpha: 0.2),
+                          color: place['color'] as Color,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Text(
+                            place['icon'] as String,
+                            style: const TextStyle(fontSize: 24),
                           ),
                         ),
-                        child: Row(
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: place['color'] as Color,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  place['icon'] as String,
-                                  style: const TextStyle(fontSize: 24),
-                                ),
+                            Text(
+                              place['name'] as String,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    place['name'] as String,
-                                    style: theme.textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    place['description'] as String,
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                ],
+                            const SizedBox(height: 2),
+                            Text(
+                              place['description'] as String,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
-                            ),
-                            Icon(
-                              Icons.arrow_forward_ios_rounded,
-                              size: 16,
-                              color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ],
                         ),
                       ),
-                    ),
+                      Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 16,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ],
                   ),
                 ),
               ),

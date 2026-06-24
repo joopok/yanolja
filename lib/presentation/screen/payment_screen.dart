@@ -129,20 +129,11 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   }
 
   void _showSnack(String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message,
-              style: const TextStyle(fontWeight: FontWeight.w700)),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: YanoljaColors.textPrimary,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(YanoljaRadius.md)),
-          margin: const EdgeInsets.all(16),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+    YanoljaToast.show(
+      context,
+      message,
+      icon: Icons.info_rounded,
+    );
   }
 
   @override

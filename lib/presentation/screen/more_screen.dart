@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
+import 'package:yanolja_clone/presentation/provider/search_provider.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_bottom_nav.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
@@ -25,7 +26,7 @@ class MoreScreen extends ConsumerWidget {
                 YanoljaEntrance(child: _buildTopTabs(context)),
                 YanoljaEntrance(
                   delay: const Duration(milliseconds: 55),
-                  child: _buildSearchPill(context),
+                  child: _buildSearchPill(context, ref),
                 ),
                 _sectionGap(),
                 YanoljaEntrance(
@@ -98,7 +99,7 @@ class MoreScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSearchPill(BuildContext context) {
+  Widget _buildSearchPill(BuildContext context, WidgetRef ref) {
     return Container(
       color: YanoljaColors.background,
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
@@ -110,21 +111,21 @@ class MoreScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(YanoljaRadius.pill),
         child: Container(
           height: 50,
-          padding: const EdgeInsets.symmetric(horizontal: 18),
+          padding: const EdgeInsets.fromLTRB(18, 0, 7, 0),
           decoration: BoxDecoration(
             color: YanoljaColors.surfaceAlt,
             borderRadius: BorderRadius.circular(YanoljaRadius.pill),
             border: Border.all(color: YanoljaColors.border),
           ),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.search_rounded,
                 color: YanoljaColors.textSecondary,
                 size: 23,
               ),
-              SizedBox(width: 10),
-              Expanded(
+              const SizedBox(width: 10),
+              const Expanded(
                 child: Text(
                   '어디로 놀러갈까요?',
                   style: TextStyle(
@@ -134,10 +135,30 @@ class MoreScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              Icon(
-                Icons.mic_none_rounded,
-                color: YanoljaColors.textTertiary,
-                size: 21,
+              Semantics(
+                button: true,
+                label: '음성으로 검색',
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    HapticFeedback.mediumImpact();
+                    ref.read(voiceSearchSignalProvider.notifier).state++;
+                    context.go('/search');
+                  },
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: const BoxDecoration(
+                      color: YanoljaColors.primaryLight,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.mic_none_rounded,
+                      color: YanoljaColors.primary,
+                      size: 20,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

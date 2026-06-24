@@ -71,6 +71,9 @@ class YanoljaColors {
 
   /// 그림자
   static const Color shadow = Color(0x14000000);
+
+  /// 깊이감 있는 오버레이 그림자
+  static const Color shadowStrong = Color(0x240B1020);
 }
 
 /// 📐 공통 모서리 반경
@@ -112,6 +115,44 @@ class YanoljaFormat {
   static int originalPrice(int discounted, int rate) {
     if (rate <= 0 || rate >= 100) return discounted;
     return (discounted / (1 - rate / 100)).round();
+  }
+}
+
+/// 앱 전역 토스트/스낵바 헬퍼.
+///
+/// 화면별로 제각각이던 피드백 문구와 모양을 NOL 톤으로 맞춥니다.
+class YanoljaToast {
+  YanoljaToast._();
+
+  static void show(
+    BuildContext context,
+    String message, {
+    IconData icon = Icons.check_circle_rounded,
+    Duration duration = const Duration(seconds: 2),
+  }) {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (messenger == null) return;
+
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(icon, color: Colors.white, size: 18),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  message,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          duration: duration,
+        ),
+      );
   }
 }
 

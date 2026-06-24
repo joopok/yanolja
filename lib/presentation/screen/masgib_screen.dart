@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_bottom_nav.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
@@ -127,128 +126,115 @@ class _MasgibScreenState extends ConsumerState<MasgibScreen>
   /// 메인 프로모션 배너 — 연핑크 틴트 플랫 카드
   Widget _buildMainBanner() {
     return SliverToBoxAdapter(
-      child: AnimationLimiter(
-        child: AnimationConfiguration.staggeredList(
-          position: 0,
-          duration: const Duration(milliseconds: 300),
-          child: SlideAnimation(
-            verticalOffset: 20.0,
-            child: FadeInAnimation(
-              child: Container(
-                margin: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-                height: 160,
-                decoration: BoxDecoration(
-                  color: YanoljaColors.primaryLight,
-                  borderRadius: BorderRadius.circular(YanoljaRadius.lg),
-                  border: Border.all(color: YanoljaColors.border),
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      left: 22,
-                      top: 26,
-                      right: 120,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 9,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: YanoljaColors.primary,
-                              borderRadius:
-                                  BorderRadius.circular(YanoljaRadius.sm),
-                            ),
-                            child: const Text(
-                              '이달의 맛집 혜택',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                                letterSpacing: -0.2,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            '미식가를 위한\n특별 할인 혜택',
-                            style: TextStyle(
-                              fontSize: 21,
-                              fontWeight: FontWeight.w800,
-                              color: YanoljaColors.textPrimary,
-                              height: 1.25,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            '엄선한 맛집을 더 저렴하게',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: YanoljaColors.textSecondary,
-                              letterSpacing: -0.2,
-                            ),
-                          ),
-                        ],
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+        height: 160,
+        decoration: BoxDecoration(
+          color: YanoljaColors.primaryLight,
+          borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+          border: Border.all(color: YanoljaColors.border),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              left: 22,
+              top: 26,
+              right: 120,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: YanoljaColors.primary,
+                      borderRadius: BorderRadius.circular(YanoljaRadius.sm),
+                    ),
+                    child: const Text(
+                      '이달의 맛집 혜택',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: -0.2,
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    '미식가를 위한\n특별 할인 혜택',
+                    style: TextStyle(
+                      fontSize: 21,
+                      fontWeight: FontWeight.w800,
+                      color: YanoljaColors.textPrimary,
+                      height: 1.25,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '엄선한 맛집을 더 저렴하게',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: YanoljaColors.textSecondary,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
-                    // 오른쪽 일러스트 (절제된 단일 아이콘 원형)
-                    Positioned(
-                      right: 24,
-                      top: 0,
-                      bottom: 0,
-                      child: Center(
-                        child: Container(
-                          width: 84,
-                          height: 84,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: YanoljaColors.border),
-                          ),
-                          child: const Icon(
-                            Icons.restaurant_rounded,
-                            color: YanoljaColors.primary,
-                            size: 40,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // 페이지 인디케이터 (플랫 핑크 칩)
-                    Positioned(
-                      bottom: 14,
-                      right: 16,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius:
-                              BorderRadius.circular(YanoljaRadius.pill),
-                          border: Border.all(color: YanoljaColors.border),
-                        ),
-                        child: const Text(
-                          '4 / 10',
-                          style: TextStyle(
-                            color: YanoljaColors.textSecondary,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+            // 오른쪽 일러스트 (절제된 단일 아이콘 원형)
+            Positioned(
+              right: 24,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: Container(
+                  width: 84,
+                  height: 84,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: YanoljaColors.border),
+                  ),
+                  child: const Icon(
+                    Icons.restaurant_rounded,
+                    color: YanoljaColors.primary,
+                    size: 40,
+                  ),
                 ),
               ),
             ),
-          ),
+
+            // 페이지 인디케이터 (플랫 핑크 칩)
+            Positioned(
+              bottom: 14,
+              right: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+                  border: Border.all(color: YanoljaColors.border),
+                ),
+                child: const Text(
+                  '4 / 10',
+                  style: TextStyle(
+                    color: YanoljaColors.textSecondary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -276,31 +262,19 @@ class _MasgibScreenState extends ConsumerState<MasgibScreen>
     return SliverToBoxAdapter(
       child: Container(
         margin: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-        child: AnimationLimiter(
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 16,
-              childAspectRatio: 0.82,
-            ),
-            itemCount: services.length,
-            itemBuilder: (context, index) {
-              return AnimationConfiguration.staggeredGrid(
-                position: index,
-                duration: const Duration(milliseconds: 300),
-                columnCount: 4,
-                child: FadeInAnimation(
-                  child: SlideAnimation(
-                    verticalOffset: 20.0,
-                    child: _buildServiceCard(services[index]),
-                  ),
-                ),
-              );
-            },
+        child: GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 4,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 16,
+            childAspectRatio: 0.82,
           ),
+          itemCount: services.length,
+          itemBuilder: (context, index) {
+            return _buildServiceCard(services[index]);
+          },
         ),
       ),
     );

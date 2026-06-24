@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/data/model/accommodation.dart';
 import 'package:yanolja_clone/presentation/provider/saved_provider.dart';
+import 'package:yanolja_clone/presentation/widget/social_share_sheet.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 
 // 목록의 각 항목을 표시하는 재사용 가능한 위젯 (NOL 숙소 리스트 스타일)
@@ -32,7 +33,19 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
         },
         child: Container(
           margin: const EdgeInsets.fromLTRB(20, 12, 20, 14),
-          color: YanoljaColors.surface,
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: YanoljaColors.surface,
+            borderRadius: BorderRadius.circular(YanoljaRadius.xl),
+            border: Border.all(color: YanoljaColors.border),
+            boxShadow: const [
+              BoxShadow(
+                color: YanoljaColors.shadow,
+                blurRadius: 20,
+                offset: Offset(0, 10),
+              ),
+            ],
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -46,72 +59,92 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
   }
 
   Widget _buildImageSection() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(YanoljaRadius.lg),
-      child: Stack(
-        children: [
-          SizedBox(
-            height: 186,
-            width: double.infinity,
-            child: widget.accommodation.imageUrls.length > 1
-                ? CarouselSlider(
-                    carouselController: _carouselController,
-                    options: CarouselOptions(
-                      height: 186,
-                      viewportFraction: 1.0,
-                      enableInfiniteScroll: true,
-                      onPageChanged: (index, reason) {
-                        setState(() {
-                          _currentImageIndex = index;
-                        });
-                      },
-                    ),
-                    items: widget.accommodation.imageUrls.map((imageUrl) {
-                      return _buildImage(imageUrl);
-                    }).toList(),
-                  )
-                : _buildImage(widget.accommodation.imageUrls.first),
-          ),
-          if (widget.accommodation.isNew || widget.accommodation.isPopular)
-            Positioned(
-              top: 12,
-              left: 12,
-              child: Row(
-                children: [
-                  if (widget.accommodation.isNew)
-                    _buildBadge('신규', YanoljaColors.mint),
-                  if (widget.accommodation.isPopular)
-                    _buildBadge('많이 찾는 숙소', Colors.black87),
-                ],
-              ),
-            ),
-          Positioned(
-            top: 8,
-            right: 8,
-            child: _buildHeartButton(context, ref),
-          ),
-          if (widget.accommodation.imageUrls.length > 1)
-            Positioned(
-              bottom: 10,
-              right: 12,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.45),
-                  borderRadius: BorderRadius.circular(YanoljaRadius.pill),
-                ),
-                child: Text(
-                  '${_currentImageIndex + 1} / ${widget.accommodation.imageUrls.length} +',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
+    return Stack(
+      children: [
+        SizedBox(
+          height: 190,
+          width: double.infinity,
+          child: widget.accommodation.imageUrls.length > 1
+              ? CarouselSlider(
+                  carouselController: _carouselController,
+                  options: CarouselOptions(
+                    height: 190,
+                    viewportFraction: 1.0,
+                    enableInfiniteScroll: true,
+                    onPageChanged: (index, reason) {
+                      setState(() {
+                        _currentImageIndex = index;
+                      });
+                    },
                   ),
+                  items: widget.accommodation.imageUrls.map((imageUrl) {
+                    return _buildImage(imageUrl);
+                  }).toList(),
+                )
+              : _buildImage(widget.accommodation.imageUrls.first),
+        ),
+        Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withValues(alpha: 0.28),
+                  Colors.transparent,
+                  Colors.black.withValues(alpha: 0.18),
+                ],
+                stops: const [0, 0.42, 1],
+              ),
+            ),
+          ),
+        ),
+        if (widget.accommodation.isNew || widget.accommodation.isPopular)
+          Positioned(
+            top: 12,
+            left: 12,
+            child: Row(
+              children: [
+                if (widget.accommodation.isNew)
+                  _buildBadge('NEW', YanoljaColors.mint),
+                if (widget.accommodation.isPopular)
+                  _buildBadge('인기 숙소', Colors.black87),
+              ],
+            ),
+          ),
+        Positioned(
+          top: 10,
+          right: 10,
+          child: Row(
+            children: [
+              _buildShareButton(context),
+              const SizedBox(width: 6),
+              _buildHeartButton(context, ref),
+            ],
+          ),
+        ),
+        if (widget.accommodation.imageUrls.length > 1)
+          Positioned(
+            bottom: 12,
+            right: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.54),
+                borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+                border: Border.all(color: Colors.white24),
+              ),
+              child: Text(
+                '${_currentImageIndex + 1}/${widget.accommodation.imageUrls.length}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 
@@ -141,25 +174,12 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
     return GestureDetector(
       onTap: () {
         savedNotifier.toggleSaved(widget.accommodation.id);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isSaved
-                  ? '${widget.accommodation.name}이(가) 찜 목록에서 제거되었습니다'
-                  : '${widget.accommodation.name}이(가) 찜 목록에 추가되었습니다',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            backgroundColor: YanoljaColors.textPrimary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(YanoljaRadius.md),
-            ),
-            margin: const EdgeInsets.all(16),
-            duration: const Duration(seconds: 1),
-          ),
+        YanoljaToast.show(
+          context,
+          isSaved ? '찜 목록에서 삭제했어요' : '찜 목록에 담았어요',
+          icon:
+              isSaved ? Icons.favorite_border_rounded : Icons.favorite_rounded,
+          duration: const Duration(seconds: 1),
         );
       },
       child: AnimatedScale(
@@ -170,6 +190,11 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
           width: 40,
           height: 40,
           alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.24),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white24),
+          ),
           child: Icon(
             isSaved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
             color: isSaved ? YanoljaColors.primary : Colors.white,
@@ -182,6 +207,40 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShareButton(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        showYanoljaSocialShareSheet(
+          context: context,
+          data: YanoljaShareData.accommodation(widget.accommodation),
+        );
+      },
+      child: Container(
+        width: 40,
+        height: 40,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.24),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white24),
+        ),
+        child: const Icon(
+          Icons.share_outlined,
+          color: Colors.white,
+          size: 24,
+          shadows: [
+            Shadow(
+              color: Color(0x40000000),
+              blurRadius: 4,
+              offset: Offset(0, 1),
+            ),
+          ],
         ),
       ),
     );
@@ -209,17 +268,17 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
 
   Widget _buildContentSection(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 12, 0, 0),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: YanoljaColors.primaryLight,
-                  borderRadius: BorderRadius.circular(YanoljaRadius.sm),
+                  borderRadius: BorderRadius.circular(YanoljaRadius.pill),
                 ),
                 child: Text(
                   widget.accommodation.category,
@@ -252,7 +311,7 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
           Text(
             widget.accommodation.name,
             style: const TextStyle(
-              fontSize: 17,
+              fontSize: 18,
               fontWeight: FontWeight.w900,
               color: YanoljaColors.textPrimary,
               height: 1.25,
@@ -275,7 +334,7 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
             _buildAmenities(),
           ],
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
           _buildPriceSection(),
         ],
@@ -350,7 +409,7 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
           textBaseline: TextBaseline.alphabetic,
           children: [
             const Text(
-              '쿠폰 적용가 ',
+              '오늘 예약가 ',
               style: TextStyle(
                 fontSize: 12,
                 color: YanoljaColors.textTertiary,

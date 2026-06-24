@@ -1,10 +1,12 @@
 // import 'package:firebase_core/firebase_core.dart';
+import 'package:app_badge_plus/app_badge_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yanolja_clone/core/router.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
+import 'package:yanolja_clone/presentation/provider/notification_provider.dart';
 import 'package:yanolja_clone/presentation/provider/settings_provider.dart';
 // import 'package:yanolja_clone/firebase_options.dart';
 
@@ -48,6 +50,14 @@ class YanoljaCloneApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final settings = ref.watch(nolSettingsProvider);
+
+    // 미확인 알림 수를 OS 앱아이콘 배지에 동기화한다.
+    // 현재 카운트를 watch 하므로 첫 빌드와 이후 변경마다 배지가 갱신된다.
+    // .ignore(): 네이티브 플러그인 미가용(예: cold rebuild 전 hot restart) 시
+    // MissingPluginException 이 크래시로 번지지 않도록 무시한다.
+    final unreadCount = ref.watch(unreadNotificationCountProvider);
+    AppBadgePlus.updateBadge(unreadCount).ignore();
+
     return MaterialApp.router(
       title: 'NOL(야놀자)',
       debugShowCheckedModeBanner: false,
@@ -137,13 +147,14 @@ class YanoljaCloneApp extends ConsumerWidget {
         ),
       ),
 
-      // 🔘 메인 버튼 — 야놀자 핑크 필드 버튼
+      // 🔘 메인 버튼 — 예약 앱에서 반복 사용해도 부담 없는 선명한 블루 CTA
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: YanoljaColors.primary,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: const Color(0xFFFFC2D8),
-          disabledForegroundColor: Colors.white,
+          disabledBackgroundColor:
+              YanoljaColors.primary.withValues(alpha: 0.32),
+          disabledForegroundColor: Colors.white.withValues(alpha: 0.86),
           elevation: 0,
           minimumSize: const Size.fromHeight(52),
           shadowColor: Colors.transparent,
@@ -177,9 +188,11 @@ class YanoljaCloneApp extends ConsumerWidget {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: YanoljaColors.primary,
+          minimumSize: const Size(44, 44),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           textStyle: const TextStyle(
             fontSize: 14,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w800,
           ),
         ),
       ),
@@ -245,28 +258,32 @@ class YanoljaCloneApp extends ConsumerWidget {
       // ✏️ 입력 필드 — 라이트 그레이 필, 핑크 포커스
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: YanoljaColors.surfaceAlt,
+        fillColor: const Color(0xFFF7F8FB),
         hintStyle: const TextStyle(
           color: YanoljaColors.textTertiary,
           fontSize: 15,
           fontWeight: FontWeight.w400,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(YanoljaRadius.md),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+          borderSide: const BorderSide(color: YanoljaColors.border),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(YanoljaRadius.md),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+          borderSide: const BorderSide(color: YanoljaColors.border),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(YanoljaRadius.md),
+          borderRadius: BorderRadius.circular(YanoljaRadius.lg),
           borderSide:
               const BorderSide(color: YanoljaColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(YanoljaRadius.md),
+          borderRadius: BorderRadius.circular(YanoljaRadius.lg),
           borderSide: const BorderSide(color: Color(0xFFE03131), width: 1),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+          borderSide: const BorderSide(color: Color(0xFFE03131), width: 1.5),
         ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -366,17 +383,31 @@ class YanoljaCloneApp extends ConsumerWidget {
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
+        modalBackgroundColor: Colors.white,
+        modalBarrierColor: Color(0x73000000),
+        dragHandleColor: YanoljaColors.border,
+        dragHandleSize: Size(44, 4),
+        showDragHandle: true,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
       ),
 
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: const Color(0xFF2B2B2B),
-        contentTextStyle:
-            const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+        backgroundColor: const Color(0xFF121826),
+        contentTextStyle: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w800,
+          fontSize: 13.5,
+          height: 1.35,
+        ),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+        ),
+        insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+        actionTextColor: YanoljaColors.primaryLight,
       ),
     );
   }

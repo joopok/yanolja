@@ -21,7 +21,7 @@ class BookingScreen extends ConsumerWidget {
         backgroundColor: YanoljaColors.surfaceAlt,
         bottomNavigationBar: const YanoljaBottomNav(selectedBranchIndex: 4),
         appBar: YanoljaAppBar.sub(
-          title: '예약내역',
+          title: '예약 내역',
           fallbackRoute: '/my-info',
           actions: [
             IconButton(
@@ -79,7 +79,7 @@ class BookingScreen extends ConsumerWidget {
             dividerColor: Colors.transparent,
             indicatorSize: TabBarIndicatorSize.tab,
             indicator: BoxDecoration(
-              color: YanoljaColors.textPrimary,
+              color: YanoljaColors.primary,
               borderRadius: BorderRadius.circular(YanoljaRadius.pill),
             ),
             labelColor: Colors.white,
@@ -182,7 +182,7 @@ class BookingScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               const Text(
-                'NOL 특가와 쿠폰으로 다음 여행을 준비해보세요',
+                '지금 예약 가능한 숙소와 혜택을 바로 확인해보세요',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13.5,
@@ -205,7 +205,7 @@ class BookingScreen extends ConsumerWidget {
                     ),
                   ),
                   child: const Text(
-                    '홈에서 특가 보기',
+                    '숙소 둘러보기',
                     style: TextStyle(fontWeight: FontWeight.w900),
                   ),
                 ),

@@ -18,7 +18,7 @@ class YanoljaMotion {
   }
 }
 
-class YanoljaEntrance extends StatefulWidget {
+class YanoljaEntrance extends StatelessWidget {
   final Widget child;
   final Duration delay;
   final Duration duration;
@@ -35,51 +35,8 @@ class YanoljaEntrance extends StatefulWidget {
   });
 
   @override
-  State<YanoljaEntrance> createState() => _YanoljaEntranceState();
-}
-
-class _YanoljaEntranceState extends State<YanoljaEntrance>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _opacity;
-  late final Animation<double> _scale;
-  late final Animation<Offset> _slide;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: widget.duration);
-    final curved =
-        CurvedAnimation(parent: _controller, curve: YanoljaMotion.curve);
-    _opacity = Tween<double>(begin: 0, end: 1).animate(curved);
-    _scale = Tween<double>(begin: widget.beginScale, end: 1).animate(curved);
-    _slide = Tween<Offset>(
-      begin: widget.beginOffset,
-      end: Offset.zero,
-    ).animate(curved);
-
-    Future<void>.delayed(widget.delay, () {
-      if (mounted) _controller.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (YanoljaMotion.reduce(context)) return widget.child;
-
-    return FadeTransition(
-      opacity: _opacity,
-      child: SlideTransition(
-        position: _slide,
-        child: ScaleTransition(scale: _scale, child: widget.child),
-      ),
-    );
+    return child;
   }
 }
 

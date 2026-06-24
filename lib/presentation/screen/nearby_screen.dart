@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/data/model/accommodation.dart';
@@ -74,17 +73,8 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
                 SliverList.builder(
                   itemCount: nearby.length,
                   itemBuilder: (context, index) {
-                    return AnimationConfiguration.staggeredList(
-                      position: index,
-                      duration: const Duration(milliseconds: 300),
-                      child: SlideAnimation(
-                        verticalOffset: 20,
-                        child: FadeInAnimation(
-                          child: AccommodationListItem(
-                            accommodation: nearby[index],
-                          ),
-                        ),
-                      ),
+                    return AccommodationListItem(
+                      accommodation: nearby[index],
                     );
                   },
                 ),

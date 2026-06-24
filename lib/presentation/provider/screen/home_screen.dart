@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +10,8 @@ import 'package:shimmer/shimmer.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/data/model/accommodation.dart';
 import 'package:yanolja_clone/presentation/provider/accommodation_provider.dart';
+import 'package:yanolja_clone/presentation/provider/notification_provider.dart';
+import 'package:yanolja_clone/presentation/provider/search_provider.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 
@@ -30,12 +34,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _bannerIndex = 0;
   final Set<String> _liked = {};
 
+  static const List<String> _notices = [
+    '야놀자의 새 이름, NOL에서 더 많은 혜택을 만나보세요',
+    'NOLDAY 국내 숙소 특가와 쿠폰이 열렸어요',
+    '공연·전시 티켓 예매 오픈 소식을 확인해보세요',
+    '여름 여행 예약 전 취소·환불 규정을 확인해주세요',
+  ];
+
   static const _fallbackImage =
       'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800';
 
   @override
   Widget build(BuildContext context) {
     final accommodations = ref.watch(accommodationListProvider);
+    final unreadCount = ref.watch(unreadNotificationCountProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -49,7 +61,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           slivers: [
             YanoljaSliverAppBar.main(
               title: 'NOL',
-              subtitle: '여행부터 공연까지 한 번에',
+              subtitle: '숙소, 티켓, 혜택을 빠르게 예약하세요',
               actions: [
                 _headerIcon(
                   Icons.card_giftcard_outlined,
@@ -64,21 +76,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   children: [
                     _headerIcon(
                       Icons.notifications_none_rounded,
-                      () => _openService('notifications'),
+                      () => context.push('/notifications'),
                     ),
-                    Positioned(
-                      right: 7,
-                      top: 7,
-                      child: Container(
-                        width: 7,
-                        height: 7,
-                        decoration: BoxDecoration(
-                          color: YanoljaColors.sale,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 1),
+                    // 안 읽은 알림이 있을 때만, 실제 미확인 개수를 배지로 표시.
+                    if (unreadCount > 0)
+                      Positioned(
+                        right: 2,
+                        top: 2,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          constraints: const BoxConstraints(minWidth: 17),
+                          height: 17,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: YanoljaColors.sale,
+                            borderRadius: BorderRadius.circular(9),
+                            border: Border.all(color: Colors.white, width: 1.5),
+                          ),
+                          child: Text(
+                            unreadCount > 9 ? '9+' : '$unreadCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w800,
+                              height: 1,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ],
@@ -129,7 +154,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onTap: () => context.go('/search'),
             child: Container(
               height: 56,
-              padding: const EdgeInsets.symmetric(horizontal: 18),
+              padding: const EdgeInsets.fromLTRB(18, 0, 9, 0),
               decoration: BoxDecoration(
                 color: const Color(0xFFF3F5FA),
                 borderRadius: BorderRadius.circular(18),
@@ -142,20 +167,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 ],
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.search_rounded,
+                  const Icon(Icons.search_rounded,
                       color: YanoljaColors.textPrimary, size: 25),
-                  SizedBox(width: 12),
-                  Text(
-                    '무엇을 하고 놀까요?',
-                    style: TextStyle(
-                      color: YanoljaColors.textPrimary,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.2,
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      '어디로 떠나볼까요?',
+                      style: TextStyle(
+                        color: YanoljaColors.textPrimary,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.2,
+                      ),
                     ),
                   ),
+                  _buildVoiceSearchButton(),
                 ],
               ),
             ),
@@ -169,28 +197,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 color: YanoljaColors.primaryLight,
                 borderRadius: BorderRadius.circular(YanoljaRadius.md),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.campaign_outlined,
                     color: YanoljaColors.primary,
                     size: 18,
                   ),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      '야놀자의 새 이름, NOL에서 더 많은 혜택을 만나보세요',
-                      style: TextStyle(
-                        color: YanoljaColors.textPrimary,
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.2,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: _RollingNotice(notices: _notices),
                   ),
-                  Icon(
+                  const Icon(
                     Icons.chevron_right_rounded,
                     color: YanoljaColors.primary,
                     size: 20,
@@ -200,6 +218,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// 홈 검색바 우측의 음성 검색 버튼.
+  /// 탭하면 검색 화면으로 이동하면서 음성 인식을 바로 시작한다.
+  Widget _buildVoiceSearchButton() {
+    return Semantics(
+      button: true,
+      label: '음성으로 검색',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          HapticFeedback.mediumImpact();
+          ref.read(voiceSearchSignalProvider.notifier).state++;
+          context.go('/search');
+        },
+        child: Container(
+          width: 38,
+          height: 38,
+          decoration: const BoxDecoration(
+            color: YanoljaColors.primaryLight,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.mic_none_rounded,
+            color: YanoljaColors.primary,
+            size: 21,
+          ),
+        ),
       ),
     );
   }
@@ -773,21 +821,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return [
       _buildHorizontalSection(
-        title: 'NOL 라이브 놀라운 혜택!',
-        subtitle: '실시간 특가와 단독 혜택을 모았어요',
+        title: '오늘 바로 잡는 라이브 특가',
+        subtitle: '실시간 혜택과 단독 쿠폰을 모았어요',
         items: hotList.take(10).toList(),
       ),
       const SliverToBoxAdapter(child: _SectionDivider()),
       _buildHorizontalSection(
-        title: '관심지역의 많이 찾는 숙소',
-        subtitle: '최근 여행자들이 가장 많이 본 곳',
+        title: '요즘 많이 보는 숙소',
+        subtitle: '최근 여행자 관심이 높은 곳부터 보여드려요',
         items: trending.take(10).toList(),
       ),
       const SliverToBoxAdapter(child: _SectionDivider()),
       SliverToBoxAdapter(
         child: YanoljaSectionHeader(
           title: '내 주변에서 바로 예약 가능한 숙소',
-          subtitle: '가까운 거리순으로 둘러보세요',
+          subtitle: '현재 위치 기준 가까운 곳부터 둘러보세요',
           trailingText: '전체',
           onTrailingTap: () => context.go('/nearby'),
         ),
@@ -1193,6 +1241,105 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _RollingNotice extends StatefulWidget {
+  final List<String> notices;
+
+  const _RollingNotice({required this.notices});
+
+  @override
+  State<_RollingNotice> createState() => _RollingNoticeState();
+}
+
+class _RollingNoticeState extends State<_RollingNotice> {
+  late final PageController _pageController;
+  Timer? _timer;
+  int _page = 1000;
+  bool _tickerEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _page);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startTimer());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _tickerEnabled = TickerMode.valuesOf(context).enabled;
+  }
+
+  @override
+  void didUpdateWidget(covariant _RollingNotice oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.notices.length != widget.notices.length) {
+      _startTimer();
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    if (!mounted || widget.notices.length < 2) return;
+    _timer = Timer.periodic(
+      const Duration(seconds: 3),
+      (_) => _showNextNotice(),
+    );
+  }
+
+  void _showNextNotice() {
+    if (!mounted || !_tickerEnabled || !_pageController.hasClients) return;
+
+    _page++;
+    if (YanoljaMotion.reduce(context)) {
+      _pageController.jumpToPage(_page);
+      return;
+    }
+
+    _pageController.animateToPage(
+      _page,
+      duration: const Duration(milliseconds: 360),
+      curve: YanoljaMotion.curve,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 20,
+      child: PageView.builder(
+        controller: _pageController,
+        scrollDirection: Axis.vertical,
+        physics: const NeverScrollableScrollPhysics(),
+        itemBuilder: (context, index) {
+          final notice = widget.notices[index % widget.notices.length];
+          return Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              notice,
+              style: const TextStyle(
+                color: YanoljaColors.textPrimary,
+                fontSize: 12.5,
+                height: 1.2,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.2,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          );
+        },
       ),
     );
   }

@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/data/model/accommodation.dart';
@@ -24,6 +23,8 @@ class SearchScreen extends ConsumerStatefulWidget {
 class _SearchScreenState extends ConsumerState<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
+  final GlobalKey<AnimatedSearchFieldState> _searchFieldKey =
+      GlobalKey<AnimatedSearchFieldState>();
 
   SearchDisplayMode _displayMode = SearchDisplayMode.list;
 
@@ -61,6 +62,15 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // 홈·더보기 검색바의 마이크 탭 시그널을 받으면 음성 검색을 시작한다.
+    ref.listen<int>(voiceSearchSignalProvider, (previous, next) {
+      if (previous != next && next > 0) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _searchFieldKey.currentState?.startVoiceSearch();
+        });
+      }
+    });
+
     final searchState = ref.watch(searchProvider);
     final searchResults = ref.watch(searchResultsProvider);
     final suggestedSearches = ref.watch(suggestedSearchesProvider);
@@ -91,6 +101,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               child: Container(
                 color: YanoljaColors.background,
                 child: AnimatedSearchField(
+                  key: _searchFieldKey,
                   controller: _searchController,
                   focusNode: _searchFocusNode,
                   onChanged: (query) {
@@ -667,31 +678,20 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
         // 📋 검색 결과 리스트
         Expanded(
-          child: AnimationLimiter(
-            child: ListView.separated(
-              padding: const EdgeInsets.only(top: 2, bottom: 18),
-              itemCount: searchResults.length,
-              separatorBuilder: (_, __) => const Divider(
-                height: 1,
-                thickness: 1,
-                indent: 16,
-                endIndent: 16,
-                color: YanoljaColors.divider,
-              ),
-              itemBuilder: (context, index) {
-                final accommodation = searchResults[index];
-                return AnimationConfiguration.staggeredList(
-                  position: index,
-                  duration: const Duration(milliseconds: 300),
-                  child: SlideAnimation(
-                    verticalOffset: 20.0,
-                    child: FadeInAnimation(
-                      child: _buildResultCard(accommodation, searchState.query),
-                    ),
-                  ),
-                );
-              },
+          child: ListView.separated(
+            padding: const EdgeInsets.only(top: 2, bottom: 18),
+            itemCount: searchResults.length,
+            separatorBuilder: (_, __) => const Divider(
+              height: 1,
+              thickness: 1,
+              indent: 16,
+              endIndent: 16,
+              color: YanoljaColors.divider,
             ),
+            itemBuilder: (context, index) {
+              final accommodation = searchResults[index];
+              return _buildResultCard(accommodation, searchState.query);
+            },
           ),
         ),
       ],
@@ -911,14 +911,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   void _showSnack(String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: const Duration(seconds: 1),
-        ),
-      );
+    YanoljaToast.show(
+      context,
+      message,
+      icon: Icons.search_rounded,
+      duration: const Duration(seconds: 1),
+    );
   }
 
   void _openService(String type) {

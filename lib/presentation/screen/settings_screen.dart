@@ -551,23 +551,12 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   static void _showSnack(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            message,
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
-          backgroundColor: YanoljaColors.textPrimary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(YanoljaRadius.md),
-          ),
-          margin: const EdgeInsets.all(16),
-          duration: const Duration(seconds: 1),
-        ),
-      );
+    YanoljaToast.show(
+      context,
+      message,
+      icon: Icons.settings_rounded,
+      duration: const Duration(seconds: 1),
+    );
   }
 }
 

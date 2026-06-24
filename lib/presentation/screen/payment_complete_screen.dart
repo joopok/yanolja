@@ -19,8 +19,6 @@ class _PaymentCompleteScreenState extends State<PaymentCompleteScreen>
 
   late final AnimationController _controller;
   late final Animation<double> _badgeScale;
-  late final Animation<double> _contentFade;
-  late final Animation<Offset> _contentSlide;
 
   @override
   void initState() {
@@ -35,17 +33,6 @@ class _PaymentCompleteScreenState extends State<PaymentCompleteScreen>
         curve: const Interval(0.0, 0.55, curve: YanoljaMotion.curve),
       ),
     );
-    _contentFade = CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.32, 1.0, curve: YanoljaMotion.curve),
-    );
-    _contentSlide = Tween<Offset>(
-      begin: const Offset(0, 0.15),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.32, 1.0, curve: YanoljaMotion.curve),
-    ));
     _controller.forward();
   }
 
@@ -92,47 +79,38 @@ class _PaymentCompleteScreenState extends State<PaymentCompleteScreen>
                       ),
                     ),
                     const SizedBox(height: 28),
-                    FadeTransition(
-                      opacity: _contentFade,
-                      child: SlideTransition(
-                        position: _contentSlide,
-                        child: Column(
-                          children: [
-                            const Text(
-                              '결제가 완료되었어요',
-                              style: TextStyle(
-                                fontSize: 23,
-                                fontWeight: FontWeight.w900,
-                                color: YanoljaColors.textPrimary,
-                                letterSpacing: -0.6,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              '예약이 정상적으로 접수되었습니다.\n즐거운 여행 되세요!',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 14,
-                                height: 1.5,
-                                fontWeight: FontWeight.w500,
-                                color: YanoljaColors.textSecondary,
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            _buildReservationNoChip(),
-                            const SizedBox(height: 16),
-                            _buildSummaryCard(booking),
-                          ],
+                    Column(
+                      children: [
+                        const Text(
+                          '결제가 완료되었어요',
+                          style: TextStyle(
+                            fontSize: 23,
+                            fontWeight: FontWeight.w900,
+                            color: YanoljaColors.textPrimary,
+                            letterSpacing: -0.6,
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          '예약이 정상적으로 접수되었습니다.\n즐거운 여행 되세요!',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            height: 1.5,
+                            fontWeight: FontWeight.w500,
+                            color: YanoljaColors.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        _buildReservationNoChip(),
+                        const SizedBox(height: 16),
+                        _buildSummaryCard(booking),
+                      ],
                     ),
                   ],
                 ),
               ),
-              FadeTransition(
-                opacity: _contentFade,
-                child: _buildActions(context),
-              ),
+              _buildActions(context),
             ],
           ),
         ),

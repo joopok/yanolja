@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/presentation/provider/auth_provider.dart';
 import 'package:yanolja_clone/presentation/provider/notification_provider.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_confirm_dialog.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -16,6 +18,9 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  // primaryLight 표면 위 카드의 테두리/구분선 색 (혜택 요약 카드 전용).
+  static const Color _benefitBorder = Color(0xFFDCE5FF);
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateChangesProvider);
@@ -27,15 +32,98 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           if (user == null) return _buildLoggedOutView();
           return _buildLoggedInView(user);
         },
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: YanoljaColors.primary),
-        ),
-        error: (error, stack) => Center(
-          child: Text(
-            '오류가 발생했어요',
-            style: TextStyle(color: YanoljaColors.textSecondary),
+        loading: () => _buildProfileSkeleton(),
+        error: (error, stack) => Container(
+          color: YanoljaColors.background,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.error_outline_rounded,
+                color: YanoljaColors.textTertiary,
+                size: 44,
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                '정보를 불러오지 못했어요',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: YanoljaColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextButton(
+                onPressed: () => ref.invalidate(authStateChangesProvider),
+                style: TextButton.styleFrom(
+                  foregroundColor: YanoljaColors.textSecondary,
+                ),
+                child: const Text(
+                  '다시 시도',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// 인증 상태 로딩 중 마이페이지 레이아웃을 미러링하는 스켈레톤
+  /// (다른 화면의 스켈레톤 로딩과 진입 체감 일관화).
+  Widget _buildProfileSkeleton() {
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Shimmer.fromColors(
+        baseColor: const Color(0xFFEDEEF0),
+        highlightColor: const Color(0xFFF7F8FA),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 28, 20, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  _skBox(56, 56, 28),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _skBox(150, 18, 6),
+                        const SizedBox(height: 9),
+                        _skBox(90, 13, 6),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              _skBox(double.infinity, 92, 16),
+              const SizedBox(height: 16),
+              _skBox(double.infinity, 118, 16),
+              const SizedBox(height: 20),
+              for (var i = 0; i < 4; i++) ...[
+                _skBox(double.infinity, 52, 12),
+                const SizedBox(height: 12),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _skBox(double w, double h, double r) {
+    return Container(
+      width: w,
+      height: h,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(r),
       ),
     );
   }
@@ -65,18 +153,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         SliverToBoxAdapter(
           child: Column(
             children: [
-              _buildMyHeader(user),
+              YanoljaEntrance(
+                delay: YanoljaMotion.stagger(0, start: 40, step: 45),
+                child: _buildMyHeader(user),
+              ),
               _sectionGap(),
-              _buildBenefitSummary(),
+              YanoljaEntrance(
+                delay: YanoljaMotion.stagger(1, start: 40, step: 45),
+                child: _buildBenefitSummary(),
+              ),
               _sectionGap(),
-              _buildReservationPanel(),
+              YanoljaEntrance(
+                delay: YanoljaMotion.stagger(2, start: 40, step: 45),
+                child: _buildReservationPanel(),
+              ),
               _sectionGap(),
-              _buildQuickActions(),
+              YanoljaEntrance(
+                delay: YanoljaMotion.stagger(3, start: 40, step: 45),
+                child: _buildQuickActions(),
+              ),
               _sectionGap(),
-              _buildMainMenu(),
-              const SizedBox(height: 16),
+              YanoljaEntrance(
+                delay: YanoljaMotion.stagger(4, start: 40, step: 45),
+                child: _buildMainMenu(),
+              ),
+              const SizedBox(height: YanoljaSpacing.m),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.l),
                 child: _buildLogoutButton(),
               ),
               const SizedBox(height: 72),
@@ -222,7 +325,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               right: 4,
               top: 4,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
+                padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.xs),
                 constraints: const BoxConstraints(minWidth: 17),
                 height: 17,
                 alignment: Alignment.center,
@@ -270,10 +373,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       color: YanoljaColors.background,
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
       child: Container(
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: YanoljaColors.primaryLight,
           borderRadius: BorderRadius.circular(YanoljaRadius.lg),
-          border: Border.all(color: const Color(0xFFDCE5FF)),
+          border: Border.all(color: _benefitBorder),
         ),
         child: Column(
           children: [
@@ -320,15 +424,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ],
                     ),
                   ),
-                  const Icon(
-                    Icons.chevron_right_rounded,
-                    color: YanoljaColors.textSecondary,
-                    size: 22,
-                  ),
                 ],
               ),
             ),
-            const Divider(height: 1, color: Color(0xFFDCE5FF)),
+            const Divider(height: 1, color: _benefitBorder),
             Row(
               children: [
                 Expanded(
@@ -382,7 +481,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       },
       borderRadius: BorderRadius.circular(YanoljaRadius.md),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: YanoljaSpacing.m),
         child: Column(
           children: [
             Icon(icon, color: YanoljaColors.primary, size: 21),
@@ -414,7 +513,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return Container(
       width: 1,
       height: 46,
-      color: const Color(0xFFDCE5FF),
+      color: _benefitBorder,
     );
   }
 
@@ -438,7 +537,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               },
               borderRadius: BorderRadius.circular(YanoljaRadius.lg),
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(YanoljaSpacing.m),
                 decoration: BoxDecoration(
                   color: YanoljaColors.surface,
                   borderRadius: BorderRadius.circular(YanoljaRadius.lg),
@@ -473,7 +572,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               letterSpacing: -0.2,
                             ),
                           ),
-                          SizedBox(height: 4),
+                          SizedBox(height: YanoljaSpacing.xs),
                           Text(
                             '7월 서울, 8월 부산, 9월 강릉',
                             style: TextStyle(
@@ -582,7 +681,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               child: Icon(action.icon, color: action.color, size: 25),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: YanoljaSpacing.s),
             Text(
               action.label,
               maxLines: 1,
@@ -667,7 +766,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           }
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.l, vertical: 15),
           decoration: BoxDecoration(
             border: isLast
                 ? null
@@ -795,108 +894,118 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ],
         ),
         SliverToBoxAdapter(
-          child: Container(
-            color: YanoljaColors.background,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 22, 20, 26),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 74,
-                          height: 74,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: YanoljaColors.primary,
-                            borderRadius:
-                                BorderRadius.circular(YanoljaRadius.xl),
-                          ),
-                          child: const Text(
-                            'NOL',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900,
+          child: YanoljaEntrance(
+            delay: YanoljaMotion.stagger(0, start: 40, step: 45),
+            child: Container(
+              color: YanoljaColors.background,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 22, 20, 26),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 74,
+                            height: 74,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: YanoljaColors.primary,
+                              borderRadius:
+                                  BorderRadius.circular(YanoljaRadius.xl),
+                            ),
+                            child: const Text(
+                              'NOL',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w900,
+                              ),
                             ),
                           ),
+                          const SizedBox(height: 18),
+                          const Text(
+                            '로그인하고 NOL 혜택을 확인하세요',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                              color: YanoljaColors.textPrimary,
+                              letterSpacing: -0.4,
+                            ),
+                          ),
+                          const SizedBox(height: YanoljaSpacing.s),
+                          const Text(
+                            '쿠폰, 포인트, 예약 내역을 한 번에 볼 수 있어요',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13.5,
+                              color: YanoljaColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: () => context.push('/login'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: YanoljaColors.primary,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(YanoljaRadius.md),
+                          ),
                         ),
-                        const SizedBox(height: 18),
-                        const Text(
-                          '로그인하고 NOL 혜택을 확인하세요',
+                        child: const Text(
+                          '로그인',
                           style: TextStyle(
-                            fontSize: 20,
+                            fontSize: 16,
                             fontWeight: FontWeight.w900,
-                            color: YanoljaColors.textPrimary,
-                            letterSpacing: -0.4,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          '쿠폰, 포인트, 예약 내역을 한 번에 볼 수 있어요',
-                          textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: OutlinedButton(
+                        onPressed: () => context.push('/signup'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: YanoljaColors.textPrimary,
+                          side: const BorderSide(color: YanoljaColors.border),
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(YanoljaRadius.md),
+                          ),
+                        ),
+                        child: const Text(
+                          '회원가입',
                           style: TextStyle(
-                            fontSize: 13.5,
-                            color: YanoljaColors.textSecondary,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: ElevatedButton(
-                      onPressed: () => context.push('/login'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: YanoljaColors.primary,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(YanoljaRadius.md),
-                        ),
-                      ),
-                      child: const Text(
-                        '로그인',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: OutlinedButton(
-                      onPressed: () => context.push('/signup'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: YanoljaColors.textPrimary,
-                        side: const BorderSide(color: YanoljaColors.border),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(YanoljaRadius.md),
-                        ),
-                      ),
-                      child: const Text(
-                        '회원가입',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
         ),
         SliverToBoxAdapter(child: _sectionGap()),
-        SliverToBoxAdapter(child: _buildLoggedOutBenefits()),
+        SliverToBoxAdapter(
+          child: YanoljaEntrance(
+            delay: YanoljaMotion.stagger(1, start: 40, step: 45),
+            child: _buildLoggedOutBenefits(),
+          ),
+        ),
       ],
     );
   }

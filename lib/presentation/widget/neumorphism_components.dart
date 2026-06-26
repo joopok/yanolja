@@ -136,7 +136,7 @@ class NeumorphismButton extends StatefulWidget {
     this.text,
     this.icon,
     this.onTap,
-    this.padding = const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+    this.padding = const EdgeInsets.symmetric(horizontal: YanoljaSpacing.xl, vertical: YanoljaSpacing.m),
     this.borderRadius = 16,
     this.backgroundColor,
     this.textColor,
@@ -308,7 +308,7 @@ class _NeumorphismTextFieldState extends State<NeumorphismTextField> {
             errorBorder: InputBorder.none,
             focusedErrorBorder: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
+              horizontal: YanoljaSpacing.m,
               vertical: 14,
             ),
             hintStyle: const TextStyle(
@@ -384,7 +384,7 @@ class NeumorphismChip extends StatelessWidget {
         highlightColor: YanoljaColors.primary.withValues(alpha: 0.04),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+          padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.m, vertical: 9),
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(YanoljaRadius.pill),
@@ -437,7 +437,7 @@ class NeumorphismBadge extends StatelessWidget {
     final bg = backgroundColor ?? YanoljaColors.primary;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.s, vertical: YanoljaSpacing.xs),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(YanoljaRadius.sm),

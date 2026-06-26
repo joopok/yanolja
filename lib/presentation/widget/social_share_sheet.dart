@@ -37,7 +37,7 @@ class YanoljaShareData {
         accommodation.name,
         accommodation.address,
         priceLabel,
-        '여기가어때에서 확인하기',
+        'NOL(야놀자)에서 확인하기',
         url,
       ].join('\n'),
     );
@@ -48,7 +48,7 @@ class YanoljaShareData {
       title,
       subtitle,
       if (priceLabel != null) priceLabel!,
-      '여기가어때에서 확인하기',
+      'NOL(야놀자)에서 확인하기',
     ].join('\n');
   }
 }

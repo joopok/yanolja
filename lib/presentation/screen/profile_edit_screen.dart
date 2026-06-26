@@ -291,7 +291,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             fontWeight: FontWeight.w600,
           ),
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              const EdgeInsets.symmetric(horizontal: YanoljaSpacing.m, vertical: YanoljaSpacing.m),
         ),
       ),
     );

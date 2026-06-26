@@ -394,7 +394,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               children: [
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      const EdgeInsets.symmetric(horizontal: YanoljaSpacing.s, vertical: 3),
                   decoration: BoxDecoration(
                     color: YanoljaColors.primaryLight,
                     borderRadius: BorderRadius.circular(6),
@@ -473,7 +473,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                     '체크인', _fmtFullDate(start), _acc.checkInTime),
               ),
               Container(
-                margin: const EdgeInsets.symmetric(horizontal: 8),
+                margin: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.s),
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                 decoration: BoxDecoration(
@@ -833,7 +833,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               });
             },
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: YanoljaSpacing.s),
               child: Row(
                 children: [
                   _checkIcon(_allAgreed, large: true),

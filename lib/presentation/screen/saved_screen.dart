@@ -9,6 +9,7 @@ import 'package:yanolja_clone/data/model/accommodation.dart';
 import 'package:yanolja_clone/presentation/provider/accommodation_provider.dart';
 import 'package:yanolja_clone/presentation/provider/saved_provider.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 
 class SavedScreen extends ConsumerWidget {
   const SavedScreen({super.key});
@@ -21,9 +22,7 @@ class SavedScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: YanoljaColors.background,
       body: allAccommodationsAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: YanoljaColors.primary),
-        ),
+        loading: () => _buildSavedSkeleton(context),
         error: (err, stack) => _buildErrorState(context, ref, err.toString()),
         data: (allAccommodations) {
           final savedAccommodations = allAccommodations
@@ -77,10 +76,33 @@ class SavedScreen extends ConsumerWidget {
     );
   }
 
+  /// 로딩 중 리스트 레이아웃을 미러링하는 NOL 스켈레톤
+  Widget _buildSavedSkeleton(BuildContext context) {
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        _buildSliverAppBar(context, 0),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 34),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => const Padding(
+                padding: EdgeInsets.only(bottom: 14),
+                child: _SavedSkeletonCard(),
+              ),
+              childCount: 4,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildSavedOverview(BuildContext context, WidgetRef ref, int count) {
-    return Container(
-      color: YanoljaColors.background,
-      child: Column(
+    return YanoljaEntrance(
+      child: Container(
+        color: YanoljaColors.background,
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
@@ -88,9 +110,9 @@ class SavedScreen extends ConsumerWidget {
             child: Row(
               children: [
                 _buildSavedTab('숙소', count: count, selected: true),
-                const SizedBox(width: 8),
+                const SizedBox(width: YanoljaSpacing.s),
                 _buildSavedTab('티켓', count: 0),
-                const SizedBox(width: 8),
+                const SizedBox(width: YanoljaSpacing.s),
                 _buildSavedTab('공연', count: 0),
                 const Spacer(),
                 TextButton(
@@ -98,11 +120,11 @@ class SavedScreen extends ConsumerWidget {
                   style: TextButton.styleFrom(
                     foregroundColor: YanoljaColors.textSecondary,
                     minimumSize: const Size(0, 34),
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.s),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   child: const Text(
-                    '편집',
+                    '전체삭제',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -114,38 +136,63 @@ class SavedScreen extends ConsumerWidget {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: YanoljaColors.primaryLight,
-                borderRadius: BorderRadius.circular(YanoljaRadius.md),
-                border: Border.all(color: const Color(0xFFDCE5FF)),
-              ),
-              child: const Row(
-                children: [
-                  Icon(
-                    Icons.notifications_active_rounded,
-                    color: YanoljaColors.primary,
-                    size: 22,
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      '찜한 상품의 특가와 쿠폰 소식을 바로 확인해보세요',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: YanoljaColors.textPrimary,
+            child: YanoljaPressable(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                YanoljaToast.show(context, '찜한 상품 특가 알림을 켰어요',
+                    icon: Icons.notifications_active_rounded);
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: YanoljaColors.primaryLight,
+                  borderRadius: BorderRadius.circular(YanoljaRadius.md),
+                  border: Border.all(color: const Color(0xFFDCE5FF)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.notifications_active_rounded,
+                      color: YanoljaColors.primary,
+                      size: 22,
+                    ),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Text(
+                        '찜한 상품의 특가와 쿠폰 소식을 바로 확인해보세요',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: YanoljaColors.textPrimary,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: YanoljaColors.primary,
+                        borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+                      ),
+                      child: const Text(
+                        '알림 받기',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-          Container(height: 8, color: YanoljaColors.surfaceAlt),
-        ],
+            Container(height: 8, color: YanoljaColors.surfaceAlt),
+          ],
+        ),
       ),
     );
   }
@@ -156,10 +203,13 @@ class SavedScreen extends ConsumerWidget {
     bool selected = false,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: YanoljaSpacing.s),
       decoration: BoxDecoration(
-        color: selected ? YanoljaColors.textPrimary : YanoljaColors.surfaceAlt,
+        color: selected ? YanoljaColors.textPrimary : YanoljaColors.surface,
         borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+        border: selected
+            ? null
+            : Border.all(color: YanoljaColors.border),
       ),
       child: Text(
         '$label $count',
@@ -183,9 +233,12 @@ class SavedScreen extends ConsumerWidget {
         delegate: SliverChildBuilderDelegate(
           (context, index) {
             final accommodation = savedAccommodations[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 14),
-              child: _buildDismissibleCard(context, ref, accommodation),
+            return YanoljaEntrance(
+              delay: YanoljaMotion.stagger(index, start: 40, step: 40),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 14),
+                child: _buildDismissibleCard(context, ref, accommodation),
+              ),
             );
           },
           childCount: savedAccommodations.length,
@@ -214,7 +267,7 @@ class SavedScreen extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.delete_sweep_outlined, color: Colors.white, size: 26),
-            SizedBox(height: 4),
+            SizedBox(height: YanoljaSpacing.xs),
             Text(
               '삭제',
               style: TextStyle(
@@ -238,10 +291,7 @@ class SavedScreen extends ConsumerWidget {
           HapticFeedback.lightImpact();
           context.push('/detail/${accommodation.id}');
         },
-        child: Hero(
-          tag: 'saved-${accommodation.id}',
-          child: _buildSavedCard(context, ref, accommodation),
-        ),
+        child: _buildSavedCard(context, ref, accommodation),
       ),
     );
   }
@@ -260,6 +310,13 @@ class SavedScreen extends ConsumerWidget {
         color: YanoljaColors.surface,
         borderRadius: BorderRadius.circular(YanoljaRadius.lg),
         border: Border.all(color: YanoljaColors.border, width: 1),
+        boxShadow: const [
+          BoxShadow(
+            color: YanoljaColors.shadow,
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -368,7 +425,7 @@ class SavedScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: YanoljaSpacing.xs),
                   Row(
                     children: [
                       const Icon(
@@ -396,7 +453,7 @@ class SavedScreen extends ConsumerWidget {
                     reviewCount: accommodation.reviewCount,
                     fontSize: 12,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: YanoljaSpacing.s),
                   // 가격: 정가(취소선) + 핑크 할인율 + 굵은 현재가
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -478,7 +535,7 @@ class SavedScreen extends ConsumerWidget {
                 size: 48,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: YanoljaSpacing.xl),
             const Text(
               '아직 찜한 상품이 없어요',
               style: TextStyle(
@@ -513,7 +570,7 @@ class SavedScreen extends ConsumerWidget {
                   backgroundColor: YanoljaColors.primary,
                   foregroundColor: Colors.white,
                   elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.xl),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(YanoljaRadius.md),
                   ),
@@ -538,7 +595,7 @@ class SavedScreen extends ConsumerWidget {
               color: YanoljaColors.textTertiary,
               size: 56,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: YanoljaSpacing.xl),
             const Text(
               '데이터를 불러올 수 없어요',
               style: TextStyle(
@@ -569,7 +626,7 @@ class SavedScreen extends ConsumerWidget {
                 foregroundColor: Colors.white,
                 elevation: 0,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    const EdgeInsets.symmetric(horizontal: YanoljaSpacing.xl, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(YanoljaRadius.md),
                 ),
@@ -609,5 +666,71 @@ class SavedScreen extends ConsumerWidget {
 
   void _showSnackBar(BuildContext context, String message) {
     YanoljaToast.show(context, message);
+  }
+}
+
+/// 찜 카드 형태를 미러링하는 로딩 스켈레톤 (가로 썸네일 + 정보 자리)
+class _SavedSkeletonCard extends StatelessWidget {
+  const _SavedSkeletonCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: YanoljaColors.surface,
+        borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+        border: Border.all(color: YanoljaColors.border, width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 112,
+              height: 112,
+              decoration: BoxDecoration(
+                color: YanoljaColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(YanoljaRadius.md),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  _SkeletonBar(width: double.infinity, height: 15),
+                  SizedBox(height: 10),
+                  _SkeletonBar(width: 140, height: 12),
+                  SizedBox(height: 14),
+                  _SkeletonBar(width: 90, height: 12),
+                  SizedBox(height: 18),
+                  _SkeletonBar(width: 120, height: 16),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SkeletonBar extends StatelessWidget {
+  final double width;
+  final double height;
+
+  const _SkeletonBar({required this.width, required this.height});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: YanoljaColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(YanoljaRadius.sm),
+      ),
+    );
   }
 }

@@ -70,25 +70,44 @@ class NotificationScreen extends ConsumerWidget {
   }
 
   Widget _buildEmpty() {
-    return const Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.notifications_off_outlined,
-            size: 48,
-            color: YanoljaColors.textTertiary,
-          ),
-          SizedBox(height: 12),
-          Text(
-            '받은 알림이 없어요',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: YanoljaColors.textSecondary,
+    return Center(
+      child: YanoljaEntrance(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 88,
+              height: 88,
+              decoration: const BoxDecoration(
+                color: YanoljaColors.primaryLight,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.notifications_off_outlined,
+                size: 36,
+                color: YanoljaColors.primary,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            const Text(
+              '받은 알림이 없어요',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: YanoljaColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              '특가·예약 소식이 도착하면 알려드릴게요',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: YanoljaColors.textTertiary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -117,6 +136,15 @@ class _NotificationTile extends StatelessWidget {
                 ? YanoljaColors.primary.withValues(alpha: 0.18)
                 : YanoljaColors.border,
           ),
+          boxShadow: unread
+              ? null
+              : [
+                  BoxShadow(
+                    color: YanoljaColors.shadow.withValues(alpha: 0.5),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,7 +154,7 @@ class _NotificationTile extends StatelessWidget {
               height: 42,
               decoration: BoxDecoration(
                 color: item.accent.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(YanoljaRadius.md),
               ),
               child: Icon(item.icon, color: item.accent, size: 22),
             ),

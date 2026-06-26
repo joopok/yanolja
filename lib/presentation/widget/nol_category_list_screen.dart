@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/data/model/accommodation.dart';
 import 'package:yanolja_clone/presentation/provider/accommodation_provider.dart';
@@ -8,6 +9,7 @@ import 'package:yanolja_clone/presentation/widget/accommodation_list_item.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_bottom_nav.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
+import 'package:yanolja_clone/presentation/widget/nol_footer.dart';
 
 typedef AccommodationMatcher = bool Function(Accommodation accommodation);
 typedef AccommodationFilterMatcher = bool Function(
@@ -117,16 +119,10 @@ class _NolCategoryListScreenState extends ConsumerState<NolCategoryListScreen> {
       ),
       body: accommodationsAsync.when(
         loading: () => CustomScrollView(
+          physics: const NeverScrollableScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(child: _buildHeaderPanel()),
-            const SliverFillRemaining(
-              hasScrollBody: false,
-              child: Center(
-                child: CircularProgressIndicator(
-                  color: YanoljaColors.primary,
-                ),
-              ),
-            ),
+            _buildSkeletonSliver(),
           ],
         ),
         error: (error, stackTrace) => CustomScrollView(
@@ -168,9 +164,8 @@ class _NolCategoryListScreenState extends ConsumerState<NolCategoryListScreen> {
                       );
                     },
                   ),
-                SliverToBoxAdapter(
-                  child: const SizedBox(height: 28),
-                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                const SliverToBoxAdapter(child: NolFooter()),
               ],
             ),
           );
@@ -503,22 +498,25 @@ class _NolCategoryListScreenState extends ConsumerState<NolCategoryListScreen> {
       child: YanoljaPressable(
         onTap: () => context.go('/search'),
         child: Container(
-          height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: 15),
+          height: 50,
+          padding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
           decoration: BoxDecoration(
-            color: YanoljaColors.surfaceAlt,
-            borderRadius: BorderRadius.circular(YanoljaRadius.md),
+            color: YanoljaColors.surface,
+            borderRadius: BorderRadius.circular(YanoljaRadius.pill),
             border: Border.all(color: YanoljaColors.border),
-          ),
-          child: const Row(
-            children: [
-              Icon(
-                Icons.search_rounded,
-                color: YanoljaColors.textSecondary,
-                size: 22,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
-              SizedBox(width: 9),
-              Expanded(
+            ],
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.search_rounded, color: widget.accentColor, size: 22),
+              const SizedBox(width: YanoljaSpacing.s),
+              const Expanded(
                 child: Text(
                   '지역명, 숙소명을 검색해보세요',
                   style: TextStyle(
@@ -530,13 +528,27 @@ class _NolCategoryListScreenState extends ConsumerState<NolCategoryListScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              SizedBox(width: 8),
-              Text(
-                '6.19 금 · 1박',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: YanoljaColors.textTertiary,
-                  fontWeight: FontWeight.w700,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+                decoration: BoxDecoration(
+                  color: YanoljaColors.surfaceAlt,
+                  borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.calendar_today_rounded,
+                        size: 13, color: YanoljaColors.textSecondary),
+                    SizedBox(width: 5),
+                    Text(
+                      '날짜·인원',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: YanoljaColors.textSecondary,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -600,10 +612,24 @@ class _NolCategoryListScreenState extends ConsumerState<NolCategoryListScreen> {
       child: YanoljaPressable(
         onTap: () => context.push('/service/coupons'),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(YanoljaSpacing.m),
           decoration: BoxDecoration(
-            color: widget.accentColor,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                widget.accentColor,
+                Color.lerp(widget.accentColor, Colors.black, 0.14)!,
+              ],
+            ),
             borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+            boxShadow: [
+              BoxShadow(
+                color: widget.accentColor.withValues(alpha: 0.28),
+                blurRadius: 18,
+                offset: const Offset(0, 9),
+              ),
+            ],
           ),
           child: Row(
             children: [
@@ -636,7 +662,7 @@ class _NolCategoryListScreenState extends ConsumerState<NolCategoryListScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: YanoljaSpacing.xs),
                     Text(
                       widget.heroSubtitle,
                       style: TextStyle(
@@ -679,9 +705,9 @@ class _NolCategoryListScreenState extends ConsumerState<NolCategoryListScreen> {
       height: 42,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.l),
         itemCount: widget.filters.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, __) => const SizedBox(width: YanoljaSpacing.s),
         itemBuilder: (context, index) {
           final filter = widget.filters[index];
           final selected = _selectedFilter == filter;
@@ -755,7 +781,7 @@ class _NolCategoryListScreenState extends ConsumerState<NolCategoryListScreen> {
                       color:
                           selected ? YanoljaColors.primary : Colors.transparent,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: YanoljaSpacing.s),
                     Text(
                       option,
                       style: TextStyle(
@@ -771,7 +797,7 @@ class _NolCategoryListScreenState extends ConsumerState<NolCategoryListScreen> {
               );
             }).toList(),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: YanoljaSpacing.s),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -798,6 +824,66 @@ class _NolCategoryListScreenState extends ConsumerState<NolCategoryListScreen> {
     );
   }
 
+  /// 로딩 중 카드 골격 스켈레톤 — saved/booking/nearby 화면과 진입 체감 일관화.
+  Widget _buildSkeletonSliver() {
+    return SliverToBoxAdapter(
+      child: Container(
+        color: YanoljaColors.background,
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
+        child: Shimmer.fromColors(
+          baseColor: const Color(0xFFEDEEF0),
+          highlightColor: const Color(0xFFF7F8FA),
+          child: Column(
+            children: List.generate(5, (index) {
+              return Padding(
+                padding: EdgeInsets.only(bottom: index == 4 ? 0 : 18),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 116,
+                      height: 116,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _skeletonBar(70, 13),
+                          const SizedBox(height: 10),
+                          _skeletonBar(double.infinity, 16),
+                          const SizedBox(height: YanoljaSpacing.s),
+                          _skeletonBar(150, 13),
+                          const SizedBox(height: YanoljaSpacing.m),
+                          _skeletonBar(110, 16),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _skeletonBar(double width, double height) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(6),
+      ),
+    );
+  }
+
   Widget _buildEmptyState() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(32, 34, 32, 48),
@@ -809,7 +895,7 @@ class _NolCategoryListScreenState extends ConsumerState<NolCategoryListScreen> {
             size: 58,
             color: YanoljaColors.textTertiary,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: YanoljaSpacing.m),
           Text(
             widget.emptyTitle,
             textAlign: TextAlign.center,
@@ -862,7 +948,7 @@ class _NolCategoryListScreenState extends ConsumerState<NolCategoryListScreen> {
             size: 58,
             color: YanoljaColors.textTertiary,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: YanoljaSpacing.m),
           const Text(
             '숙소 정보를 불러오지 못했어요',
             textAlign: TextAlign.center,

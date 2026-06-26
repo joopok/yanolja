@@ -517,7 +517,7 @@ class _DayCell extends StatelessWidget {
           if (hasRange)
             Positioned.fill(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
+                padding: const EdgeInsets.symmetric(vertical: YanoljaSpacing.xs),
                 child: Row(
                   children: [
                     Expanded(

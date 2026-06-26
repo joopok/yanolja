@@ -10,33 +10,49 @@ import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 /// 실제 NOL "전체 카테고리"를 풀스크린으로 재현합니다.
 /// NOL 티켓 / 국내여행 / 해외여행 / 서비스 4개 그룹의 모든 메뉴를
 /// 컬러 아이콘 그리드로 보여주고, 각 항목에서 해당 화면으로 이동합니다.
+///
+/// 메가메뉴 룩을 위해 히어로 배너 → 빠른 이동 → 각 메뉴 그룹 순서로
+/// staggered 등장(YanoljaEntrance + YanoljaMotion.stagger)을 적용합니다.
 class AllCategoriesScreen extends StatelessWidget {
   const AllCategoriesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: YanoljaColors.background,
+      backgroundColor: YanoljaColors.surfaceAlt,
       appBar: const YanoljaAppBar.sub(
-        title: '전체메뉴',
+        title: '전체 메뉴',
+        subtitle: '필요한 예약 메뉴를 빠르게 찾으세요',
         fallbackRoute: '/home',
       ),
       body: SafeArea(
         top: false,
         child: ListView(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+          padding: const EdgeInsets.fromLTRB(
+            YanoljaSpacing.l,
+            YanoljaSpacing.s,
+            YanoljaSpacing.l,
+            32,
+          ),
           children: [
-            _buildHeroBanner(context),
-            const SizedBox(height: 18),
-            _buildQuickDock(context),
-            const SizedBox(height: 28),
+            YanoljaEntrance(
+              delay: YanoljaMotion.stagger(0),
+              child: _buildHeroBanner(context),
+            ),
+            const SizedBox(height: YanoljaSpacing.m),
+            YanoljaEntrance(
+              delay: YanoljaMotion.stagger(1),
+              child: _buildQuickDock(context),
+            ),
+            const SizedBox(height: YanoljaSpacing.l),
             for (var i = 0; i < nolMenuGroups.length; i++) ...[
               YanoljaEntrance(
-                delay: YanoljaMotion.stagger(i, start: 90, step: 55),
+                delay: YanoljaMotion.stagger(i + 2),
                 child: _buildGroup(context, nolMenuGroups[i]),
               ),
-              if (i != nolMenuGroups.length - 1) const SizedBox(height: 26),
+              if (i != nolMenuGroups.length - 1)
+                const SizedBox(height: YanoljaSpacing.m),
             ],
           ],
         ),
@@ -48,16 +64,81 @@ class AllCategoriesScreen extends StatelessWidget {
   Widget _buildHeroBanner(BuildContext context) {
     return YanoljaPressable(
       onTap: () => context.push('/search'),
-      child: const YanoljaPremiumHero(
-        badge: 'ALL MENU',
-        title: '필요한 메뉴를\n오른쪽 버튼에서 바로',
-        subtitle: '숙소, 티켓, 항공, 혜택까지 자주 쓰는 기능을 한 화면에 모았어요',
-        icon: Icons.menu_rounded,
-        gradient: [YanoljaColors.primary, YanoljaColors.primaryPurple],
-        metrics: [
-          YanoljaHeroMetric(label: '메뉴', value: '24개'),
-          YanoljaHeroMetric(label: '빠른검색', value: '탭해서 시작'),
-        ],
+      borderRadius: BorderRadius.circular(YanoljaRadius.xl),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+        decoration: BoxDecoration(
+          color: YanoljaColors.background,
+          borderRadius: BorderRadius.circular(YanoljaRadius.xl),
+          border: Border.all(color: YanoljaColors.border),
+          boxShadow: const [
+            BoxShadow(
+              color: YanoljaColors.shadow,
+              blurRadius: 20,
+              offset: Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: YanoljaColors.primaryLight,
+                borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+              ),
+              child: const Icon(
+                Icons.grid_view_rounded,
+                color: YanoljaColors.primary,
+                size: 27,
+              ),
+            ),
+            const SizedBox(width: 14),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '전체 예약 메뉴',
+                    style: TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.w900,
+                      color: YanoljaColors.textPrimary,
+                      letterSpacing: -0.4,
+                    ),
+                  ),
+                  SizedBox(height: 5),
+                  Text(
+                    '숙소, 티켓, 항공, 혜택을 한 화면에서 바로 이동하세요',
+                    style: TextStyle(
+                      fontSize: 13,
+                      height: 1.35,
+                      fontWeight: FontWeight.w600,
+                      color: YanoljaColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Container(
+              width: 34,
+              height: 34,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: YanoljaColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(YanoljaRadius.md),
+              ),
+              child: const Icon(
+                Icons.search_rounded,
+                color: YanoljaColors.textSecondary,
+                size: 19,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -69,53 +150,72 @@ class AllCategoriesScreen extends StatelessWidget {
         .take(6)
         .toList();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 2, bottom: 12),
-          child: Text(
-            '빠른 이동',
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w900,
-              color: YanoljaColors.textPrimary,
-              letterSpacing: -0.3,
+    return Container(
+      padding: const EdgeInsets.fromLTRB(YanoljaSpacing.m, YanoljaSpacing.m, 0, YanoljaSpacing.m),
+      decoration: BoxDecoration(
+        color: YanoljaColors.background,
+        borderRadius: BorderRadius.circular(YanoljaRadius.xl),
+        border: Border.all(color: YanoljaColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(right: YanoljaSpacing.m, bottom: YanoljaSpacing.s),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    '빠른 이동',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w900,
+                      color: YanoljaColors.textPrimary,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ),
+                Text(
+                  '자주 쓰는 메뉴',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: YanoljaColors.textTertiary,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-        SizedBox(
-          height: 92,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            itemCount: quickItems.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
-            itemBuilder: (context, index) {
-              final item = quickItems[index];
-              return YanoljaEntrance(
-                delay: YanoljaMotion.stagger(index, start: 35, step: 24),
-                beginOffset: const Offset(0.03, 0),
-                child: _buildQuickTile(context, item),
-              );
-            },
+          SizedBox(
+            height: 92,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: quickItems.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              itemBuilder: (context, index) {
+                return _buildQuickTile(context, quickItems[index]);
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildQuickTile(BuildContext context, NolMenuItem item) {
     return YanoljaPressable(
       onTap: () => context.push(item.route),
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+      pressedScale: 0.94,
       child: Container(
-        width: 108,
+        width: 110,
         padding: const EdgeInsets.fromLTRB(13, 12, 13, 11),
         decoration: BoxDecoration(
           color: item.color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: item.color.withValues(alpha: 0.13)),
+          borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+          border: Border.all(color: item.color.withValues(alpha: 0.12)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,13 +225,13 @@ class AllCategoriesScreen extends StatelessWidget {
               height: 34,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                color: YanoljaColors.background,
+                borderRadius: BorderRadius.circular(YanoljaRadius.md),
                 boxShadow: [
                   BoxShadow(
-                    color: item.color.withValues(alpha: 0.10),
-                    blurRadius: 12,
-                    offset: const Offset(0, 5),
+                    color: item.color.withValues(alpha: 0.18),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
@@ -156,67 +256,114 @@ class AllCategoriesScreen extends StatelessWidget {
   }
 
   /// 메뉴 그룹 (제목 + 그리드)
+  ///
+  /// 그룹마다 첫 항목의 컬러를 대표 악센트로 삼아 헤더의 악센트 바·개수 배지에
+  /// 반영해 그룹 간 구분감을 강화합니다.
   Widget _buildGroup(BuildContext context, NolMenuGroup group) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 4,
-              height: 18,
-              decoration: BoxDecoration(
-                color: YanoljaColors.primary,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              group.title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-                color: YanoljaColors.textPrimary,
-                letterSpacing: -0.4,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                group.subtitle,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: YanoljaColors.textTertiary,
+    final accent = group.items.first.color;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        YanoljaSpacing.m,
+        YanoljaSpacing.m,
+        YanoljaSpacing.m,
+        18,
+      ),
+      decoration: BoxDecoration(
+        color: YanoljaColors.background,
+        borderRadius: BorderRadius.circular(YanoljaRadius.xl),
+        border: Border.all(color: YanoljaColors.border),
+        boxShadow: const [
+          BoxShadow(
+            color: YanoljaColors.shadow,
+            blurRadius: 16,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              // 그룹 대표 악센트 바 — 그룹별 컬러 정체성
+              Container(
+                width: 4,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: accent,
+                  borderRadius: BorderRadius.circular(YanoljaRadius.pill),
                 ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        GridView.count(
-          crossAxisCount: 4,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 18,
-          crossAxisSpacing: 8,
-          childAspectRatio: 0.82,
-          children: [
-            for (var i = 0; i < group.items.length; i++)
-              YanoljaEntrance(
-                delay: YanoljaMotion.stagger(i, start: 0, step: 18),
-                beginOffset: const Offset(0, 0.03),
-                child: _buildMenuTile(context, group.items[i]),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      group.title,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                        color: YanoljaColors.textPrimary,
+                        letterSpacing: -0.45,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      group.subtitle,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: YanoljaColors.textTertiary,
+                        letterSpacing: -0.1,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-          ],
-        ),
-      ],
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+                ),
+                child: Text(
+                  '${group.items.length}개',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    color: accent,
+                    letterSpacing: -0.1,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          GridView.count(
+            crossAxisCount: 4,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: YanoljaSpacing.m,
+            crossAxisSpacing: YanoljaSpacing.s,
+            childAspectRatio: 0.82,
+            children: [
+              for (var i = 0; i < group.items.length; i++)
+                _buildMenuTile(context, group.items[i]),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildMenuTile(BuildContext context, NolMenuItem item) {
     return YanoljaPressable(
       onTap: () => context.push(item.route),
+      borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+      pressedScale: 0.92,
       child: Column(
         children: [
           Container(
@@ -226,11 +373,18 @@ class AllCategoriesScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: item.color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(YanoljaRadius.lg),
-              border: Border.all(color: item.color.withValues(alpha: 0.10)),
+              border: Border.all(color: item.color.withValues(alpha: 0.14)),
+              boxShadow: [
+                BoxShadow(
+                  color: item.color.withValues(alpha: 0.12),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
             ),
             child: Icon(item.icon, color: item.color, size: 26),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: YanoljaSpacing.s),
           Text(
             item.label,
             maxLines: 2,
@@ -238,7 +392,7 @@ class AllCategoriesScreen extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 12,
-              height: 1.2,
+              height: 1.18,
               fontWeight: FontWeight.w700,
               color: YanoljaColors.textPrimary,
               letterSpacing: -0.3,

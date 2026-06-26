@@ -496,24 +496,13 @@ class _YanoljaAllMenuAction extends StatelessWidget {
             // 기본 trailing(SizedBox 6) + 우측 14 = 화면 끝에서 20px,
             // 좌측 titleSpacing(20) 및 본문 패딩(20)과 시각적으로 정렬된다.
             margin: const EdgeInsets.only(left: 2, right: 14),
-            decoration: BoxDecoration(
-              color: YanoljaColors.primaryLight,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: YanoljaColors.primary.withValues(alpha: 0.14),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: YanoljaColors.primary.withValues(alpha: 0.08),
-                  blurRadius: 14,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
+            // 배경색·테두리·그림자 없이 아이콘만 노출한다.
+            alignment: Alignment.center,
             child: const Icon(
               Icons.menu_rounded,
-              color: YanoljaColors.primary,
-              size: 23,
+              // 헤더의 다른 액션 아이콘과 동일하게: 검은색·size 24.
+              color: YanoljaColors.textPrimary,
+              size: 24,
             ),
           ),
         ),

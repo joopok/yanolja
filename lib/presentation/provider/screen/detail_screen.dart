@@ -209,7 +209,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                         _buildSectionDivider(),
                         _sectionTitle('오시는 길'),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.l),
                           child: _buildLocationSection(context, accommodation),
                         ),
                         _buildSectionDivider(),
@@ -371,7 +371,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                   ),
                   child: Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: YanoljaSpacing.s),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.92),
                       borderRadius: BorderRadius.circular(YanoljaRadius.pill),
@@ -987,7 +987,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
               children: [
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: YanoljaSpacing.s),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       begin: Alignment.topLeft,
@@ -1181,7 +1181,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
   // ───────────────────────────────────────────── 숙소 소개 (확장형)
   Widget _buildAbout(Accommodation a) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.l),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1236,7 +1236,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
       BuildContext context, Accommodation accommodation) {
     if (accommodation.amenities.isEmpty) {
       return const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20),
+        padding: EdgeInsets.symmetric(horizontal: YanoljaSpacing.l),
         child: Text('등록된 편의시설이 없습니다.',
             style: TextStyle(fontSize: 14, color: YanoljaColors.textTertiary)),
       );
@@ -1299,7 +1299,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
       height: 178,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.l),
         itemCount: items.length,
         separatorBuilder: (_, __) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
@@ -1469,7 +1469,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
     final storedCount = reviews.where((review) => review.isEditable).length;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.l),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

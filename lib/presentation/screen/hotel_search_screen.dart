@@ -229,7 +229,7 @@ class _HotelSearchScreenState extends State<HotelSearchScreen> {
             height: 42,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.l),
               itemCount: _regions.length,
               separatorBuilder: (_, __) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
@@ -245,7 +245,7 @@ class _HotelSearchScreenState extends State<HotelSearchScreen> {
                     duration: YanoljaMotion.base,
                     curve: YanoljaMotion.curve,
                     alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.m),
                     decoration: BoxDecoration(
                       color:
                           selected ? YanoljaColors.textPrimary : Colors.white,
@@ -428,7 +428,7 @@ class _HotelSearchScreenState extends State<HotelSearchScreen> {
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                    const EdgeInsets.symmetric(horizontal: YanoljaSpacing.m, vertical: 13),
                 decoration: BoxDecoration(
                   color: YanoljaColors.surfaceAlt,
                   borderRadius: BorderRadius.circular(YanoljaRadius.lg),
@@ -654,7 +654,7 @@ class _HotelSearchScreenState extends State<HotelSearchScreen> {
                     borderRadius: BorderRadius.circular(YanoljaRadius.md),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                          vertical: 14, horizontal: 4),
+                          vertical: 14, horizontal: YanoljaSpacing.xs),
                       child: Row(
                         children: [
                           Icon(Icons.place_outlined,

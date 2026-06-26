@@ -66,7 +66,7 @@ const List<NolMenuGroup> nolMenuGroups = [
       NolMenuItem(
           label: '클래식/무용',
           icon: Icons.piano_rounded,
-          color: Color(0xFF1B64DA),
+          color: YanoljaColors.accentBlue,
           route: '/ticket?genre=클래식/무용'),
       NolMenuItem(
           label: '아동/가족',
@@ -97,7 +97,7 @@ const List<NolMenuGroup> nolMenuGroups = [
       NolMenuItem(
           label: '모텔',
           icon: Icons.bed_rounded,
-          color: Color(0xFF5B43FF),
+          color: YanoljaColors.primaryPurple,
           route: '/service/motel'),
       NolMenuItem(
           label: '게스트하우스',
@@ -107,7 +107,7 @@ const List<NolMenuGroup> nolMenuGroups = [
       NolMenuItem(
           label: '글램핑/캠핑',
           icon: Icons.park_rounded,
-          color: Color(0xFF12B886),
+          color: YanoljaColors.success,
           route: '/service/camping'),
       NolMenuItem(
           label: '한옥',
@@ -138,7 +138,7 @@ const List<NolMenuGroup> nolMenuGroups = [
       NolMenuItem(
           label: '해외항공',
           icon: Icons.flight_rounded,
-          color: Color(0xFF315BFF),
+          color: YanoljaColors.primary,
           route: '/service/flight'),
       NolMenuItem(
           label: '해외숙소',
@@ -148,7 +148,7 @@ const List<NolMenuGroup> nolMenuGroups = [
       NolMenuItem(
           label: '해외투어/티켓',
           icon: Icons.tour_rounded,
-          color: Color(0xFF00C2B8),
+          color: YanoljaColors.mint,
           route: '/service/overseas-tour'),
       NolMenuItem(
           label: '해외패키지',
@@ -164,12 +164,12 @@ const List<NolMenuGroup> nolMenuGroups = [
       NolMenuItem(
           label: 'NOL 라이브',
           icon: Icons.live_tv_rounded,
-          color: Color(0xFFFF3D6E),
+          color: YanoljaColors.sale,
           route: '/live'),
       NolMenuItem(
           label: 'NOL 특가',
           icon: Icons.bolt_rounded,
-          color: Color(0xFFFFB92E),
+          color: YanoljaColors.yellow,
           route: '/service/deals'),
       NolMenuItem(
           label: '쿠폰/혜택',
@@ -200,7 +200,7 @@ const List<NolMenuItem> nolQuickMenu = [
   NolMenuItem(
       label: '모텔',
       icon: Icons.bed_rounded,
-      color: Color(0xFF5B43FF),
+      color: YanoljaColors.primaryPurple,
       route: '/service/motel'),
   NolMenuItem(
       label: '국내레저',
@@ -230,7 +230,7 @@ const List<NolMenuItem> nolQuickMenu = [
   NolMenuItem(
       label: '해외투어',
       icon: Icons.tour_rounded,
-      color: Color(0xFF00C2B8),
+      color: YanoljaColors.mint,
       route: '/service/overseas-tour'),
   NolMenuItem(
       label: '전체보기',

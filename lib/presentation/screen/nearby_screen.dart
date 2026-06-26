@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/data/model/accommodation.dart';
 import 'package:yanolja_clone/presentation/provider/accommodation_provider.dart';
 import 'package:yanolja_clone/presentation/widget/accommodation_list_item.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 
 class NearbyScreen extends ConsumerStatefulWidget {
   const NearbyScreen({super.key});
@@ -56,11 +58,36 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
                   ),
                 ],
               ),
-              SliverToBoxAdapter(child: _buildHeader(context, nearby.length)),
-              SliverToBoxAdapter(child: _buildServiceTabs(context)),
-              SliverToBoxAdapter(child: _buildLocationSearch(context)),
-              SliverToBoxAdapter(child: _buildBenefitBanner(context)),
-              SliverToBoxAdapter(child: _buildCategoryChips()),
+              SliverToBoxAdapter(
+                child: YanoljaEntrance(
+                  delay: const Duration(milliseconds: 70),
+                  child: _buildHeader(context),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: YanoljaEntrance(
+                  delay: const Duration(milliseconds: 110),
+                  child: _buildServiceTabs(context),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: YanoljaEntrance(
+                  delay: const Duration(milliseconds: 150),
+                  child: _buildLocationSearch(context),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: YanoljaEntrance(
+                  delay: const Duration(milliseconds: 190),
+                  child: _buildBenefitBanner(context),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: YanoljaEntrance(
+                  delay: const Duration(milliseconds: 220),
+                  child: _buildCategoryChips(),
+                ),
+              ),
               SliverToBoxAdapter(
                 child: _buildListHeader(context, nearby.length),
               ),
@@ -73,8 +100,11 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
                 SliverList.builder(
                   itemCount: nearby.length,
                   itemBuilder: (context, index) {
-                    return AccommodationListItem(
-                      accommodation: nearby[index],
+                    return YanoljaEntrance(
+                      delay: YanoljaMotion.stagger(index, start: 180, step: 40),
+                      child: AccommodationListItem(
+                        accommodation: nearby[index],
+                      ),
                     );
                   },
                 ),
@@ -82,9 +112,7 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
             ],
           );
         },
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: YanoljaColors.primary),
-        ),
+        loading: () => _buildLoadingSkeleton(),
         error: (error, _) => _buildError(ref),
       ),
     );
@@ -114,7 +142,7 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
     }
   }
 
-  Widget _buildHeader(BuildContext context, int nearbyCount) {
+  Widget _buildHeader(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
         color: YanoljaColors.background,
@@ -124,50 +152,47 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
           colors: [
             Color(0xFFFFFFFF),
             Color(0xFFF6F8FF),
-            Color(0xFFFFF8EF),
           ],
         ),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 2, 20, 16),
-        child: Row(
-          children: [
-            Expanded(
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.82),
-                  borderRadius: BorderRadius.circular(YanoljaRadius.pill),
-                  border: Border.all(color: const Color(0xFFE2E8FF)),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+            decoration: BoxDecoration(
+              color: YanoljaColors.surface,
+              borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+              border: Border.all(color: YanoljaColors.primaryLight),
+              boxShadow: [
+                BoxShadow(
+                  color: YanoljaColors.primary.withValues(alpha: 0.07),
+                  blurRadius: 12,
+                  offset: const Offset(0, 5),
                 ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _NearbyIcon(asset: _NearbyIcons.distance, size: 25),
-                    SizedBox(width: 7),
-                    Text(
-                      '거리순 · 쿠폰특가 · 지도 보기',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w900,
-                        color: YanoljaColors.textPrimary,
-                      ),
-                    ),
-                  ],
+              ],
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _NearbyIcon(
+                  asset: _NearbyIcons.distance,
+                  size: 26,
+                  color: YanoljaColors.primary,
                 ),
-              ),
+                SizedBox(width: 7),
+                Text(
+                  '거리순 · 쿠폰특가 우선',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w900,
+                    color: YanoljaColors.textPrimary,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 10),
-            Text(
-              '$nearbyCount곳',
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
-                color: YanoljaColors.primary,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -195,7 +220,7 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
                 onTap: () => _handleServiceTab(tab.label),
               ),
             ),
-            if (tab != tabs.last) const SizedBox(width: 8),
+            if (tab != tabs.last) const SizedBox(width: YanoljaSpacing.s),
           ],
         ],
       ),
@@ -214,10 +239,10 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(YanoljaRadius.xl),
-            border: Border.all(color: const Color(0xFFE1E7FF)),
+            border: Border.all(color: YanoljaColors.primaryLight),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF315BFF).withValues(alpha: 0.08),
+                color: YanoljaColors.primary.withValues(alpha: 0.08),
                 blurRadius: 22,
                 offset: const Offset(0, 10),
               ),
@@ -227,7 +252,11 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
             children: [
               Row(
                 children: [
-                  const _NearbyIcon(asset: _NearbyIcons.location, size: 50),
+                  const _NearbyIcon(
+                    asset: _NearbyIcons.location,
+                    size: 28,
+                    color: YanoljaColors.primary,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -257,7 +286,7 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
                   ),
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: YanoljaSpacing.s),
                     decoration: BoxDecoration(
                       color: YanoljaColors.primary,
                       borderRadius: BorderRadius.circular(YanoljaRadius.pill),
@@ -283,7 +312,7 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
                       value: '2km',
                     ),
                   ),
-                  SizedBox(width: 8),
+                  SizedBox(width: YanoljaSpacing.s),
                   Expanded(
                     child: _NearbyMetric(
                       iconAsset: _NearbyIcons.coupon,
@@ -291,7 +320,7 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
                       value: '쿠폰 우선',
                     ),
                   ),
-                  SizedBox(width: 8),
+                  SizedBox(width: YanoljaSpacing.s),
                   Expanded(
                     child: _NearbyMetric(
                       iconAsset: _NearbyIcons.map,
@@ -322,16 +351,20 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color(0xFFFFF8E8),
+                Color(0xFFFFFFFF),
                 Color(0xFFF3F6FF),
               ],
             ),
             borderRadius: BorderRadius.circular(YanoljaRadius.xl),
-            border: Border.all(color: const Color(0xFFE3E9FF)),
+            border: Border.all(color: YanoljaColors.primaryLight),
           ),
           child: Row(
             children: [
-              const _NearbyIcon(asset: _NearbyIcons.coupon, size: 48),
+              const _NearbyIcon(
+                asset: _NearbyIcons.coupon,
+                size: 28,
+                color: YanoljaColors.primary,
+              ),
               const SizedBox(width: 12),
               const Expanded(
                 child: Column(
@@ -357,7 +390,11 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
                   ],
                 ),
               ),
-              const _NearbyIcon(asset: _NearbyIcons.chevron, size: 34),
+              const _NearbyIcon(
+                asset: _NearbyIcons.chevron,
+                size: 28,
+                color: YanoljaColors.textTertiary,
+              ),
             ],
           ),
         ),
@@ -374,33 +411,34 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           itemCount: _categories.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          separatorBuilder: (_, __) => const SizedBox(width: YanoljaSpacing.s),
           itemBuilder: (context, index) {
             final category = _categories[index];
             final selected = category == _selectedCategory;
-            return GestureDetector(
+            return YanoljaPressable(
+              pressedScale: 0.97,
               onTap: () {
                 HapticFeedback.selectionClick();
                 setState(() => _selectedCategory = category);
               },
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                curve: Curves.easeOutCubic,
+                duration: YanoljaMotion.base,
+                curve: YanoljaMotion.curve,
                 alignment: Alignment.center,
                 padding: const EdgeInsets.only(left: 9, right: 14),
                 decoration: BoxDecoration(
-                  color: selected ? YanoljaColors.textPrimary : Colors.white,
+                  color: selected ? YanoljaColors.primary : Colors.white,
                   borderRadius: BorderRadius.circular(YanoljaRadius.pill),
                   border: Border.all(
                     color: selected
-                        ? YanoljaColors.textPrimary
+                        ? YanoljaColors.primary
                         : YanoljaColors.border,
                   ),
                   boxShadow: selected
                       ? [
                           BoxShadow(
-                            color: YanoljaColors.textPrimary
-                                .withValues(alpha: 0.1),
+                            color:
+                                YanoljaColors.primary.withValues(alpha: 0.1),
                             blurRadius: 12,
                             offset: const Offset(0, 6),
                           ),
@@ -413,6 +451,8 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
                     _NearbyIcon(
                       asset: _categoryIcon(category),
                       size: 26,
+                      color:
+                          selected ? Colors.white : YanoljaColors.textSecondary,
                     ),
                     const SizedBox(width: 5),
                     Text(
@@ -435,7 +475,7 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
     );
   }
 
-  String _categoryIcon(String category) {
+  IconData _categoryIcon(String category) {
     switch (category) {
       case '호텔/리조트':
       case '펜션':
@@ -458,8 +498,12 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
       child: Row(
         children: [
-          const _NearbyIcon(asset: _NearbyIcons.distance, size: 30),
-          const SizedBox(width: 8),
+          const _NearbyIcon(
+            asset: _NearbyIcons.distance,
+            size: 30,
+            color: YanoljaColors.primary,
+          ),
+          const SizedBox(width: YanoljaSpacing.s),
           Expanded(
             child: RichText(
               text: TextSpan(
@@ -482,11 +526,15 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
             onPressed: () => context.push('/map'),
             style: TextButton.styleFrom(
               foregroundColor: YanoljaColors.textPrimary,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.s),
               minimumSize: const Size(0, 36),
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-            icon: const _NearbyIcon(asset: _NearbyIcons.map, size: 24),
+            icon: const _NearbyIcon(
+              asset: _NearbyIcons.map,
+              size: 24,
+              color: YanoljaColors.textPrimary,
+            ),
             label: const Text(
               '지도',
               style: TextStyle(fontWeight: FontWeight.w800),
@@ -504,7 +552,11 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const _NearbyIcon(asset: _NearbyIcons.empty, size: 94),
+            const _NearbyIcon(
+              asset: _NearbyIcons.empty,
+              size: 94,
+              color: YanoljaColors.textTertiary,
+            ),
             const SizedBox(height: 18),
             const Text(
               '조건에 맞는 주변 숙소가 없어요',
@@ -514,7 +566,7 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
                 color: YanoljaColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: YanoljaSpacing.s),
             const Text(
               '다른 카테고리로 다시 확인해보세요',
               style: TextStyle(
@@ -528,6 +580,53 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
     );
   }
 
+  Widget _buildLoadingSkeleton() {
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        YanoljaSliverAppBar.main(
+          title: '내주변',
+          subtitle: '$_locationLabel 기준 가까운 숙소를 찾고 있어요',
+          actions: [
+            _NearbyIconButton(
+              asset: _NearbyIcons.search,
+              tooltip: '검색',
+              onTap: () => context.go('/search'),
+            ),
+            _NearbyIconButton(
+              asset: _NearbyIcons.filter,
+              tooltip: '필터',
+              onTap: _showFilterSheet,
+            ),
+          ],
+        ),
+        SliverToBoxAdapter(
+          child: Shimmer.fromColors(
+            baseColor: YanoljaColors.border,
+            highlightColor: const Color(0xFFF7F8FA),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: Column(
+                children: [
+                  for (var i = 0; i < 4; i++)
+                    Container(
+                      height: 132,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius:
+                            BorderRadius.circular(YanoljaRadius.lg),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildError(WidgetRef ref) {
     return Center(
       child: Padding(
@@ -535,7 +634,11 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const _NearbyIcon(asset: _NearbyIcons.error, size: 88),
+            const _NearbyIcon(
+              asset: _NearbyIcons.error,
+              size: 88,
+              color: YanoljaColors.textTertiary,
+            ),
             const SizedBox(height: 12),
             const Text(
               '주변 숙소를 불러오지 못했어요',
@@ -545,7 +648,7 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
                 color: YanoljaColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: YanoljaSpacing.m),
             ElevatedButton(
               onPressed: () => ref.invalidate(accommodationListProvider),
               style: ElevatedButton.styleFrom(
@@ -559,7 +662,11 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _NearbyIcon(asset: _NearbyIcons.refresh, size: 22),
+                  _NearbyIcon(
+                    asset: _NearbyIcons.refresh,
+                    size: 22,
+                    color: Colors.white,
+                  ),
                   SizedBox(width: 6),
                   Text('다시 시도'),
                 ],
@@ -593,29 +700,23 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
 
     showModalBottomSheet<void>(
       context: context,
+      // 루트 네비게이터에 띄워 하단 탭바 위로 올린다(탭 메뉴 가림).
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
             return Container(
-              margin: const EdgeInsets.all(12),
               padding: EdgeInsets.fromLTRB(
                 20,
                 10,
                 20,
                 20 + MediaQuery.paddingOf(context).bottom,
               ),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: YanoljaColors.background,
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: const [
-                  BoxShadow(
-                    color: YanoljaColors.shadow,
-                    blurRadius: 22,
-                    offset: Offset(0, 10),
-                  ),
-                ],
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -634,8 +735,12 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
                   ),
                   const Row(
                     children: [
-                      _NearbyIcon(asset: _NearbyIcons.filter, size: 32),
-                      SizedBox(width: 8),
+                      _NearbyIcon(
+                        asset: _NearbyIcons.filter,
+                        size: 32,
+                        color: YanoljaColors.textPrimary,
+                      ),
+                      SizedBox(width: YanoljaSpacing.s),
                       Text(
                         '내 주변 조건',
                         style: TextStyle(
@@ -665,15 +770,17 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
                         avatar: _NearbyIcon(
                           asset: _categoryIcon(category),
                           size: 22,
+                          color:
+                              selected ? Colors.white : YanoljaColors.primary,
                         ),
                         label: Text(category),
                         selected: selected,
                         showCheckmark: false,
-                        selectedColor: YanoljaColors.textPrimary,
+                        selectedColor: YanoljaColors.primary,
                         backgroundColor: YanoljaColors.surfaceAlt,
                         side: BorderSide(
                           color: selected
-                              ? YanoljaColors.textPrimary
+                              ? YanoljaColors.primary
                               : YanoljaColors.border,
                         ),
                         labelStyle: TextStyle(
@@ -732,26 +839,20 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
 
     showModalBottomSheet<void>(
       context: context,
+      // 루트 네비게이터에 띄워 하단 탭바 위로 올린다(탭 메뉴 가림).
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
-          margin: const EdgeInsets.all(12),
           padding: EdgeInsets.fromLTRB(
             20,
             10,
             20,
             16 + MediaQuery.paddingOf(context).bottom,
           ),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: YanoljaColors.background,
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: const [
-              BoxShadow(
-                color: YanoljaColors.shadow,
-                blurRadius: 22,
-                offset: Offset(0, 10),
-              ),
-            ],
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -767,7 +868,11 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
               ),
               const Row(
                 children: [
-                  _NearbyIcon(asset: _NearbyIcons.location, size: 34),
+                  _NearbyIcon(
+                    asset: _NearbyIcons.location,
+                    size: 34,
+                    color: YanoljaColors.primary,
+                  ),
                   SizedBox(width: 10),
                   Text(
                     '위치 기준 변경',
@@ -790,6 +895,9 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
                           ? _NearbyIcons.check
                           : _NearbyIcons.place,
                       size: 34,
+                      color: location == _locationLabel
+                          ? YanoljaColors.primary
+                          : YanoljaColors.textTertiary,
                     ),
                     title: Text(
                       '$location 근처',
@@ -816,7 +924,7 @@ class _NearbyScreenState extends ConsumerState<NearbyScreen> {
 
 class _NearServiceTab extends StatelessWidget {
   final String label;
-  final String iconAsset;
+  final IconData iconAsset;
   final bool selected;
   final VoidCallback onTap;
 
@@ -829,25 +937,24 @@ class _NearServiceTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return YanoljaPressable(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+      pressedScale: 0.97,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOutCubic,
+        duration: YanoljaMotion.base,
+        curve: YanoljaMotion.curve,
         height: 78,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.s, vertical: YanoljaSpacing.s),
         decoration: BoxDecoration(
-          color: selected ? YanoljaColors.textPrimary : Colors.white,
+          color: selected ? YanoljaColors.primary : Colors.white,
           borderRadius: BorderRadius.circular(YanoljaRadius.lg),
           border: Border.all(
-            color:
-                selected ? YanoljaColors.textPrimary : const Color(0xFFE8EBF2),
+            color: selected ? YanoljaColors.primary : YanoljaColors.border,
           ),
           boxShadow: selected
               ? [
                   BoxShadow(
-                    color: YanoljaColors.textPrimary.withValues(alpha: 0.12),
+                    color: YanoljaColors.primary.withValues(alpha: 0.12),
                     blurRadius: 14,
                     offset: const Offset(0, 7),
                   ),
@@ -859,9 +966,13 @@ class _NearServiceTab extends StatelessWidget {
           children: [
             AnimatedScale(
               scale: selected ? 1.08 : 1.0,
-              duration: const Duration(milliseconds: 180),
-              curve: Curves.easeOutCubic,
-              child: _NearbyIcon(asset: iconAsset, size: 34),
+              duration: YanoljaMotion.base,
+              curve: YanoljaMotion.curve,
+              child: _NearbyIcon(
+                asset: iconAsset,
+                size: 34,
+                color: selected ? Colors.white : YanoljaColors.primary,
+              ),
             ),
             const SizedBox(height: 5),
             FittedBox(
@@ -885,65 +996,53 @@ class _NearServiceTab extends StatelessWidget {
 
 class _NearServiceSpec {
   final String label;
-  final String iconAsset;
+  final IconData iconAsset;
 
   const _NearServiceSpec(this.label, this.iconAsset);
 }
 
+/// 내주변 화면 아이콘 토큰.
+/// 메인화면과 동일한 플랫 라인(Material rounded) 톤으로 통일한다.
 class _NearbyIcons {
-  static const _base = 'assets/nearby_icons';
-
-  static const search = '$_base/search.png';
-  static const filter = '$_base/filter.png';
-  static const stay = '$_base/stay.png';
-  static const ticket = '$_base/ticket.png';
-  static const food = '$_base/food.png';
-  static const activity = '$_base/activity.png';
-  static const location = '$_base/location.png';
-  static const coupon = '$_base/coupon.png';
-  static const map = '$_base/map.png';
-  static const empty = '$_base/empty.png';
-  static const error = '$_base/error.png';
-  static const check = '$_base/check.png';
-  static const place = '$_base/place.png';
-  static const chevron = '$_base/chevron.png';
-  static const distance = '$_base/distance.png';
-  static const refresh = '$_base/refresh.png';
+  static const search = Icons.search_rounded;
+  static const filter = Icons.tune_rounded;
+  static const stay = Icons.king_bed_rounded;
+  static const ticket = Icons.confirmation_number_rounded;
+  static const food = Icons.restaurant_rounded;
+  static const activity = Icons.hiking_rounded;
+  static const location = Icons.my_location_rounded;
+  static const coupon = Icons.local_offer_rounded;
+  static const map = Icons.map_rounded;
+  static const empty = Icons.location_off_rounded;
+  static const error = Icons.error_outline_rounded;
+  static const check = Icons.check_circle_rounded;
+  static const place = Icons.place_outlined;
+  static const chevron = Icons.chevron_right_rounded;
+  static const distance = Icons.near_me_rounded;
+  static const refresh = Icons.refresh_rounded;
 }
 
 class _NearbyIcon extends StatelessWidget {
-  final String asset;
+  final IconData asset;
   final double size;
+  final Color color;
 
   const _NearbyIcon({
     required this.asset,
     required this.size,
+    this.color = YanoljaColors.textPrimary,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      asset,
-      width: size,
-      height: size,
-      fit: BoxFit.contain,
-      filterQuality: FilterQuality.high,
-      errorBuilder: (_, __, ___) {
-        return SizedBox(
-          width: size,
-          height: size,
-          child: const Icon(
-            Icons.image_not_supported_outlined,
-            color: YanoljaColors.textTertiary,
-          ),
-        );
-      },
-    );
+    return Icon(asset, size: size, color: color);
   }
 }
 
+/// 앱바 우측 액션 아이콘. 메인화면 헤더 아이콘과 동일하게
+/// 배경 없는 검은색 라인 아이콘(size 24)으로 표시한다.
 class _NearbyIconButton extends StatelessWidget {
-  final String asset;
+  final IconData asset;
   final String tooltip;
   final VoidCallback onTap;
 
@@ -959,24 +1058,10 @@ class _NearbyIconButton extends StatelessWidget {
       message: tooltip,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(YanoljaRadius.pill),
-        child: Container(
-          width: 44,
-          height: 44,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFFE5E9F5)),
-            boxShadow: [
-              BoxShadow(
-                color: YanoljaColors.textPrimary.withValues(alpha: 0.06),
-                blurRadius: 14,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: _NearbyIcon(asset: asset, size: 30),
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.all(YanoljaSpacing.s),
+          child: Icon(asset, color: YanoljaColors.textPrimary, size: 24),
         ),
       ),
     );
@@ -984,7 +1069,7 @@ class _NearbyIconButton extends StatelessWidget {
 }
 
 class _NearbyMetric extends StatelessWidget {
-  final String iconAsset;
+  final IconData iconAsset;
   final String label;
   final String value;
 
@@ -998,7 +1083,7 @@ class _NearbyMetric extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 58,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.s),
       decoration: BoxDecoration(
         color: YanoljaColors.surfaceAlt,
         borderRadius: BorderRadius.circular(YanoljaRadius.md),
@@ -1007,7 +1092,11 @@ class _NearbyMetric extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _NearbyIcon(asset: iconAsset, size: 28),
+          _NearbyIcon(
+            asset: iconAsset,
+            size: 28,
+            color: YanoljaColors.primary,
+          ),
           const SizedBox(width: 5),
           Flexible(
             child: Column(

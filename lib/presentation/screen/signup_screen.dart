@@ -446,7 +446,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   Widget _buildPromoBanner() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: YanoljaSpacing.m),
       decoration: BoxDecoration(
         color: YanoljaColors.primaryLight,
         borderRadius: BorderRadius.circular(YanoljaRadius.lg),
@@ -543,7 +543,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         color: YanoljaColors.textSecondary,
         fontWeight: FontWeight.w600,
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      contentPadding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.m, vertical: YanoljaSpacing.m),
     );
   }
 

@@ -14,6 +14,7 @@ import 'package:yanolja_clone/presentation/provider/notification_provider.dart';
 import 'package:yanolja_clone/presentation/provider/search_provider.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
+import 'package:yanolja_clone/presentation/widget/nol_footer.dart';
 
 /// NOL(야놀자) 스타일 홈 화면
 ///
@@ -33,6 +34,18 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _bannerIndex = 0;
   final Set<String> _liked = {};
+
+  /// "호캉스 어디로 갈까?" 지역 탭에서 현재 선택된 지역.
+  String _selectedRegion = '서울';
+
+  /// 지역 탭 → 주소 매칭 키워드 (라이브 NOL의 지역 호캉스 탭 재현).
+  static const Map<String, List<String>> _regionKeywords = {
+    '서울': ['서울'],
+    '강원': ['강원', '강릉', '속초', '평창', '양양', '정선', '춘천'],
+    '제주': ['제주', '서귀포'],
+    '부산·경상': ['부산', '경주', '대구', '울산', '경상', '포항', '창원'],
+    '전라·충청': ['전주', '여수', '전라', '광주', '충청', '대전', '천안', '아산'],
+  };
 
   static const List<String> _notices = [
     '야놀자의 새 이름, NOL에서 더 많은 혜택을 만나보세요',
@@ -84,7 +97,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         right: 2,
                         top: 2,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.xs),
                           constraints: const BoxConstraints(minWidth: 17),
                           height: 17,
                           alignment: Alignment.center,
@@ -133,7 +146,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               loading: () => [_buildShimmerSliver()],
               error: (e, _) => [_buildErrorSliver(e)],
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: 28)),
+            const SliverToBoxAdapter(child: _SectionDivider()),
+            const SliverToBoxAdapter(child: NolFooter()),
           ],
         ),
       ),
@@ -204,7 +218,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     color: YanoljaColors.primary,
                     size: 18,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: YanoljaSpacing.s),
                   const Expanded(
                     child: _RollingNotice(notices: _notices),
                   ),
@@ -257,7 +271,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Padding(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(YanoljaSpacing.s),
         child: Icon(icon, color: YanoljaColors.textPrimary, size: 24),
       ),
     );
@@ -267,7 +281,50 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // 카테고리 아이콘 그리드 (NOL 시그니처 메뉴)
   // ─────────────────────────────────────────────────────────────
   Widget _buildCategoryGrid() {
+    // 라이브 NOL(nol.yanolja.com) 홈의 카테고리 아이콘 세트·순서를 그대로 재현.
     final items = <_Category>[
+      _Category(
+        label: '호텔/리조트',
+        art: _CategoryArt.hotel,
+        baseColor: const Color(0xFF5B43FF),
+        accentColor: const Color(0xFF8E7BFF),
+        onTap: () => context.push('/hotel'),
+      ),
+      _Category(
+        label: '펜션/풀빌라',
+        art: _CategoryArt.pension,
+        baseColor: const Color(0xFF00AFA3),
+        accentColor: const Color(0xFF7CE7D6),
+        onTap: () => context.push('/pension'),
+      ),
+      _Category(
+        label: '모텔',
+        art: _CategoryArt.motel,
+        baseColor: const Color(0xFFFF9F1C),
+        accentColor: const Color(0xFFFFE06D),
+        onTap: () => _openService('motel'),
+      ),
+      _Category(
+        label: '국내레저',
+        art: _CategoryArt.leisure,
+        baseColor: const Color(0xFFFF4FB7),
+        accentColor: const Color(0xFFFFB347),
+        onTap: () => _openService('leisure'),
+      ),
+      _Category(
+        label: '교통/쏘카',
+        art: _CategoryArt.traffic,
+        baseColor: const Color(0xFFFF4D5C),
+        accentColor: const Color(0xFF5067FF),
+        onTap: () => _openService('transport'),
+      ),
+      _Category(
+        label: 'NOL 티켓',
+        art: _CategoryArt.show,
+        baseColor: const Color(0xFFFF6D3D),
+        accentColor: const Color(0xFFFFC04D),
+        onTap: () => context.push('/ticket'),
+      ),
       _Category(
         label: '항공',
         art: _CategoryArt.flight,
@@ -283,60 +340,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         onTap: () => _openService('overseas'),
       ),
       _Category(
-        label: '레저/티켓',
-        art: _CategoryArt.leisure,
-        baseColor: const Color(0xFFFF4FB7),
-        accentColor: const Color(0xFFFFB347),
-        onTap: () => _openService('leisure'),
-      ),
-      _Category(
-        label: 'NOL 티켓',
-        art: _CategoryArt.show,
-        baseColor: const Color(0xFFFF6D3D),
-        accentColor: const Color(0xFFFFC04D),
-        onTap: () => context.push('/ticket'),
-      ),
-      _Category(
-        label: '교통',
-        art: _CategoryArt.traffic,
-        baseColor: const Color(0xFFFF4D5C),
-        accentColor: const Color(0xFF5067FF),
-        onTap: () => _openService('transport'),
-      ),
-      _Category(
-        label: '호텔/리조트',
-        art: _CategoryArt.hotel,
-        baseColor: const Color(0xFF5B43FF),
-        accentColor: const Color(0xFF8E7BFF),
-        onTap: () => context.push('/resort'),
-      ),
-      _Category(
-        label: '펜션/풀빌라',
-        art: _CategoryArt.pension,
-        baseColor: const Color(0xFF00AFA3),
+        label: '해외투어',
+        art: _CategoryArt.tour,
+        baseColor: const Color(0xFF00B8A0),
         accentColor: const Color(0xFF7CE7D6),
-        onTap: () => context.push('/pension'),
+        onTap: () => _openService('overseas-tour'),
       ),
       _Category(
-        label: '프리미엄',
-        art: _CategoryArt.premium,
-        baseColor: const Color(0xFF183B83),
-        accentColor: const Color(0xFFFFC857),
-        onTap: () => context.push('/hotel'),
-      ),
-      _Category(
-        label: '글램핑/캠핑',
-        art: _CategoryArt.camping,
-        baseColor: const Color(0xFF00B894),
-        accentColor: const Color(0xFF9BE15D),
-        onTap: () => _openService('camping'),
-      ),
-      _Category(
-        label: '모텔',
-        art: _CategoryArt.motel,
-        baseColor: const Color(0xFFFF9F1C),
-        accentColor: const Color(0xFFFFE06D),
-        onTap: () => context.push('/service/motel'),
+        label: '해외패키지',
+        art: _CategoryArt.package,
+        baseColor: const Color(0xFF7C5BFF),
+        accentColor: const Color(0xFFC0A8FF),
+        onTap: () => _openService('package'),
       ),
     ];
 
@@ -376,11 +391,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         context.push('/all-categories');
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 8),
+        margin: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.s),
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFFF5F6F8),
-          borderRadius: BorderRadius.circular(999),
+          color: YanoljaColors.surfaceAlt,
+          borderRadius: BorderRadius.circular(YanoljaRadius.pill),
         ),
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -574,7 +589,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 children: [
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                        const EdgeInsets.symmetric(horizontal: 9, vertical: YanoljaSpacing.xs),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(YanoljaRadius.pill),
@@ -588,7 +603,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: YanoljaSpacing.s),
                   Text(
                     banner.title,
                     style: const TextStyle(
@@ -628,7 +643,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           size: 17,
           color: YanoljaColors.textPrimary,
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: YanoljaSpacing.s),
         Container(
           width: 82,
           height: 2,
@@ -709,7 +724,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onTap: () => _openService('first-benefit'),
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+              padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.m, vertical: 15),
               decoration: BoxDecoration(
                 color: const Color(0xFFFFF6DD),
                 borderRadius: BorderRadius.circular(YanoljaRadius.md),
@@ -832,6 +847,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         items: trending.take(10).toList(),
       ),
       const SliverToBoxAdapter(child: _SectionDivider()),
+      _buildRegionSection(all),
+      const SliverToBoxAdapter(child: _SectionDivider()),
+      _buildCurationStrip(),
+      const SliverToBoxAdapter(child: _SectionDivider()),
       SliverToBoxAdapter(
         child: YanoljaSectionHeader(
           title: '내 주변에서 바로 예약 가능한 숙소',
@@ -915,7 +934,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: YanoljaSpacing.s),
             Text(
               '${a.category} · ${_shortAddress(a.address)}',
               style: const TextStyle(
@@ -938,7 +957,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: YanoljaSpacing.xs),
             YanoljaRating(rating: a.rating, reviewCount: a.reviewCount),
             const SizedBox(height: 6),
             Row(
@@ -978,13 +997,227 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   // ─────────────────────────────────────────────────────────────
+  // 지역 탭형 호캉스 특가 (라이브 NOL "호캉스 어디로 갈까?" 재현)
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildRegionSection(List<Accommodation> all) {
+    final keywords = _regionKeywords[_selectedRegion] ?? const [];
+    var matches =
+        all.where((a) => keywords.any((k) => a.address.contains(k))).toList();
+    if (matches.isEmpty) matches = all;
+    matches = matches.take(10).toList();
+
+    return SliverToBoxAdapter(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const YanoljaSectionHeader(
+            title: '놀라운 특가, 호캉스 어디로 갈까?',
+            subtitle: '지역을 골라 인기 호캉스 특가를 둘러보세요',
+          ),
+          SizedBox(
+            height: 38,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.l),
+              itemCount: _regionKeywords.length,
+              separatorBuilder: (_, __) => const SizedBox(width: YanoljaSpacing.s),
+              itemBuilder: (context, i) {
+                final region = _regionKeywords.keys.elementAt(i);
+                final selected = region == _selectedRegion;
+                return YanoljaPressable(
+                  pressedScale: 0.97,
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    setState(() => _selectedRegion = region);
+                  },
+                  child: AnimatedContainer(
+                    duration: YanoljaMotion.base,
+                    curve: YanoljaMotion.curve,
+                    padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.m),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? YanoljaColors.primary
+                          : YanoljaColors.surface,
+                      borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+                      border: Border.all(
+                        color: selected
+                            ? YanoljaColors.primary
+                            : YanoljaColors.border,
+                      ),
+                    ),
+                    child: Text(
+                      region,
+                      style: TextStyle(
+                        color:
+                            selected ? Colors.white : YanoljaColors.textPrimary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          SizedBox(
+            height: 290,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+              itemCount: matches.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 14),
+              itemBuilder: (context, i) => _buildHorizontalCard(matches[i]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // 기획전 모음 (라이브 NOL "기획전 모음" 재현)
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildCurationStrip() {
+    const curations = <_Curation>[
+      _Curation(
+        tag: '할인혜택',
+        title: '여름 펜션, 최대 70% 할인',
+        subtitle: '총 20만원 쿠폰팩 혜택 받기',
+        colors: [Color(0xFF315BFF), Color(0xFF5B8DEF)],
+        service: 'deals',
+      ),
+      _Curation(
+        tag: '이벤트',
+        title: '빠지 근처 펜션 모아보기',
+        subtitle: '차량·도보 10분 이내 숙소만',
+        colors: [Color(0xFF00B8A9), Color(0xFF59D6C8)],
+        service: 'event',
+      ),
+      _Curation(
+        tag: 'MD추천',
+        title: '숙소&레저 한 번에 해결',
+        subtitle: '숙소 예약하면 레저 티켓 제공',
+        colors: [Color(0xFFFF7A45), Color(0xFFFFB36B)],
+        service: 'leisure',
+      ),
+      _Curation(
+        tag: 'MD추천',
+        title: '10만원 이하 가성비 펜션',
+        subtitle: '믿기지 않는 가격과 퀄리티',
+        colors: [Color(0xFF7C5BFF), Color(0xFFB39BFF)],
+        service: 'coupons',
+      ),
+    ];
+
+    return SliverToBoxAdapter(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          YanoljaSectionHeader(
+            title: '기획전 모음',
+            subtitle: 'NOL이 준비한 테마 기획전을 만나보세요',
+            trailingText: '전체',
+            onTrailingTap: () => _openService('event'),
+          ),
+          SizedBox(
+            height: 150,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
+              itemCount: curations.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, i) => _buildCurationCard(curations[i]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCurationCard(_Curation c) {
+    return YanoljaPressable(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        _openService(c.service);
+      },
+      child: Container(
+        width: 230,
+        padding: const EdgeInsets.fromLTRB(18, 16, 16, 16),
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: c.colors,
+          ),
+          borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+          boxShadow: [
+            BoxShadow(
+              color: c.colors.last.withValues(alpha: 0.28),
+              blurRadius: 18,
+              offset: const Offset(0, 9),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: YanoljaSpacing.xs),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.22),
+                borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+              ),
+              child: Text(
+                c.tag,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+            const Spacer(),
+            Text(
+              c.title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 17,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.4,
+                height: 1.22,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              c.subtitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.92),
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
   // 세로 리스트 (가로형 카드)
   // ─────────────────────────────────────────────────────────────
   Widget _buildVerticalList(List<Accommodation> items) {
     return SliverList.separated(
       itemCount: items.length,
       separatorBuilder: (_, __) => const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20),
+        padding: EdgeInsets.symmetric(horizontal: YanoljaSpacing.l),
         child: Divider(height: 1, color: YanoljaColors.divider),
       ),
       itemBuilder: (context, i) => YanoljaEntrance(
@@ -1035,7 +1268,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   Row(
                     children: [
                       if (a.isPopular) _tag('인기', YanoljaColors.primary),
-                      if (a.isPopular) const SizedBox(width: 4),
+                      if (a.isPopular) const SizedBox(width: YanoljaSpacing.xs),
                       Text(
                         a.category,
                         style: const TextStyle(
@@ -1070,7 +1303,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                   const SizedBox(height: 5),
                   YanoljaRating(rating: a.rating, reviewCount: a.reviewCount),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: YanoljaSpacing.s),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
@@ -1190,7 +1423,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: YanoljaSpacing.m),
               SizedBox(
                 height: 220,
                 child: ListView.builder(
@@ -1231,7 +1464,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 color: YanoljaColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: YanoljaSpacing.m),
             OutlinedButton(
               onPressed: () => ref.invalidate(accommodationListProvider),
               style: OutlinedButton.styleFrom(
@@ -1363,9 +1596,9 @@ enum _CategoryArt {
   traffic,
   hotel,
   pension,
-  premium,
-  camping,
   motel,
+  tour,
+  package,
 }
 
 class _Category {
@@ -1422,14 +1655,14 @@ class _CategoryIconPainter extends CustomPainter {
       case _CategoryArt.pension:
         _drawPension(canvas);
         break;
-      case _CategoryArt.premium:
-        _drawPremium(canvas);
-        break;
-      case _CategoryArt.camping:
-        _drawCamping(canvas);
-        break;
       case _CategoryArt.motel:
         _drawMotel(canvas);
+        break;
+      case _CategoryArt.tour:
+        _drawTour(canvas);
+        break;
+      case _CategoryArt.package:
+        _drawPackage(canvas);
         break;
     }
 
@@ -1722,68 +1955,6 @@ class _CategoryIconPainter extends CustomPainter {
     );
   }
 
-  void _drawPremium(Canvas canvas) {
-    final crown = Path()
-      ..moveTo(14, 35)
-      ..lineTo(18, 18)
-      ..lineTo(28, 29)
-      ..lineTo(38, 17)
-      ..lineTo(44, 35)
-      ..quadraticBezierTo(30, 41, 14, 35)
-      ..close();
-    canvas.drawPath(crown, _fill(accentColor));
-    canvas.drawPath(crown, _stroke(baseColor, 2.2));
-    canvas.drawCircle(Offset(18, 18), 3.2, _fill(baseColor));
-    canvas.drawCircle(Offset(38, 17), 3.2, _fill(baseColor));
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(18, 35, 23, 8),
-        const Radius.circular(4),
-      ),
-      _fill(baseColor),
-    );
-    canvas.drawPath(_starPath(const Offset(29, 32), 4.8), _fill(Colors.white));
-  }
-
-  void _drawCamping(Canvas canvas) {
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(38, 18, 5, 24),
-        const Radius.circular(2.5),
-      ),
-      _fill(const Color(0xFF7A4E2A), 0.9),
-    );
-    canvas.drawCircle(Offset(40, 16), 7.5, _fill(accentColor, 0.86));
-    canvas.drawCircle(Offset(45, 22), 6, _fill(accentColor, 0.72));
-
-    final tent = Path()
-      ..moveTo(11, 45)
-      ..lineTo(27, 17)
-      ..lineTo(44, 45)
-      ..close();
-    canvas.drawPath(tent, _fill(baseColor));
-    canvas.drawPath(
-      Path()
-        ..moveTo(27, 17)
-        ..lineTo(44, 45)
-        ..lineTo(28, 45)
-        ..quadraticBezierTo(31, 32, 27, 17)
-        ..close(),
-      _fill(Colors.white, 0.2),
-    );
-    final door = Path()
-      ..moveTo(22, 45)
-      ..lineTo(28, 33)
-      ..lineTo(34, 45)
-      ..close();
-    canvas.drawPath(door, _fill(Colors.white, 0.95));
-    canvas.drawLine(
-      const Offset(9, 47),
-      const Offset(48, 47),
-      _stroke(accentColor, 2.5, alpha: 0.6),
-    );
-  }
-
   void _drawMotel(Canvas canvas) {
     canvas.drawCircle(Offset(43, 15), 7, _fill(accentColor, 0.95));
     canvas.drawCircle(Offset(46, 12), 7, _fill(Colors.white, 0.72));
@@ -1819,6 +1990,90 @@ class _CategoryIconPainter extends CustomPainter {
       _stroke(baseColor, 3),
     );
     canvas.drawPath(_starPath(const Offset(17, 16), 3.5), _fill(baseColor));
+  }
+
+  void _drawTour(Canvas canvas) {
+    // 지구본
+    canvas.drawCircle(const Offset(25, 25), 14, _fill(accentColor, 0.95));
+    canvas.drawCircle(const Offset(25, 25), 14, _stroke(baseColor, 2.2));
+    canvas.drawArc(
+      Rect.fromCircle(center: const Offset(25, 25), radius: 9),
+      -1.1,
+      2.2,
+      false,
+      _stroke(Colors.white, 1.6, alpha: 0.72),
+    );
+    canvas.drawLine(
+      const Offset(11, 25),
+      const Offset(39, 25),
+      _stroke(Colors.white, 1.4, alpha: 0.66),
+    );
+    canvas.drawLine(
+      const Offset(25, 11),
+      const Offset(25, 39),
+      _stroke(Colors.white, 1.4, alpha: 0.66),
+    );
+    // 투어 티켓 배지 (우하단)
+    canvas.save();
+    canvas.translate(29, 31);
+    canvas.rotate(-0.18);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        const Rect.fromLTWH(0, 0, 22, 15),
+        const Radius.circular(5),
+      ),
+      _fill(baseColor),
+    );
+    canvas.drawCircle(const Offset(0, 7.5), 2.6, _fill(Colors.white, 0.95));
+    canvas.drawCircle(const Offset(22, 7.5), 2.6, _fill(Colors.white, 0.95));
+    canvas.drawPath(_starPath(const Offset(11, 7.5), 3.6), _fill(accentColor));
+    canvas.restore();
+  }
+
+  void _drawPackage(Canvas canvas) {
+    // 손잡이
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        const Rect.fromLTWH(23, 11, 12, 9),
+        const Radius.circular(3.5),
+      ),
+      _stroke(baseColor, 3),
+    );
+    // 본체
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        const Rect.fromLTWH(13, 18, 32, 28),
+        const Radius.circular(7),
+      ),
+      _fill(baseColor),
+    );
+    // 가운데 밴드
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        const Rect.fromLTWH(25, 18, 8, 28),
+        const Radius.circular(2),
+      ),
+      _fill(accentColor),
+    );
+    // 잠금쇠
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        const Rect.fromLTWH(26, 27, 6, 5),
+        const Radius.circular(1.6),
+      ),
+      _fill(Colors.white, 0.94),
+    );
+    // 좌우 스티치 라인
+    canvas.drawLine(
+      const Offset(18, 23),
+      const Offset(18, 41),
+      _stroke(Colors.white, 1.6, alpha: 0.5),
+    );
+    canvas.drawLine(
+      const Offset(40, 23),
+      const Offset(40, 41),
+      _stroke(Colors.white, 1.6, alpha: 0.5),
+    );
   }
 
   void _drawCloud(Canvas canvas, Offset center, double alpha) {
@@ -1897,6 +2152,23 @@ class _PromoBanner {
     required this.image,
     required this.id,
     required this.colors,
+  });
+}
+
+/// 기획전 모음 카드 데이터
+class _Curation {
+  final String tag;
+  final String title;
+  final String subtitle;
+  final List<Color> colors;
+  final String service;
+
+  const _Curation({
+    required this.tag,
+    required this.title,
+    required this.subtitle,
+    required this.colors,
+    required this.service,
   });
 }
 

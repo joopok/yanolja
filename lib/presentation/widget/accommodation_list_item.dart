@@ -149,10 +149,16 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
   }
 
   Widget _buildImage(String imageUrl) {
+    // 카드 이미지를 실제 표시 해상도로만 디코드해 스크롤 리스트의 메모리·디코드
+    // 부담을 줄인다(원본 풀해상도 디코드 방지). 시각은 동일.
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final cacheWidth =
+        ((MediaQuery.sizeOf(context).width - 40) * dpr).round();
     return CachedNetworkImage(
       imageUrl: imageUrl,
       fit: BoxFit.cover,
       width: double.infinity,
+      memCacheWidth: cacheWidth > 0 ? cacheWidth : null,
       placeholder: (context, url) => Container(
         color: YanoljaColors.surfaceAlt,
       ),
@@ -249,7 +255,7 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
   Widget _buildBadge(String text, Color color) {
     return Container(
       margin: const EdgeInsets.only(right: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: YanoljaSpacing.xs),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(YanoljaRadius.sm),
@@ -275,7 +281,7 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.s, vertical: YanoljaSpacing.xs),
                 decoration: BoxDecoration(
                   color: YanoljaColors.primaryLight,
                   borderRadius: BorderRadius.circular(YanoljaRadius.pill),
@@ -351,7 +357,7 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
       children: [
         ...displayAmenities.map(
           (amenity) => Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.s, vertical: YanoljaSpacing.xs),
             decoration: BoxDecoration(
               color: YanoljaColors.surfaceAlt,
               borderRadius: BorderRadius.circular(YanoljaRadius.sm),
@@ -368,7 +374,7 @@ class _AccommodationListItemState extends ConsumerState<AccommodationListItem> {
         ),
         if (widget.accommodation.amenities.length > 3)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.s, vertical: YanoljaSpacing.xs),
             decoration: BoxDecoration(
               color: YanoljaColors.surfaceAlt,
               borderRadius: BorderRadius.circular(YanoljaRadius.sm),

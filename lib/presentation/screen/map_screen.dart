@@ -245,7 +245,7 @@ class _MapSearchHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 52,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.m),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(YanoljaRadius.pill),
@@ -280,7 +280,7 @@ class _MapSearchHeader extends StatelessWidget {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.s, vertical: YanoljaSpacing.xs),
             decoration: BoxDecoration(
               color: YanoljaColors.primaryLight,
               borderRadius: BorderRadius.circular(YanoljaRadius.pill),

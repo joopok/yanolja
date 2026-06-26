@@ -298,7 +298,7 @@ class AnimatedSearchFieldState extends State<AnimatedSearchField> {
                         onTap: () => widget.onSuggestionTap?.call(suggestion),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
+                            horizontal: YanoljaSpacing.m,
                             vertical: 10,
                           ),
                           child: Row(

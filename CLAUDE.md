@@ -41,27 +41,23 @@ flutter clean && flutter pub get && cd ios && pod install
 
 ## Architecture
 
-### 이중 아키텍처가 공존한다 (가장 주의할 점)
-이 코드베이스는 **레거시 패턴**과 **Clean Architecture 패턴**이 동시에 존재하며, 디렉토리 이름의 단/복수로 구분된다. 신규 기능은 Clean 패턴을 따른다.
+### 단일 데이터 스택 (Clean 병렬 스택은 제거됨)
+이 코드베이스는 **하나의 데이터 흐름**만 쓴다: **UI → `presentation/provider/*_provider.dart`(Riverpod) → `data/repository/*` → `data/datasource/*` / `data/model/*`**.
 
-| 계층 | 레거시 (단수) | Clean (복수/도메인) |
-|------|--------------|--------------------|
-| 데이터소스 | `data/datasource/` | `data/datasources/` |
-| 모델 | `data/model/` | `data/models/` (+ `data/mappers/`) |
-| 리포지토리 | `data/repository/` | `data/repositories/` (+ `domain/repositories/` 인터페이스) |
-| 도메인 | — | `domain/entities/`, `domain/usecases/` |
-| DI | (직접 생성) | `core/di/injection_container.dart` |
+| 계층 | 위치 |
+|------|------|
+| 데이터소스 | `data/datasource/` (mock API, sqflite 리뷰 DB) |
+| 모델 | `data/model/` |
+| 리포지토리 | `data/repository/` (인터페이스 분리 없이 직접 구현) |
 
-- **Clean 흐름**: UI → `*_provider_clean.dart` → UseCase → Repository(impl) → DataSource. 의존성은 `injection_container.dart`의 Riverpod Provider로 주입.
-- **레거시 흐름**: UI → `*_provider.dart` → `data/repository/*` 직접 호출.
-- 같은 도메인이 양쪽에 있을 수 있다 (예: `accommodation_provider.dart` vs `accommodation_provider_clean.dart`). 작업 전 어느 계열을 쓰는지 확인할 것.
+> 과거에는 어디서도 import되지 않던(죽은) **Clean 병렬 스택**(`domain/`, `data/{models,mappers,repositories,datasources}/`, `core/di/injection_container.dart`, `*_provider_clean.dart`, hanok 미니스택)이 공존해 디렉토리 단/복수로 갈렸으나, **전부 제거**되었다. 신규 기능도 위 단일 흐름을 따르며, Provider는 화면/도메인별 `presentation/provider/*_provider.dart`에 정의한다.
 
 ### 상태 관리 (Riverpod)
 - `flutter_riverpod` 사용. `FutureProvider`(비동기 로딩), `Provider.family`(파라미터), `StateNotifierProvider`(가변 상태, 예: `auth_provider`, `settings_provider`).
 - UseCase는 `call()` 규약 — `await useCase()` / `await useCase(param)` 형태로 호출한다. `.execute()` 메서드는 **존재하지 않는다**.
 
 ### 라우팅 (`lib/core/router.dart`)
-- `GoRouter` + `StatefulShellRoute.indexedStack`로 하단 탭 상태 유지. `initialLocation: '/home'`.
+- `GoRouter` + `StatefulShellRoute.indexedStack`로 하단 탭 상태 유지. `initialLocation: '/splash'` (스플래시 후 홈으로 진입).
 - 탭 5개: `/home`, `/search`, `/nearby`, `/saved`, `/my-info` (셸: `presentation/screen/main_shell.dart`).
 - 셸 밖 라우트: `/detail/:id`, `/hotel`·`/pension`·`/resort`·`/hanok`, `/bookings`, `/payment`·`/payment-complete`, `/login`·`/signup`, `/map`, `/settings` 등.
 - 화면 간 복잡한 객체 전달은 `state.extra` 사용 (예: 결제 흐름의 `PaymentArgs`, 완료 화면의 `Booking`).

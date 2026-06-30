@@ -30,6 +30,11 @@ class NolMenuItem {
 class NolMenuIcons {
   NolMenuIcons._();
 
+  static const String appBarHamburger =
+      'assets/menu_icons/app_bar_hamburger.png';
+  static const String allReservationHub =
+      'assets/menu_icons/all_reservation_hub.png';
+
   static const String quickHotelResort =
       'assets/menu_icons/quick_hotel_resort.png';
   static const String quickPensionPoolvilla =

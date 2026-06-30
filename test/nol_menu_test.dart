@@ -80,7 +80,24 @@ List<String> _generatedIconAssets() {
     NolMyIconAsset.security,
     NolMyIconAsset.theme,
   ];
-  return [...menuAssets, ...myTabAssets];
+  final nearbyAssets = Directory('assets/nearby_icons')
+      .listSync()
+      .whereType<File>()
+      .map((file) => file.path)
+      .where((path) => path.endsWith('.png'));
+  final searchAssets = Directory('assets/search_icons')
+      .listSync()
+      .whereType<File>()
+      .map((file) => file.path)
+      .where((path) => path.endsWith('.png'));
+  return [
+    NolMenuIcons.appBarHamburger,
+    NolMenuIcons.allReservationHub,
+    ...menuAssets,
+    ...myTabAssets,
+    ...nearbyAssets,
+    ...searchAssets,
+  ];
 }
 
 bool _isAlphaPng(List<int> bytes) {

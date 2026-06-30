@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:yanolja_clone/core/nol_menu.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 
@@ -511,11 +512,17 @@ class _YanoljaAllMenuAction extends StatelessWidget {
             margin: const EdgeInsets.only(left: 2, right: 14),
             // 배경색·테두리·그림자 없이 아이콘만 노출한다.
             alignment: Alignment.center,
-            child: const Icon(
-              Icons.menu_rounded,
-              // 헤더의 다른 액션 아이콘과 동일하게: 검은색·size 24.
-              color: YanoljaColors.textPrimary,
-              size: 24,
+            child: Image.asset(
+              NolMenuIcons.appBarHamburger,
+              width: 26,
+              height: 22,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+              errorBuilder: (_, __, ___) => const Icon(
+                Icons.menu_rounded,
+                color: YanoljaColors.textPrimary,
+                size: 24,
+              ),
             ),
           ),
         ),

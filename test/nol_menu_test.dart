@@ -53,6 +53,31 @@ void main() {
 
     expect(failures, isEmpty);
   });
+
+  test('launch image png assets are transparent cutouts', () async {
+    final failures = <String>[];
+
+    for (final asset in _launchImageAssets()) {
+      final bytes = File(asset).readAsBytesSync();
+      if (!_isAlphaPng(bytes)) {
+        failures.add('$asset: PNG alpha channel is missing');
+        continue;
+      }
+
+      final metrics = await _readAlphaMetrics(bytes);
+      if (!metrics.hasTransparentPixel) {
+        failures.add('$asset: transparent background pixels are missing');
+      }
+      if (!metrics.hasOpaquePixel) {
+        failures.add('$asset: opaque foreground pixels are missing');
+      }
+      if (!metrics.hasTransparentCorners) {
+        failures.add('$asset: launch image corners are not transparent');
+      }
+    }
+
+    expect(failures, isEmpty);
+  });
 }
 
 List<String> _generatedIconAssets() {
@@ -100,6 +125,20 @@ List<String> _generatedIconAssets() {
   ];
 }
 
+List<String> _launchImageAssets() {
+  return [
+    'assets/brand/launch_image.png',
+    'android/app/src/main/res/mipmap-mdpi/launch_image.png',
+    'android/app/src/main/res/mipmap-hdpi/launch_image.png',
+    'android/app/src/main/res/mipmap-xhdpi/launch_image.png',
+    'android/app/src/main/res/mipmap-xxhdpi/launch_image.png',
+    'android/app/src/main/res/mipmap-xxxhdpi/launch_image.png',
+    'ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage.png',
+    'ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@2x.png',
+    'ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@3x.png',
+  ];
+}
+
 bool _isAlphaPng(List<int> bytes) {
   const pngSignature = [137, 80, 78, 71, 13, 10, 26, 10];
   if (bytes.length < 33) return false;
@@ -134,6 +173,7 @@ Future<_AlphaMetrics> _readAlphaMetrics(List<int> bytes) async {
   image.dispose();
 
   var hasTransparentPixel = false;
+  var hasOpaquePixel = false;
   var touchesTop = false;
   var touchesRight = false;
   var touchesBottom = false;
@@ -143,6 +183,7 @@ Future<_AlphaMetrics> _readAlphaMetrics(List<int> bytes) async {
     for (var x = 0; x < width; x++) {
       final alpha = pixels[((y * width + x) * 4) + 3];
       if (alpha == 0) hasTransparentPixel = true;
+      if (alpha == 255) hasOpaquePixel = true;
       if (alpha > 8) {
         if (y == 0) touchesTop = true;
         if (x == width - 1) touchesRight = true;
@@ -154,6 +195,8 @@ Future<_AlphaMetrics> _readAlphaMetrics(List<int> bytes) async {
 
   return _AlphaMetrics(
     hasTransparentPixel: hasTransparentPixel,
+    hasOpaquePixel: hasOpaquePixel,
+    hasTransparentCorners: _cornersAreTransparent(pixels, width, height),
     touchesTop: touchesTop,
     touchesRight: touchesRight,
     touchesBottom: touchesBottom,
@@ -161,8 +204,20 @@ Future<_AlphaMetrics> _readAlphaMetrics(List<int> bytes) async {
   );
 }
 
+bool _cornersAreTransparent(Uint8List pixels, int width, int height) {
+  final cornerIndexes = [
+    3,
+    ((width - 1) * 4) + 3,
+    (((height - 1) * width) * 4) + 3,
+    (((height - 1) * width + width - 1) * 4) + 3,
+  ];
+  return cornerIndexes.every((index) => pixels[index] == 0);
+}
+
 class _AlphaMetrics {
   final bool hasTransparentPixel;
+  final bool hasOpaquePixel;
+  final bool hasTransparentCorners;
   final bool touchesTop;
   final bool touchesRight;
   final bool touchesBottom;
@@ -170,6 +225,8 @@ class _AlphaMetrics {
 
   const _AlphaMetrics({
     required this.hasTransparentPixel,
+    required this.hasOpaquePixel,
+    required this.hasTransparentCorners,
     required this.touchesTop,
     required this.touchesRight,
     required this.touchesBottom,

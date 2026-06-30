@@ -4,22 +4,22 @@ import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 class NolMyIconAsset {
   NolMyIconAsset._();
 
-  static const String reservation = 'assets/my_icons/reservation.png';
-  static const String coupon = 'assets/my_icons/coupon.png';
-  static const String points = 'assets/my_icons/points.png';
-  static const String review = 'assets/my_icons/review.png';
-  static const String notification = 'assets/my_icons/notification.png';
-  static const String settings = 'assets/my_icons/settings.png';
-  static const String support = 'assets/my_icons/support.png';
-  static const String profileEdit = 'assets/my_icons/profile_edit.png';
-  static const String saved = 'assets/my_icons/saved.png';
-  static const String recent = 'assets/my_icons/recent.png';
-  static const String card = 'assets/my_icons/card.png';
-  static const String notice = 'assets/my_icons/notice.png';
-  static const String location = 'assets/my_icons/location.png';
-  static const String language = 'assets/my_icons/language.png';
-  static const String security = 'assets/my_icons/security.png';
-  static const String theme = 'assets/my_icons/theme.png';
+  static const String reservation = 'assets/my_icons/v2_reservation.png';
+  static const String coupon = 'assets/my_icons/v2_coupon.png';
+  static const String points = 'assets/my_icons/v2_points.png';
+  static const String review = 'assets/my_icons/v2_review.png';
+  static const String notification = 'assets/my_icons/v2_notification.png';
+  static const String settings = 'assets/my_icons/v2_settings.png';
+  static const String support = 'assets/my_icons/v2_support.png';
+  static const String profileEdit = 'assets/my_icons/v2_profile_edit.png';
+  static const String saved = 'assets/my_icons/v2_saved.png';
+  static const String recent = 'assets/my_icons/v2_recent.png';
+  static const String card = 'assets/my_icons/v2_card.png';
+  static const String notice = 'assets/my_icons/v2_notice.png';
+  static const String location = 'assets/my_icons/v2_location.png';
+  static const String language = 'assets/my_icons/v2_language.png';
+  static const String security = 'assets/my_icons/v2_security.png';
+  static const String theme = 'assets/my_icons/v2_theme.png';
 
   static const Map<String, IconData> _fallbackIcons = {
     reservation: Icons.luggage_rounded,

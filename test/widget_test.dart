@@ -7,6 +7,7 @@ import 'package:yanolja_clone/presentation/provider/screen/detail_screen.dart';
 import 'package:yanolja_clone/presentation/screen/splash_screen.dart';
 import 'package:yanolja_clone/presentation/widget/animated_search_field.dart';
 import 'package:yanolja_clone/presentation/widget/fullscreen_image_gallery.dart';
+import 'package:yanolja_clone/presentation/widget/nol_my_icon.dart';
 import 'package:yanolja_clone/presentation/widget/social_share_sheet.dart';
 
 void main() {
@@ -49,6 +50,28 @@ void main() {
     expect(find.text('놀 준비를 마치는 중'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('renders fallback when my tab icon asset is missing',
+      (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: NolMyIcon(
+              asset: 'assets/my_icons/missing.png',
+              size: 52,
+              semanticLabel: '누락 아이콘',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.image_not_supported_rounded), findsOneWidget);
+    expect(find.bySemanticsLabel('누락 아이콘'), findsOneWidget);
   });
 
   testWidgets('shows payment CTA after selecting stay dates', (tester) async {

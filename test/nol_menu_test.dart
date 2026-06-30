@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:yanolja_clone/core/nol_menu.dart';
@@ -26,38 +28,59 @@ void main() {
     expect(missingAssets, isEmpty);
   });
 
-  test('generated icon png assets include transparent alpha channels', () {
-    final quickItems =
-        nolQuickMenu.where((item) => item.route != '/all-categories').take(6);
-    final menuAssets = [
-      ...quickItems.map((item) => item.asset),
-      ...nolMenuGroups.expand((group) => group.items).map((item) => item.asset),
-    ];
-    const myTabAssets = [
-      NolMyIconAsset.reservation,
-      NolMyIconAsset.coupon,
-      NolMyIconAsset.points,
-      NolMyIconAsset.review,
-      NolMyIconAsset.notification,
-      NolMyIconAsset.settings,
-      NolMyIconAsset.support,
-      NolMyIconAsset.profileEdit,
-      NolMyIconAsset.saved,
-      NolMyIconAsset.recent,
-      NolMyIconAsset.card,
-      NolMyIconAsset.notice,
-      NolMyIconAsset.location,
-      NolMyIconAsset.language,
-      NolMyIconAsset.security,
-      NolMyIconAsset.theme,
-    ];
+  test('generated icon png assets are transparent and tightly trimmed',
+      () async {
+    final failures = <String>[];
 
-    final alphaMissing = [...menuAssets, ...myTabAssets]
-        .where((asset) => !_isAlphaPng(File(asset).readAsBytesSync()))
-        .toList();
+    for (final asset in _generatedIconAssets()) {
+      final bytes = File(asset).readAsBytesSync();
+      if (!_isAlphaPng(bytes)) {
+        failures.add('$asset: PNG alpha channel is missing');
+        continue;
+      }
 
-    expect(alphaMissing, isEmpty);
+      final metrics = await _readAlphaMetrics(bytes);
+      if (!metrics.hasTransparentPixel) {
+        failures.add('$asset: transparent background pixels are missing');
+      }
+      if (!metrics.touchesTop ||
+          !metrics.touchesRight ||
+          !metrics.touchesBottom ||
+          !metrics.touchesLeft) {
+        failures.add('$asset: transparent canvas was not trimmed to content');
+      }
+    }
+
+    expect(failures, isEmpty);
   });
+}
+
+List<String> _generatedIconAssets() {
+  final quickItems =
+      nolQuickMenu.where((item) => item.route != '/all-categories').take(6);
+  final menuAssets = [
+    ...quickItems.map((item) => item.asset),
+    ...nolMenuGroups.expand((group) => group.items).map((item) => item.asset),
+  ];
+  const myTabAssets = [
+    NolMyIconAsset.reservation,
+    NolMyIconAsset.coupon,
+    NolMyIconAsset.points,
+    NolMyIconAsset.review,
+    NolMyIconAsset.notification,
+    NolMyIconAsset.settings,
+    NolMyIconAsset.support,
+    NolMyIconAsset.profileEdit,
+    NolMyIconAsset.saved,
+    NolMyIconAsset.recent,
+    NolMyIconAsset.card,
+    NolMyIconAsset.notice,
+    NolMyIconAsset.location,
+    NolMyIconAsset.language,
+    NolMyIconAsset.security,
+    NolMyIconAsset.theme,
+  ];
+  return [...menuAssets, ...myTabAssets];
 }
 
 bool _isAlphaPng(List<int> bytes) {
@@ -81,4 +104,58 @@ bool _isAlphaPng(List<int> bytes) {
     i += 12 + length;
   }
   return false;
+}
+
+Future<_AlphaMetrics> _readAlphaMetrics(List<int> bytes) async {
+  final codec = await ui.instantiateImageCodec(Uint8List.fromList(bytes));
+  final frame = await codec.getNextFrame();
+  final image = frame.image;
+  final byteData = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+  final pixels = byteData!.buffer.asUint8List();
+  final width = image.width;
+  final height = image.height;
+  image.dispose();
+
+  var hasTransparentPixel = false;
+  var touchesTop = false;
+  var touchesRight = false;
+  var touchesBottom = false;
+  var touchesLeft = false;
+
+  for (var y = 0; y < height; y++) {
+    for (var x = 0; x < width; x++) {
+      final alpha = pixels[((y * width + x) * 4) + 3];
+      if (alpha == 0) hasTransparentPixel = true;
+      if (alpha > 8) {
+        if (y == 0) touchesTop = true;
+        if (x == width - 1) touchesRight = true;
+        if (y == height - 1) touchesBottom = true;
+        if (x == 0) touchesLeft = true;
+      }
+    }
+  }
+
+  return _AlphaMetrics(
+    hasTransparentPixel: hasTransparentPixel,
+    touchesTop: touchesTop,
+    touchesRight: touchesRight,
+    touchesBottom: touchesBottom,
+    touchesLeft: touchesLeft,
+  );
+}
+
+class _AlphaMetrics {
+  final bool hasTransparentPixel;
+  final bool touchesTop;
+  final bool touchesRight;
+  final bool touchesBottom;
+  final bool touchesLeft;
+
+  const _AlphaMetrics({
+    required this.hasTransparentPixel,
+    required this.touchesTop,
+    required this.touchesRight,
+    required this.touchesBottom,
+    required this.touchesLeft,
+  });
 }

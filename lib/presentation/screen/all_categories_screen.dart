@@ -497,7 +497,7 @@ class _MenuIconImage extends StatelessWidget {
           item.asset,
           width: size,
           height: size,
-          fit: BoxFit.cover,
+          fit: BoxFit.contain,
           filterQuality: FilterQuality.high,
           excludeFromSemantics: true,
           errorBuilder: (context, error, stackTrace) {

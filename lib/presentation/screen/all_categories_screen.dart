@@ -517,8 +517,6 @@ class _MenuIconImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displaySize = _MenuIconDisplaySize.fromAsset(item.asset, size);
-
     return Semantics(
       label: '${item.label} 아이콘',
       image: true,
@@ -526,15 +524,15 @@ class _MenuIconImage extends StatelessWidget {
         borderRadius: BorderRadius.circular(radius),
         child: Image.asset(
           item.asset,
-          width: displaySize.width,
-          height: displaySize.height,
+          width: size,
+          height: size,
           fit: BoxFit.contain,
           filterQuality: FilterQuality.high,
           excludeFromSemantics: true,
           errorBuilder: (context, error, stackTrace) {
             return Container(
-              width: displaySize.width,
-              height: displaySize.height,
+              width: size,
+              height: size,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: item.color.withValues(alpha: 0.12),
@@ -543,7 +541,7 @@ class _MenuIconImage extends StatelessWidget {
               child: Icon(
                 item.icon,
                 color: item.color,
-                size: displaySize.shortestSide * 0.48,
+                size: size * 0.48,
               ),
             );
           },
@@ -552,51 +550,6 @@ class _MenuIconImage extends StatelessWidget {
     );
   }
 }
-
-class _MenuIconDisplaySize {
-  static const double _sourceCanvasExtent = 256;
-
-  final double width;
-  final double height;
-
-  const _MenuIconDisplaySize(this.width, this.height);
-
-  double get shortestSide => width < height ? width : height;
-
-  static _MenuIconDisplaySize fromAsset(String asset, double size) {
-    final sourceBounds = _ticketSourceBounds[asset];
-    if (sourceBounds == null) {
-      return _MenuIconDisplaySize(size, size);
-    }
-
-    final scale = size / _sourceCanvasExtent;
-    return _MenuIconDisplaySize(
-      sourceBounds.width * scale,
-      sourceBounds.height * scale,
-    );
-  }
-}
-
-class _SourceIconBounds {
-  final double width;
-  final double height;
-
-  const _SourceIconBounds(this.width, this.height);
-}
-
-/// NOL 티켓 아이콘은 256px 원본 캔버스에서 차지하던 실제 bbox 크기로 렌더한다.
-///
-/// 배경 제거 후 PNG는 실선 기준으로 잘려 있지만, 화면에서 그대로 46px 폭에 맞추면
-/// 예전보다 과하게 커지고 가로로 늘린 것처럼 보여 원본 캔버스 비율을 복원한다.
-const Map<String, _SourceIconBounds> _ticketSourceBounds = {
-  NolMenuIcons.ticketMusical: _SourceIconBounds(165, 101),
-  NolMenuIcons.ticketConcert: _SourceIconBounds(187, 88),
-  NolMenuIcons.ticketSports: _SourceIconBounds(185, 92),
-  NolMenuIcons.ticketExhibition: _SourceIconBounds(198, 94),
-  NolMenuIcons.ticketClassicDance: _SourceIconBounds(187, 95),
-  NolMenuIcons.ticketKidsFamily: _SourceIconBounds(185, 92),
-  NolMenuIcons.ticketTheater: _SourceIconBounds(182, 86),
-};
 
 /// 전체메뉴 앱바 우측 로그아웃 액션.
 ///

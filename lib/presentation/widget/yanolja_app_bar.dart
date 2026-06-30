@@ -156,6 +156,7 @@ class YanoljaAppBar extends StatelessWidget implements PreferredSizeWidget {
     if (!showBackButton) return null;
     return _YanoljaBackButton(
       useCloseButton: useCloseButton,
+      flat: flatLeading,
       onPressed: () => _handleBack(context),
     );
   }
@@ -371,11 +372,13 @@ class YanoljaSliverAppBar extends StatelessWidget {
 
 class _YanoljaBackButton extends StatelessWidget {
   final bool useCloseButton;
+  final bool flat;
   final VoidCallback onPressed;
 
   const _YanoljaBackButton({
     required this.useCloseButton,
     required this.onPressed,
+    this.flat = false,
   });
 
   @override
@@ -400,14 +403,17 @@ class _YanoljaBackButton extends StatelessWidget {
                 width: 40,
                 height: 40,
                 alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: YanoljaColors.surfaceAlt,
-                  borderRadius: BorderRadius.circular(YanoljaRadius.squircle),
-                  border: Border.all(color: YanoljaColors.border),
-                ),
+                decoration: flat
+                    ? null
+                    : BoxDecoration(
+                        color: YanoljaColors.surfaceAlt,
+                        borderRadius:
+                            BorderRadius.circular(YanoljaRadius.squircle),
+                        border: Border.all(color: YanoljaColors.border),
+                      ),
                 child: Icon(
                   icon,
-                  size: useCloseButton ? 22 : 18,
+                  size: flat ? 22 : (useCloseButton ? 22 : 18),
                   color: YanoljaColors.textPrimary,
                 ),
               ),

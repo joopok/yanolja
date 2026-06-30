@@ -224,7 +224,7 @@ class AllCategoriesScreen extends ConsumerWidget {
             ),
           ),
           SizedBox(
-            height: 92,
+            height: 108,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
@@ -246,32 +246,44 @@ class AllCategoriesScreen extends ConsumerWidget {
       borderRadius: BorderRadius.circular(YanoljaRadius.lg),
       pressedScale: 0.94,
       child: Container(
-        width: 110,
-        padding: const EdgeInsets.fromLTRB(13, 12, 13, 11),
+        width: 118,
+        padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
         decoration: BoxDecoration(
-          color: item.color.withValues(alpha: 0.08),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              YanoljaColors.background,
+              item.color.withValues(alpha: 0.07),
+            ],
+          ),
           borderRadius: BorderRadius.circular(YanoljaRadius.lg),
-          border: Border.all(color: item.color.withValues(alpha: 0.12)),
+          border: Border.all(color: item.color.withValues(alpha: 0.14)),
+          boxShadow: [
+            BoxShadow(
+              color: item.color.withValues(alpha: 0.09),
+              blurRadius: 14,
+              offset: const Offset(0, 7),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 34,
-              height: 34,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: YanoljaColors.background,
-                borderRadius: BorderRadius.circular(YanoljaRadius.md),
-                boxShadow: [
-                  BoxShadow(
-                    color: item.color.withValues(alpha: 0.18),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Icon(item.icon, color: item.color, size: 20),
+            Row(
+              children: [
+                _MenuIconImage(
+                  item: item,
+                  size: 48,
+                  radius: YanoljaRadius.lg,
+                ),
+                const Spacer(),
+                Icon(
+                  Icons.north_east_rounded,
+                  color: item.color.withValues(alpha: 0.58),
+                  size: 16,
+                ),
+              ],
             ),
             const Spacer(),
             Text(
@@ -280,9 +292,20 @@ class AllCategoriesScreen extends ConsumerWidget {
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 13,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w900,
                 color: YanoljaColors.textPrimary,
                 letterSpacing: -0.2,
+              ),
+            ),
+            Text(
+              '바로가기',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: item.color.withValues(alpha: 0.78),
+                letterSpacing: -0.1,
               ),
             ),
           ],
@@ -306,7 +329,16 @@ class AllCategoriesScreen extends ConsumerWidget {
         18,
       ),
       decoration: BoxDecoration(
-        color: YanoljaColors.background,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            accent.withValues(alpha: 0.055),
+            YanoljaColors.background,
+            YanoljaColors.background,
+          ],
+          stops: const [0, 0.42, 1],
+        ),
         borderRadius: BorderRadius.circular(YanoljaRadius.xl),
         border: Border.all(color: YanoljaColors.border),
         boxShadow: const [
@@ -381,9 +413,9 @@ class AllCategoriesScreen extends ConsumerWidget {
             crossAxisCount: 4,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: YanoljaSpacing.m,
+            mainAxisSpacing: 14,
             crossAxisSpacing: YanoljaSpacing.s,
-            childAspectRatio: 0.82,
+            childAspectRatio: 0.66,
             children: [
               for (var i = 0; i < group.items.length; i++)
                 _buildMenuTile(context, group.items[i]),
@@ -395,9 +427,6 @@ class AllCategoriesScreen extends ConsumerWidget {
   }
 
   Widget _buildMenuTile(BuildContext context, NolMenuItem item) {
-    // 디자인 전체메뉴(overlay) 타일 스펙과 1:1 매칭:
-    // 52x52 · radius 16 · bg color@12% · border color@14% · shadow 0 6px 12px color@12%
-    // · 유색 글리프(size 26) · 라벨 12/w700/-0.3/lh1.18
     return YanoljaPressable(
       onTap: () => context.push(item.route),
       borderRadius: BorderRadius.circular(YanoljaRadius.lg),
@@ -405,22 +434,26 @@ class AllCategoriesScreen extends ConsumerWidget {
       child: Column(
         children: [
           Container(
-            width: 52,
-            height: 52,
+            width: 58,
+            height: 58,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: item.color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(YanoljaRadius.lg),
-              border: Border.all(color: item.color.withValues(alpha: 0.14)),
+              color: item.color.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: item.color.withValues(alpha: 0.12)),
               boxShadow: [
                 BoxShadow(
-                  color: item.color.withValues(alpha: 0.12),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
+                  color: item.color.withValues(alpha: 0.10),
+                  blurRadius: 14,
+                  offset: const Offset(0, 7),
                 ),
               ],
             ),
-            child: Icon(item.icon, color: item.color, size: 26),
+            child: _MenuIconImage(
+              item: item,
+              size: 54,
+              radius: YanoljaRadius.lg,
+            ),
           ),
           const SizedBox(height: YanoljaSpacing.s),
           Text(
@@ -437,6 +470,53 @@ class AllCategoriesScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MenuIconImage extends StatelessWidget {
+  final NolMenuItem item;
+  final double size;
+  final double radius;
+
+  const _MenuIconImage({
+    required this.item,
+    required this.size,
+    required this.radius,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: '${item.label} 아이콘',
+      image: true,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: Image.asset(
+          item.asset,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          filterQuality: FilterQuality.high,
+          excludeFromSemantics: true,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              width: size,
+              height: size,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: item.color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(radius),
+              ),
+              child: Icon(
+                item.icon,
+                color: item.color,
+                size: size * 0.48,
+              ),
+            );
+          },
+        ),
       ),
     );
   }

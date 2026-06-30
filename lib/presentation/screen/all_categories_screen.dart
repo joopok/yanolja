@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yanolja_clone/core/nol_menu.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
+import 'package:yanolja_clone/presentation/provider/auth_provider.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_confirm_dialog.dart';
 
 /// 전체 카테고리 화면
 ///
@@ -13,17 +17,24 @@ import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 ///
 /// 메가메뉴 룩을 위해 히어로 배너 → 빠른 이동 → 각 메뉴 그룹 순서로
 /// staggered 등장(YanoljaEntrance + YanoljaMotion.stagger)을 적용합니다.
-class AllCategoriesScreen extends StatelessWidget {
+class AllCategoriesScreen extends ConsumerWidget {
   const AllCategoriesScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authStateProvider);
     return Scaffold(
       backgroundColor: YanoljaColors.surfaceAlt,
-      appBar: const YanoljaAppBar.sub(
+      appBar: YanoljaAppBar.sub(
         title: '전체 메뉴',
         subtitle: '필요한 예약 메뉴를 빠르게 찾으세요',
         fallbackRoute: '/home',
+        // 로그인 상태에서만 우측에 로그아웃 액션을 노출한다.
+        actions: user == null
+            ? null
+            : [
+                _LogoutAction(onTap: () => _handleLogout(context, ref)),
+              ],
       ),
       body: SafeArea(
         top: false,
@@ -60,10 +71,31 @@ class AllCategoriesScreen extends StatelessWidget {
     );
   }
 
+  /// 로그아웃: 확인 다이얼로그 → 세션 해제 → 로그인 화면으로 이동.
+  /// (ProfileScreen에서 옮겨온 동작과 동일하게 fromLogout 플래그를 전달한다.)
+  Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
+    HapticFeedback.mediumImpact();
+    final confirmed = await showYanoljaConfirmDialog(
+      context: context,
+      icon: Icons.logout_rounded,
+      title: '로그아웃할까요?',
+      message: '현재 계정에서 나갑니다.\n예약 내역은 다시 로그인하면 그대로 확인할 수 있어요.',
+      confirmText: '로그아웃',
+      isDestructive: true,
+    );
+    if (!confirmed) return;
+    await ref.read(authProvider).signOut();
+    if (!context.mounted) return;
+    YanoljaToast.show(context, '로그아웃되었습니다.');
+    context.go('/login', extra: const {'fromLogout': true});
+  }
+
   /// 상단 브랜드 배너
   Widget _buildHeroBanner(BuildContext context) {
     return YanoljaPressable(
-      onTap: () => context.push('/search'),
+      // /search 는 StatefulShellRoute 브랜치이므로 push가 아닌 go로 이동한다.
+      // push 하면 ShellRouteMatch 페이지 키가 중복돼 Navigator 어서션이 크래시한다.
+      onTap: () => context.go('/search'),
       borderRadius: BorderRadius.circular(YanoljaRadius.xl),
       child: Container(
         padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
@@ -151,7 +183,8 @@ class AllCategoriesScreen extends StatelessWidget {
         .toList();
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(YanoljaSpacing.m, YanoljaSpacing.m, 0, YanoljaSpacing.m),
+      padding: const EdgeInsets.fromLTRB(
+          YanoljaSpacing.m, YanoljaSpacing.m, 0, YanoljaSpacing.m),
       decoration: BoxDecoration(
         color: YanoljaColors.background,
         borderRadius: BorderRadius.circular(YanoljaRadius.xl),
@@ -161,7 +194,8 @@ class AllCategoriesScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Padding(
-            padding: EdgeInsets.only(right: YanoljaSpacing.m, bottom: YanoljaSpacing.s),
+            padding: EdgeInsets.only(
+                right: YanoljaSpacing.m, bottom: YanoljaSpacing.s),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -323,8 +357,7 @@ class AllCategoriesScreen extends StatelessWidget {
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                 decoration: BoxDecoration(
                   color: accent.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(YanoljaRadius.pill),
@@ -360,6 +393,9 @@ class AllCategoriesScreen extends StatelessWidget {
   }
 
   Widget _buildMenuTile(BuildContext context, NolMenuItem item) {
+    // 디자인 전체메뉴(overlay) 타일 스펙과 1:1 매칭:
+    // 52x52 · radius 16 · bg color@12% · border color@14% · shadow 0 6px 12px color@12%
+    // · 유색 글리프(size 26) · 라벨 12/w700/-0.3/lh1.18
     return YanoljaPressable(
       onTap: () => context.push(item.route),
       borderRadius: BorderRadius.circular(YanoljaRadius.lg),
@@ -399,6 +435,48 @@ class AllCategoriesScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 전체메뉴 앱바 우측 로그아웃 액션.
+///
+/// 배경 없는 플레인 아이콘. 화면 우측 끝에 바짝 붙지 않도록 우측 여백을 둔다.
+class _LogoutAction extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _LogoutAction({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        // 앱바 기본 trailing(SizedBox 6) + 우측 8 = 화면 끝에서 약 14px 떨어진다.
+        padding: const EdgeInsets.only(right: 8),
+        child: Tooltip(
+          message: '로그아웃',
+          child: Semantics(
+            button: true,
+            label: '로그아웃',
+            child: YanoljaPressable(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(YanoljaRadius.squircle),
+              pressedScale: 0.94,
+              child: const SizedBox(
+                width: 40,
+                height: 40,
+                child: Center(
+                  child: Icon(
+                    Icons.logout_rounded,
+                    size: 22,
+                    color: YanoljaColors.textSecondary,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

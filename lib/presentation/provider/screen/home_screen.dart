@@ -97,7 +97,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         right: 2,
                         top: 2,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.xs),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: YanoljaSpacing.xs),
                           constraints: const BoxConstraints(minWidth: 17),
                           height: 17,
                           alignment: Alignment.center,
@@ -170,8 +171,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               height: 56,
               padding: const EdgeInsets.fromLTRB(18, 0, 9, 0),
               decoration: BoxDecoration(
-                color: const Color(0xFFF3F5FA),
-                borderRadius: BorderRadius.circular(18),
+                color: YanoljaColors.surfaceSearch,
+                borderRadius: BorderRadius.circular(YanoljaRadius.search),
                 border: Border.all(color: YanoljaColors.border),
                 boxShadow: [
                   BoxShadow(
@@ -286,57 +287,57 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       _Category(
         label: '호텔/리조트',
         art: _CategoryArt.hotel,
-        baseColor: const Color(0xFF5B43FF),
-        accentColor: const Color(0xFF8E7BFF),
+        baseColor: YanoljaCategoryGradients.hotel[0],
+        accentColor: YanoljaCategoryGradients.hotel[1],
         onTap: () => context.push('/hotel'),
       ),
       _Category(
         label: '펜션/풀빌라',
         art: _CategoryArt.pension,
-        baseColor: const Color(0xFF00AFA3),
-        accentColor: const Color(0xFF7CE7D6),
+        baseColor: YanoljaCategoryGradients.pension[0],
+        accentColor: YanoljaCategoryGradients.pension[1],
         onTap: () => context.push('/pension'),
       ),
       _Category(
         label: '모텔',
         art: _CategoryArt.motel,
-        baseColor: const Color(0xFFFF9F1C),
-        accentColor: const Color(0xFFFFE06D),
+        baseColor: YanoljaCategoryGradients.motel[0],
+        accentColor: YanoljaCategoryGradients.motel[1],
         onTap: () => _openService('motel'),
       ),
       _Category(
         label: '국내레저',
         art: _CategoryArt.leisure,
-        baseColor: const Color(0xFFFF4FB7),
-        accentColor: const Color(0xFFFFB347),
+        baseColor: YanoljaCategoryGradients.leisure[0],
+        accentColor: YanoljaCategoryGradients.leisure[1],
         onTap: () => _openService('leisure'),
       ),
       _Category(
         label: '교통/쏘카',
         art: _CategoryArt.traffic,
-        baseColor: const Color(0xFFFF4D5C),
-        accentColor: const Color(0xFF5067FF),
+        baseColor: YanoljaCategoryGradients.traffic[0],
+        accentColor: YanoljaCategoryGradients.traffic[1],
         onTap: () => _openService('transport'),
       ),
       _Category(
         label: 'NOL 티켓',
         art: _CategoryArt.show,
-        baseColor: const Color(0xFFFF6D3D),
-        accentColor: const Color(0xFFFFC04D),
+        baseColor: YanoljaCategoryGradients.ticket[0],
+        accentColor: YanoljaCategoryGradients.ticket[1],
         onTap: () => context.push('/ticket'),
       ),
       _Category(
         label: '항공',
         art: _CategoryArt.flight,
-        baseColor: const Color(0xFF2F6BFF),
-        accentColor: const Color(0xFF66D7FF),
+        baseColor: YanoljaCategoryGradients.flight[0],
+        accentColor: YanoljaCategoryGradients.flight[1],
         onTap: () => _openService('flight'),
       ),
       _Category(
         label: '해외숙소',
         art: _CategoryArt.overseas,
-        baseColor: const Color(0xFF4C6FFF),
-        accentColor: const Color(0xFF00C2FF),
+        baseColor: YanoljaCategoryGradients.overseas[0],
+        accentColor: YanoljaCategoryGradients.overseas[1],
         onTap: () => _openService('overseas'),
       ),
       _Category(
@@ -588,8 +589,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 9, vertical: YanoljaSpacing.xs),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 9, vertical: YanoljaSpacing.xs),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(YanoljaRadius.pill),
@@ -684,7 +685,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         children: [
           Container(
             decoration: BoxDecoration(
-              color: const Color(0xFFF7F8FB),
+              color: YanoljaColors.surfaceInput,
               borderRadius: BorderRadius.circular(YanoljaRadius.md),
               border: Border.all(color: YanoljaColors.border),
             ),
@@ -724,7 +725,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onTap: () => _openService('first-benefit'),
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.m, vertical: 15),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: YanoljaSpacing.m, vertical: 15),
               decoration: BoxDecoration(
                 color: const Color(0xFFFFF6DD),
                 borderRadius: BorderRadius.circular(YanoljaRadius.md),
@@ -1020,7 +1022,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.l),
               itemCount: _regionKeywords.length,
-              separatorBuilder: (_, __) => const SizedBox(width: YanoljaSpacing.s),
+              separatorBuilder: (_, __) =>
+                  const SizedBox(width: YanoljaSpacing.s),
               itemBuilder: (context, i) {
                 final region = _regionKeywords.keys.elementAt(i);
                 final selected = region == _selectedRegion;
@@ -1033,7 +1036,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: AnimatedContainer(
                     duration: YanoljaMotion.base,
                     curve: YanoljaMotion.curve,
-                    padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.m),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: YanoljaSpacing.m),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: selected
@@ -1165,7 +1169,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: YanoljaSpacing.xs),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 9, vertical: YanoljaSpacing.xs),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.22),
                 borderRadius: BorderRadius.circular(YanoljaRadius.pill),

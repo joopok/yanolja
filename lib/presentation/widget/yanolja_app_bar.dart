@@ -27,6 +27,9 @@ class YanoljaAppBar extends StatelessWidget implements PreferredSizeWidget {
   final PreferredSizeWidget? bottom;
   final YanoljaAppBarVariant variant;
 
+  /// 리딩(뒤로가기) 버튼을 배경·테두리 없는 플레인 아이콘으로 렌더할지 여부.
+  final bool flatLeading;
+
   const YanoljaAppBar({
     super.key,
     required this.title,
@@ -43,6 +46,7 @@ class YanoljaAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.toolbarHeight = 58,
     this.bottom,
     this.variant = YanoljaAppBarVariant.sub,
+    this.flatLeading = false,
   });
 
   const YanoljaAppBar.main({
@@ -60,7 +64,8 @@ class YanoljaAppBar extends StatelessWidget implements PreferredSizeWidget {
         onBackPress = null,
         titleOpacity = 1,
         toolbarHeight = 62,
-        variant = YanoljaAppBarVariant.main;
+        variant = YanoljaAppBarVariant.main,
+        flatLeading = false;
 
   const YanoljaAppBar.sub({
     super.key,
@@ -72,6 +77,7 @@ class YanoljaAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.backgroundColor = YanoljaColors.background,
     this.foregroundColor = YanoljaColors.textPrimary,
     this.bottom,
+    this.flatLeading = false,
   })  : leading = null,
         showBackButton = true,
         useCloseButton = false,
@@ -94,7 +100,8 @@ class YanoljaAppBar extends StatelessWidget implements PreferredSizeWidget {
         useCloseButton = true,
         titleOpacity = 1,
         toolbarHeight = 58,
-        variant = YanoljaAppBarVariant.modal;
+        variant = YanoljaAppBarVariant.modal,
+        flatLeading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -387,7 +394,7 @@ class _YanoljaBackButton extends StatelessWidget {
             label: label,
             child: YanoljaPressable(
               onTap: onPressed,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(YanoljaRadius.squircle),
               pressedScale: 0.94,
               child: Container(
                 width: 40,
@@ -395,7 +402,7 @@ class _YanoljaBackButton extends StatelessWidget {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: YanoljaColors.surfaceAlt,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(YanoljaRadius.squircle),
                   border: Border.all(color: YanoljaColors.border),
                 ),
                 child: Icon(
@@ -487,7 +494,7 @@ class _YanoljaAllMenuAction extends StatelessWidget {
             HapticFeedback.selectionClick();
             context.push('/all-categories');
           },
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(YanoljaRadius.squircle),
           pressedScale: 0.94,
           child: Container(
             width: 38,

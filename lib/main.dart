@@ -112,7 +112,7 @@ class YanoljaCloneApp extends ConsumerWidget {
       outlineVariant: YanoljaColors.divider,
       surfaceContainerHighest: YanoljaColors.surfaceAlt,
       shadow: YanoljaColors.shadow,
-      error: const Color(0xFFE03131),
+      error: YanoljaColors.error,
     );
 
     return ThemeData(
@@ -188,7 +188,7 @@ class YanoljaCloneApp extends ConsumerWidget {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: YanoljaColors.primary,
-          minimumSize: const Size(44, 44),
+          minimumSize: const Size(YanoljaSpacing.tapMin, YanoljaSpacing.tapMin),
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           textStyle: const TextStyle(
             fontSize: 14,
@@ -258,7 +258,7 @@ class YanoljaCloneApp extends ConsumerWidget {
       // ✏️ 입력 필드 — 라이트 그레이 필, 핑크 포커스
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFFF7F8FB),
+        fillColor: YanoljaColors.surfaceInput,
         hintStyle: const TextStyle(
           color: YanoljaColors.textTertiary,
           fontSize: 15,
@@ -279,11 +279,11 @@ class YanoljaCloneApp extends ConsumerWidget {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(YanoljaRadius.lg),
-          borderSide: const BorderSide(color: Color(0xFFE03131), width: 1),
+          borderSide: const BorderSide(color: YanoljaColors.error, width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(YanoljaRadius.lg),
-          borderSide: const BorderSide(color: Color(0xFFE03131), width: 1.5),
+          borderSide: const BorderSide(color: YanoljaColors.error, width: 1.5),
         ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -384,17 +384,18 @@ class YanoljaCloneApp extends ConsumerWidget {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
         modalBackgroundColor: Colors.white,
-        modalBarrierColor: Color(0x73000000),
+        modalBarrierColor: YanoljaColors.scrim,
         dragHandleColor: YanoljaColors.border,
         dragHandleSize: Size(44, 4),
         showDragHandle: true,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          borderRadius:
+              BorderRadius.vertical(top: Radius.circular(YanoljaRadius.sheet)),
         ),
       ),
 
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: const Color(0xFF121826),
+        backgroundColor: YanoljaColors.snackbar,
         contentTextStyle: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w800,

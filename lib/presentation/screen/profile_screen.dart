@@ -6,9 +6,10 @@ import 'package:shimmer/shimmer.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/presentation/provider/auth_provider.dart';
 import 'package:yanolja_clone/presentation/provider/notification_provider.dart';
-import 'package:yanolja_clone/presentation/widget/yanolja_confirm_dialog.dart';
+import 'package:yanolja_clone/presentation/widget/nol_my_icon.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_confirm_dialog.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -139,12 +140,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           actions: [
             _buildHeaderIcon(
               icon: Icons.notifications_none_rounded,
+              iconAsset: NolMyIconAsset.notification,
               label: '알림',
               badgeCount: unread,
               onTap: () => context.push('/notifications'),
             ),
             _buildHeaderIcon(
               icon: Icons.settings_outlined,
+              iconAsset: NolMyIconAsset.settings,
               label: '설정',
               onTap: () => context.push('/settings'),
             ),
@@ -179,7 +182,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               const SizedBox(height: YanoljaSpacing.m),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.l),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: YanoljaSpacing.l),
                 child: _buildLogoutButton(),
               ),
               const SizedBox(height: 72),
@@ -204,22 +208,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           children: [
             Row(
               children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: YanoljaColors.primary,
-                    borderRadius: BorderRadius.circular(YanoljaRadius.lg),
-                  ),
-                  child: const Text(
-                    'N',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
+                const NolMyIcon(
+                  asset: NolMyIconAsset.profileEdit,
+                  size: 58,
+                  semanticLabel: '프로필',
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -302,6 +294,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Widget _buildHeaderIcon({
     required IconData icon,
+    String? iconAsset,
     required String label,
     required VoidCallback onTap,
     int badgeCount = 0,
@@ -317,7 +310,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               HapticFeedback.selectionClick();
               onTap();
             },
-            icon: Icon(icon, color: YanoljaColors.textPrimary, size: 24),
+            icon: iconAsset == null
+                ? Icon(icon, color: YanoljaColors.textPrimary, size: 24)
+                : NolMyIcon(asset: iconAsset, size: 30),
             tooltip: label,
           ),
           if (badgeCount > 0)
@@ -325,7 +320,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               right: 4,
               top: 4,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.xs),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: YanoljaSpacing.xs),
                 constraints: const BoxConstraints(minWidth: 17),
                 height: 17,
                 alignment: Alignment.center,
@@ -385,18 +381,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               padding: const EdgeInsets.fromLTRB(18, 16, 18, 12),
               child: Row(
                 children: [
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: YanoljaColors.primary,
-                      borderRadius: BorderRadius.circular(YanoljaRadius.md),
-                    ),
-                    child: const Icon(
-                      Icons.card_giftcard_rounded,
-                      color: Colors.white,
-                      size: 21,
-                    ),
+                  const NolMyIcon(
+                    asset: NolMyIconAsset.coupon,
+                    size: 46,
+                    semanticLabel: '쿠폰 혜택',
                   ),
                   const SizedBox(width: 12),
                   const Expanded(
@@ -435,6 +423,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     value: 'VIP',
                     label: '회원등급',
                     icon: Icons.workspace_premium_rounded,
+                    iconAsset: NolMyIconAsset.points,
                     route: '/service/membership',
                   ),
                 ),
@@ -444,6 +433,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     value: '15,200P',
                     label: 'NOL 포인트',
                     icon: Icons.savings_rounded,
+                    iconAsset: NolMyIconAsset.points,
                     route: '/service/points',
                   ),
                 ),
@@ -453,6 +443,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     value: '3장',
                     label: '받은 쿠폰',
                     icon: Icons.confirmation_number_rounded,
+                    iconAsset: NolMyIconAsset.coupon,
                     route: '/service/coupons',
                   ),
                 ),
@@ -468,6 +459,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     required String value,
     required String label,
     required IconData icon,
+    String? iconAsset,
     String? route,
   }) {
     return InkWell(
@@ -484,7 +476,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         padding: const EdgeInsets.symmetric(vertical: YanoljaSpacing.m),
         child: Column(
           children: [
-            Icon(icon, color: YanoljaColors.primary, size: 21),
+            if (iconAsset == null)
+              Icon(icon, color: YanoljaColors.primary, size: 21)
+            else
+              NolMyIcon(asset: iconAsset, size: 30),
             const SizedBox(height: 7),
             Text(
               value,
@@ -545,18 +540,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
                 child: Row(
                   children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: YanoljaColors.surfaceAlt,
-                        borderRadius: BorderRadius.circular(YanoljaRadius.md),
-                      ),
-                      child: const Icon(
-                        Icons.luggage_rounded,
-                        color: YanoljaColors.primary,
-                        size: 25,
-                      ),
+                    const NolMyIcon(
+                      asset: NolMyIconAsset.reservation,
+                      size: 54,
+                      semanticLabel: '예약',
                     ),
                     const SizedBox(width: 14),
                     const Expanded(
@@ -614,27 +601,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget _buildQuickActions() {
     final actions = <_MyShortcut>[
       _MyShortcut(
-        icon: Icons.receipt_long_rounded,
+        iconAsset: NolMyIconAsset.reservation,
         label: '예약내역',
-        color: YanoljaColors.primary,
         onTap: () => context.push('/bookings'),
       ),
       _MyShortcut(
-        icon: Icons.favorite_rounded,
+        iconAsset: NolMyIconAsset.saved,
         label: '찜',
-        color: YanoljaColors.sale,
         onTap: () => context.go('/saved'),
       ),
       _MyShortcut(
-        icon: Icons.confirmation_number_rounded,
+        iconAsset: NolMyIconAsset.coupon,
         label: '쿠폰함',
-        color: YanoljaColors.primaryPurple,
         onTap: () => context.push('/service/coupons'),
       ),
       _MyShortcut(
-        icon: Icons.history_rounded,
+        iconAsset: NolMyIconAsset.recent,
         label: '최근 본 상품',
-        color: YanoljaColors.mint,
         onTap: () => context.push('/service/recent'),
       ),
     ];
@@ -672,14 +655,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         padding: const EdgeInsets.symmetric(vertical: 2),
         child: Column(
           children: [
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: action.color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(YanoljaRadius.md),
-              ),
-              child: Icon(action.icon, color: action.color, size: 25),
+            NolMyIcon(
+              asset: action.iconAsset,
+              size: 56,
+              semanticLabel: action.label,
             ),
             const SizedBox(height: YanoljaSpacing.s),
             Text(
@@ -710,6 +689,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
           _buildMenuItem(
             icon: Icons.local_offer_rounded,
+            iconAsset: NolMyIconAsset.coupon,
             title: '쿠폰·혜택',
             subtitle: '오늘 받을 수 있는 혜택 5개',
             badge: 'NOL',
@@ -717,6 +697,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
           _buildMenuItem(
             icon: Icons.credit_card_rounded,
+            iconAsset: NolMyIconAsset.card,
             title: 'NOL 카드',
             subtitle: '결제할수록 커지는 여행 혜택',
             badge: '혜택',
@@ -724,18 +705,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
           _buildMenuItem(
             icon: Icons.support_agent_rounded,
+            iconAsset: NolMyIconAsset.support,
             title: '고객센터',
             subtitle: '예약, 취소, 환불 문의',
             route: '/service/support',
           ),
           _buildMenuItem(
             icon: Icons.campaign_rounded,
+            iconAsset: NolMyIconAsset.notice,
             title: '공지사항',
             subtitle: 'NOL의 새로운 소식',
             route: '/service/notice',
           ),
           _buildMenuItem(
             icon: Icons.tune_rounded,
+            iconAsset: NolMyIconAsset.settings,
             title: '앱 설정',
             subtitle: '알림과 계정 설정',
             route: '/settings',
@@ -748,6 +732,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Widget _buildMenuItem({
     required IconData icon,
+    String? iconAsset,
     required String title,
     required String subtitle,
     String? badge,
@@ -766,7 +751,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           }
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.l, vertical: 15),
+          padding: const EdgeInsets.symmetric(
+              horizontal: YanoljaSpacing.l, vertical: 15),
           decoration: BoxDecoration(
             border: isLast
                 ? null
@@ -776,15 +762,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
           child: Row(
             children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: YanoljaColors.surfaceAlt,
-                  borderRadius: BorderRadius.circular(YanoljaRadius.md),
-                ),
-                child: Icon(icon, color: YanoljaColors.textPrimary, size: 22),
-              ),
+              if (iconAsset == null)
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: YanoljaColors.surfaceAlt,
+                    borderRadius: BorderRadius.circular(YanoljaRadius.md),
+                  ),
+                  child: Icon(icon, color: YanoljaColors.textPrimary, size: 22),
+                )
+              else
+                NolMyIcon(asset: iconAsset, size: 44, semanticLabel: title),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -854,30 +843,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildLogoutButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: OutlinedButton(
-        onPressed: () {
-          HapticFeedback.mediumImpact();
-          _showLogoutDialog();
-        },
-        style: OutlinedButton.styleFrom(
-          foregroundColor: YanoljaColors.textSecondary,
-          side: const BorderSide(color: YanoljaColors.border),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(YanoljaRadius.md),
-          ),
-        ),
-        child: const Text(
-          '로그아웃',
-          style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700),
-        ),
-      ),
-    );
-  }
-
   Widget _buildLoggedOutView() {
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
@@ -888,6 +853,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           actions: [
             _buildHeaderIcon(
               icon: Icons.settings_outlined,
+              iconAsset: NolMyIconAsset.settings,
               label: '설정',
               onTap: () => context.push('/settings'),
             ),
@@ -906,23 +872,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     Center(
                       child: Column(
                         children: [
-                          Container(
-                            width: 74,
-                            height: 74,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: YanoljaColors.primary,
-                              borderRadius:
-                                  BorderRadius.circular(YanoljaRadius.xl),
-                            ),
-                            child: const Text(
-                              'NOL',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
+                          const NolMyIcon(
+                            asset: NolMyIconAsset.profileEdit,
+                            size: 78,
+                            semanticLabel: '마이',
                           ),
                           const SizedBox(height: 18),
                           const Text(
@@ -1026,6 +979,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 Expanded(
                   child: _LoggedOutBenefitCard(
                     icon: Icons.confirmation_number_rounded,
+                    iconAsset: NolMyIconAsset.coupon,
                     title: '쿠폰팩',
                     subtitle: '매월 업데이트',
                     color: YanoljaColors.primary,
@@ -1035,6 +989,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 Expanded(
                   child: _LoggedOutBenefitCard(
                     icon: Icons.bolt_rounded,
+                    iconAsset: NolMyIconAsset.notification,
                     title: '특가 알림',
                     subtitle: '인기 상품 먼저',
                     color: YanoljaColors.sale,
@@ -1056,6 +1011,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     YanoljaToast.show(context, message);
   }
 
+  Widget _buildLogoutButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: OutlinedButton(
+        onPressed: () {
+          HapticFeedback.mediumImpact();
+          _showLogoutDialog();
+        },
+        style: OutlinedButton.styleFrom(
+          foregroundColor: YanoljaColors.textSecondary,
+          side: const BorderSide(color: YanoljaColors.border),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(YanoljaRadius.md),
+          ),
+        ),
+        child: const Text(
+          '로그아웃',
+          style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700),
+        ),
+      ),
+    );
+  }
+
   Future<void> _showLogoutDialog() async {
     final confirmed = await showYanoljaConfirmDialog(
       context: context,
@@ -1069,35 +1048,32 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     await ref.read(authProvider).signOut();
     if (!mounted) return;
     _showSnackBar('로그아웃되었습니다.');
-    // 로그아웃 후에는 마이 화면에 머무르지 않고 로그인 화면으로 이동합니다.
-    // fromLogout 플래그를 전달해, 로그인 화면의 백버튼·시스템 백이
-    // 로그아웃된 마이 화면으로 되돌아가지 않고 홈으로 가도록 합니다.
     context.go('/login', extra: const {'fromLogout': true});
   }
 }
 
 class _MyShortcut {
-  final IconData icon;
+  final String iconAsset;
   final String label;
-  final Color color;
   final VoidCallback onTap;
 
   const _MyShortcut({
-    required this.icon,
+    required this.iconAsset,
     required this.label,
-    required this.color,
     required this.onTap,
   });
 }
 
 class _LoggedOutBenefitCard extends StatelessWidget {
   final IconData icon;
+  final String? iconAsset;
   final String title;
   final String subtitle;
   final Color color;
 
   const _LoggedOutBenefitCard({
     required this.icon,
+    this.iconAsset,
     required this.title,
     required this.subtitle,
     required this.color,
@@ -1115,7 +1091,10 @@ class _LoggedOutBenefitCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 24),
+          if (iconAsset == null)
+            Icon(icon, color: color, size: 24)
+          else
+            NolMyIcon(asset: iconAsset!, size: 46, semanticLabel: title),
           const SizedBox(height: 12),
           Text(
             title,

@@ -43,10 +43,10 @@ void main() {
 
     await tester.pump(const Duration(milliseconds: 640));
 
-    expect(find.text('NOL READY'), findsOneWidget);
-    expect(find.text('여기가어때'), findsOneWidget);
-    expect(find.text('오늘의 여행을 켜는 가장 빠른 패스'), findsOneWidget);
-    expect(find.text('여행 준비 중'), findsOneWidget);
+    expect(find.text('여행을 켜다'), findsOneWidget);
+    expect(find.text('NOL'), findsOneWidget);
+    expect(find.text('야놀자'), findsOneWidget);
+    expect(find.text('놀 준비를 마치는 중'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
   });
@@ -73,13 +73,33 @@ void main() {
     final tomorrow = DateTime.now().add(const Duration(days: 1));
     final dayAfterTomorrow = DateTime.now().add(const Duration(days: 2));
 
-    await tester.ensureVisible(find.text('${tomorrow.day}').first);
+    final checkInKey = ValueKey(
+        'stay-date-${tomorrow.year}-${tomorrow.month}-${tomorrow.day}');
+    final checkOutKey = ValueKey(
+      'stay-date-${dayAfterTomorrow.year}-${dayAfterTomorrow.month}-${dayAfterTomorrow.day}',
+    );
+
+    Future<void> scrollUntilDateVisible(ValueKey<String> key) async {
+      final calendar = find.byType(ListView).last;
+      for (var i = 0; i < 12; i++) {
+        if (find.byKey(key).evaluate().isNotEmpty) {
+          await tester.ensureVisible(find.byKey(key));
+          await tester.pumpAndSettle();
+          return;
+        }
+        await tester.drag(calendar, const Offset(0, -420));
+        await tester.pumpAndSettle();
+      }
+      fail('Could not find date cell $key');
+    }
+
+    await scrollUntilDateVisible(checkInKey);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('${tomorrow.day}').first);
+    await tester.tap(find.byKey(checkInKey));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('${dayAfterTomorrow.day}').first);
+    await scrollUntilDateVisible(checkOutKey);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('${dayAfterTomorrow.day}').first);
+    await tester.tap(find.byKey(checkOutKey));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('1박 선택 완료'));

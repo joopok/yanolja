@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:yanolja_clone/presentation/widget/nol_my_icon.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_bottom_nav.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
@@ -141,16 +142,23 @@ class _NolServiceScreenState extends State<NolServiceScreen> {
           children: [
             Row(
               children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(18),
+                if (_config.iconAsset == null)
+                  Container(
+                    width: 50,
+                    height: 50,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: accent.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Icon(_config.icon, color: accent, size: 27),
+                  )
+                else
+                  NolMyIcon(
+                    asset: _config.iconAsset!,
+                    size: 58,
+                    semanticLabel: _config.title,
                   ),
-                  child: Icon(_config.icon, color: accent, size: 27),
-                ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
@@ -238,7 +246,8 @@ class _NolServiceScreenState extends State<NolServiceScreen> {
               child: AnimatedContainer(
                 duration: YanoljaMotion.base,
                 curve: YanoljaMotion.curve,
-                padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.m),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: YanoljaSpacing.m),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color:
@@ -544,6 +553,7 @@ class _ServiceConfig {
   final String heroSubtitle;
   final String itemName;
   final IconData icon;
+  final String? iconAsset;
   final IconData actionIcon;
   final Color accentColor;
   final String benefitLabel;
@@ -568,6 +578,7 @@ class _ServiceConfig {
     required this.heroSubtitle,
     required this.itemName,
     required this.icon,
+    this.iconAsset,
     required this.actionIcon,
     required this.accentColor,
     this.benefitLabel = '혜택',
@@ -892,6 +903,7 @@ class _ServiceConfig {
       heroSubtitle: '자주 묻는 질문부터 전화 상담까지, NOL 고객센터가 함께합니다.',
       itemName: '도움말',
       icon: Icons.support_agent_rounded,
+      iconAsset: NolMyIconAsset.support,
       actionIcon: Icons.call_rounded,
       accentColor: YanoljaColors.primary,
       benefitLabel: '상담전화',
@@ -910,14 +922,14 @@ class _ServiceConfig {
       sectionTrailing: 'TOP 4',
       filters: ['전체', '예약', '결제', '취소/환불', '회원'],
       deals: [
-        _ServiceDeal('예약을 변경하거나 취소하고 싶어요', '예약 내역 > 상세에서 바로 신청할 수 있어요',
-            '자세히', '예약', Icons.event_repeat_rounded, ['예약']),
+        _ServiceDeal('예약을 변경하거나 취소하고 싶어요', '예약 내역 > 상세에서 바로 신청할 수 있어요', '자세히',
+            '예약', Icons.event_repeat_rounded, ['예약']),
         _ServiceDeal('결제가 중복으로 된 것 같아요', '중복 결제 건은 3~5영업일 내 자동 취소돼요', '자세히',
             '결제', Icons.payments_rounded, ['결제']),
         _ServiceDeal('취소 수수료 기준이 궁금해요', '숙소별 취소 정책은 상세 화면에서 확인돼요', '자세히',
             '취소/환불', Icons.receipt_long_rounded, ['취소/환불']),
-        _ServiceDeal('회원 정보를 변경하고 싶어요', '내정보 > 프로필 편집에서 수정할 수 있어요', '자세히',
-            '회원', Icons.manage_accounts_rounded, ['회원']),
+        _ServiceDeal('회원 정보를 변경하고 싶어요', '내정보 > 프로필 편집에서 수정할 수 있어요', '자세히', '회원',
+            Icons.manage_accounts_rounded, ['회원']),
       ],
     ),
     'inquiry': _ServiceConfig(
@@ -928,6 +940,7 @@ class _ServiceConfig {
       heroSubtitle: '접수된 문의는 보통 1영업일 이내에 알림으로 답변드려요.',
       itemName: '문의',
       icon: Icons.forum_rounded,
+      iconAsset: NolMyIconAsset.support,
       actionIcon: Icons.edit_note_rounded,
       accentColor: YanoljaColors.primary,
       benefitLabel: '평균 답변',
@@ -946,8 +959,8 @@ class _ServiceConfig {
       sectionTrailing: '최근 30일',
       filters: ['전체', '답변완료', '답변대기'],
       deals: [
-        _ServiceDeal('환불은 언제 처리되나요?', '8.24 접수 · 카드 환불 일정 안내드렸어요', '보기',
-            '답변완료', Icons.task_alt_rounded, ['답변완료']),
+        _ServiceDeal('환불은 언제 처리되나요?', '8.24 접수 · 카드 환불 일정 안내드렸어요', '보기', '답변완료',
+            Icons.task_alt_rounded, ['답변완료']),
         _ServiceDeal('영수증을 다시 받을 수 있나요?', '8.26 접수 · 답변을 준비하고 있어요', '보기',
             '답변대기', Icons.hourglass_bottom_rounded, ['답변대기']),
         _ServiceDeal('쿠폰이 적용되지 않아요', '8.27 접수 · 답변을 준비하고 있어요', '보기', '답변대기',
@@ -964,6 +977,7 @@ class _ServiceConfig {
       heroSubtitle: '최근 둘러본 숙소와 상품을 한곳에 모았어요.',
       itemName: '상품',
       icon: Icons.history_rounded,
+      iconAsset: NolMyIconAsset.recent,
       actionIcon: Icons.compare_arrows_rounded,
       accentColor: YanoljaColors.primary,
       benefitLabel: '가격 변동',
@@ -998,6 +1012,7 @@ class _ServiceConfig {
       heroSubtitle: '장바구니에 담은 숙소와 상품을 모아 결제까지 이어가세요.',
       itemName: '담은 상품',
       icon: Icons.shopping_bag_rounded,
+      iconAsset: NolMyIconAsset.saved,
       actionIcon: Icons.payment_rounded,
       accentColor: YanoljaColors.primary,
       benefitLabel: '결제',
@@ -1032,6 +1047,7 @@ class _ServiceConfig {
       heroSubtitle: '예약하고 적립한 포인트로 다음 여행을 더 가볍게 떠나요.',
       itemName: '내역',
       icon: Icons.toll_rounded,
+      iconAsset: NolMyIconAsset.points,
       actionIcon: Icons.savings_rounded,
       accentColor: YanoljaColors.primary,
       benefitLabel: '소멸예정',
@@ -1068,6 +1084,7 @@ class _ServiceConfig {
       heroSubtitle: '예약할수록 등급이 올라가고, 등급별 혜택이 더 커져요.',
       itemName: '등급 혜택',
       icon: Icons.workspace_premium_rounded,
+      iconAsset: NolMyIconAsset.points,
       actionIcon: Icons.trending_up_rounded,
       accentColor: YanoljaColors.primary,
       benefitLabel: '다음 등급',
@@ -1138,6 +1155,7 @@ class _ServiceConfig {
       heroSubtitle: '첫 결제에 바로 쓰는 할인과 적립 혜택을 모았어요.',
       itemName: '혜택',
       icon: Icons.redeem_rounded,
+      iconAsset: NolMyIconAsset.coupon,
       actionIcon: Icons.card_giftcard_rounded,
       accentColor: YanoljaColors.primary,
       benefitLabel: '대상',
@@ -1172,6 +1190,7 @@ class _ServiceConfig {
       heroSubtitle: 'NOL 카드로 결제하면 적립과 할인이 더 커져요.',
       itemName: '카드 혜택',
       icon: Icons.credit_card_rounded,
+      iconAsset: NolMyIconAsset.card,
       actionIcon: Icons.add_card_rounded,
       accentColor: YanoljaColors.primary,
       benefitLabel: '연회비',
@@ -1208,6 +1227,7 @@ class _ServiceConfig {
       heroSubtitle: '예약 상태, 혜택, 소식 알림을 한곳에서 확인하세요.',
       itemName: '알림',
       icon: Icons.notifications_rounded,
+      iconAsset: NolMyIconAsset.notification,
       actionIcon: Icons.tune_rounded,
       accentColor: YanoljaColors.primary,
       benefitLabel: '읽지 않음',
@@ -1242,6 +1262,7 @@ class _ServiceConfig {
       heroSubtitle: '서비스 점검, 정책 변경 등 꼭 알아야 할 공지를 모았어요.',
       itemName: '공지',
       icon: Icons.campaign_rounded,
+      iconAsset: NolMyIconAsset.notice,
       actionIcon: Icons.notifications_active_rounded,
       accentColor: YanoljaColors.primary,
       benefitLabel: '알림',
@@ -1276,6 +1297,7 @@ class _ServiceConfig {
       heroSubtitle: '새 기능, 제휴 소식, 여행 팁까지 NOL의 최신 소식을 전해요.',
       itemName: '소식',
       icon: Icons.auto_stories_rounded,
+      iconAsset: NolMyIconAsset.notice,
       actionIcon: Icons.bookmark_added_rounded,
       accentColor: YanoljaColors.primary,
       benefitLabel: '구독',
@@ -1294,8 +1316,8 @@ class _ServiceConfig {
       sectionTrailing: '에디터 추천',
       filters: ['전체', '기능', '제휴', '여행팁'],
       deals: [
-        _ServiceDeal('이번 여름 가장 인기 있는 여행지', '데이터로 보는 7월 국내 여행 트렌드', '읽기',
-            '여행팁', Icons.travel_explore_rounded, ['여행팁']),
+        _ServiceDeal('이번 여름 가장 인기 있는 여행지', '데이터로 보는 7월 국내 여행 트렌드', '읽기', '여행팁',
+            Icons.travel_explore_rounded, ['여행팁']),
         _ServiceDeal('새로워진 지도 검색 기능', '주변 숙소를 지도에서 더 쉽게 찾아요', '읽기', '기능',
             Icons.map_rounded, ['기능']),
         _ServiceDeal('NOL x 인기 카페 제휴 시작', '예약하고 제휴 카페 쿠폰 받기', '읽기', '제휴',
@@ -1312,6 +1334,7 @@ class _ServiceConfig {
       heroSubtitle: '현재 버전과 약관, 오픈소스 라이선스를 확인할 수 있어요.',
       itemName: '항목',
       icon: Icons.info_rounded,
+      iconAsset: NolMyIconAsset.settings,
       actionIcon: Icons.system_update_rounded,
       accentColor: YanoljaColors.primary,
       benefitLabel: '상태',
@@ -1354,6 +1377,8 @@ class _ServiceConfig {
       heroSubtitle: '내 여행에 바로 적용할 수 있는 혜택과 추천 액션을 모았습니다.',
       itemName: '혜택',
       icon: Icons.local_offer_rounded,
+      iconAsset:
+          type == 'settings' ? NolMyIconAsset.settings : NolMyIconAsset.coupon,
       actionIcon: Icons.check_circle_rounded,
       accentColor: YanoljaColors.primary,
       benefitLabel: '적용',

@@ -509,6 +509,7 @@ class _DayCell extends StatelessWidget {
     }
 
     return GestureDetector(
+      key: ValueKey('stay-date-${day.year}-${day.month}-${day.day}'),
       behavior: HitTestBehavior.opaque,
       onTap: disabled ? null : () => onTap(day),
       child: Stack(
@@ -517,7 +518,8 @@ class _DayCell extends StatelessWidget {
           if (hasRange)
             Positioned.fill(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: YanoljaSpacing.xs),
+                padding:
+                    const EdgeInsets.symmetric(vertical: YanoljaSpacing.xs),
                 child: Row(
                   children: [
                     Expanded(

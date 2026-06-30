@@ -29,6 +29,8 @@ class AllCategoriesScreen extends ConsumerWidget {
         title: '전체 메뉴',
         subtitle: '필요한 예약 메뉴를 빠르게 찾으세요',
         fallbackRoute: '/home',
+        // 백 버튼을 배경 없는 플레인 아이콘으로 렌더한다.
+        flatLeading: true,
         // 로그인 상태에서만 우측에 로그아웃 액션을 노출한다.
         actions: user == null
             ? null

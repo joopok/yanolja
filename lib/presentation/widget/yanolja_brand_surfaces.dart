@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 
@@ -10,7 +12,10 @@ class YanoljaMotion {
   const YanoljaMotion._();
 
   static Duration stagger(int index, {int start = 40, int step = 55}) {
-    return Duration(milliseconds: start + (index * step));
+    // 긴 세로 목록에서 지연이 무한정 커져 카드가 오래 비표시되는 것을 막기 위해
+    // 인덱스에 상한(6)을 둔다. (예: step 55 기준 최대 +330ms)
+    final capped = index < 6 ? index : 6;
+    return Duration(milliseconds: start + (capped * step));
   }
 
   static bool reduce(BuildContext context) {
@@ -18,7 +23,11 @@ class YanoljaMotion {
   }
 }
 
-class YanoljaEntrance extends StatelessWidget {
+/// 진입 시 살짝 떠오르며(slide) 페이드인 + 미세 스케일업으로
+/// 등장하는 래퍼. 화면들이 [delay]로 staggered 등장을 연출한다.
+///
+/// 접근성: 시스템 "동작 줄이기"가 켜져 있으면 애니메이션 없이 즉시 표시한다.
+class YanoljaEntrance extends StatefulWidget {
   final Widget child;
   final Duration delay;
   final Duration duration;
@@ -35,8 +44,74 @@ class YanoljaEntrance extends StatelessWidget {
   });
 
   @override
+  State<YanoljaEntrance> createState() => _YanoljaEntranceState();
+}
+
+class _YanoljaEntranceState extends State<YanoljaEntrance>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _curved;
+  Timer? _startTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: widget.duration);
+    _curved = CurvedAnimation(parent: _controller, curve: YanoljaMotion.curve);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _maybeStart();
+  }
+
+  void _maybeStart() {
+    if (_controller.status != AnimationStatus.dismissed) return;
+    // 동작 줄이기 설정 시 애니메이션 없이 최종 상태로 고정.
+    if (YanoljaMotion.reduce(context)) {
+      _controller.value = 1;
+      return;
+    }
+    if (widget.delay == Duration.zero) {
+      _controller.forward();
+    } else {
+      _startTimer?.cancel();
+      _startTimer = Timer(widget.delay, () {
+        if (mounted) _controller.forward();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _startTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return child;
+    if (YanoljaMotion.reduce(context)) return widget.child;
+    return AnimatedBuilder(
+      animation: _curved,
+      builder: (context, child) {
+        final t = _curved.value;
+        final scale =
+            widget.beginScale + (1 - widget.beginScale) * t;
+        return Opacity(
+          opacity: t.clamp(0.0, 1.0),
+          child: FractionalTranslation(
+            translation: Offset(
+              widget.beginOffset.dx * (1 - t),
+              widget.beginOffset.dy * (1 - t),
+            ),
+            child: Transform.scale(scale: scale, child: child),
+          ),
+        );
+      },
+      child: widget.child,
+    );
   }
 }
 

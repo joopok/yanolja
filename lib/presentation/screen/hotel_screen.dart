@@ -8,9 +8,9 @@ class HotelScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return NolCategoryListScreen(
-      title: '호텔·리조트',
-      serviceLabel: '호텔·리조트',
-      heroTitle: '호텔·리조트 NOLDAY 특가',
+      title: '호텔',
+      serviceLabel: '호텔',
+      heroTitle: '호텔 NOLDAY 특가',
       heroSubtitle: '5성급부터 시티호텔까지 쿠폰 적용가로',
       heroIcon: Icons.hotel_rounded,
       accentColor: YanoljaColors.primary,
@@ -19,9 +19,7 @@ class HotelScreen extends StatelessWidget {
       filterPredicate: (accommodation, filter) {
         switch (filter) {
           case '5성급':
-            return accommodation.rating >= 4.7 ||
-                accommodation.price >= 250000 ||
-                accommodation.isPopular;
+            return accommodation.rating >= 4.7 || accommodation.price >= 250000;
           case '특가':
             return accommodation.isNew ||
                 accommodation.isPopular ||

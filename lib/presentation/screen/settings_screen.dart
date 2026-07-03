@@ -7,6 +7,7 @@ import 'package:yanolja_clone/presentation/widget/yanolja_confirm_dialog.dart';
 import 'package:yanolja_clone/presentation/provider/auth_provider.dart';
 import 'package:yanolja_clone/presentation/provider/search_provider.dart';
 import 'package:yanolja_clone/presentation/provider/settings_provider.dart';
+import 'package:yanolja_clone/presentation/widget/nol_my_icon.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_bottom_nav.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
@@ -39,6 +40,7 @@ class SettingsScreen extends ConsumerWidget {
                 _SettingsSwitchTile(
                   icon: Icons.notifications_active_rounded,
                   iconColor: YanoljaColors.primary,
+                  iconAsset: NolMyIconAsset.notification,
                   title: '예약 알림',
                   subtitle: '예약 확정, 체크인, 취소/환불 상태를 알려드려요',
                   value: settings.reservationAlerts,
@@ -52,6 +54,7 @@ class SettingsScreen extends ConsumerWidget {
                 _SettingsSwitchTile(
                   icon: Icons.local_offer_rounded,
                   iconColor: YanoljaColors.sale,
+                  iconAsset: NolMyIconAsset.coupon,
                   title: '혜택·마케팅 알림',
                   subtitle: '쿠폰, 특가, NOLDAY 소식을 받아요',
                   value: settings.marketingAlerts,
@@ -73,6 +76,7 @@ class SettingsScreen extends ConsumerWidget {
                 _SettingsSwitchTile(
                   icon: Icons.near_me_rounded,
                   iconColor: YanoljaColors.mint,
+                  iconAsset: NolMyIconAsset.location,
                   title: '위치 기반 추천',
                   subtitle: '${settings.defaultRegion} 기준으로 가까운 숙소와 티켓을 추천',
                   value: settings.locationRecommendations,
@@ -86,6 +90,7 @@ class SettingsScreen extends ConsumerWidget {
                 _SettingsActionTile(
                   icon: Icons.place_rounded,
                   iconColor: YanoljaColors.primaryPurple,
+                  iconAsset: NolMyIconAsset.location,
                   title: '기본 여행 지역',
                   subtitle: settings.defaultRegion,
                   onTap: () => _showRegionSheet(context, ref),
@@ -93,6 +98,7 @@ class SettingsScreen extends ConsumerWidget {
                 _SettingsSwitchTile(
                   icon: Icons.auto_awesome_rounded,
                   iconColor: YanoljaColors.yellow,
+                  iconAsset: NolMyIconAsset.points,
                   title: '취향 기반 추천',
                   subtitle: '검색과 찜 데이터를 바탕으로 더 맞는 상품을 보여줘요',
                   value: settings.personalization,
@@ -115,6 +121,7 @@ class SettingsScreen extends ConsumerWidget {
                 _SettingsActionTile(
                   icon: Icons.language_rounded,
                   iconColor: YanoljaColors.accentBlue,
+                  iconAsset: NolMyIconAsset.language,
                   title: '언어',
                   subtitle: settings.languageLabel,
                   onTap: () => _showLanguageSheet(context, ref),
@@ -122,6 +129,7 @@ class SettingsScreen extends ConsumerWidget {
                 _SettingsSwitchTile(
                   icon: Icons.vibration_rounded,
                   iconColor: YanoljaColors.primary,
+                  iconAsset: NolMyIconAsset.settings,
                   title: '터치 피드백',
                   subtitle: '버튼과 토글을 누를 때 가벼운 진동을 사용',
                   value: settings.hapticFeedback,
@@ -135,6 +143,7 @@ class SettingsScreen extends ConsumerWidget {
                 _SettingsSwitchTile(
                   icon: Icons.motion_photos_auto_rounded,
                   iconColor: YanoljaColors.mint,
+                  iconAsset: NolMyIconAsset.theme,
                   title: '부드러운 모션',
                   subtitle: '화면 전환과 카드 애니메이션을 자연스럽게 표시',
                   value: settings.motionEffects,
@@ -156,6 +165,7 @@ class SettingsScreen extends ConsumerWidget {
                 _SettingsSwitchTile(
                   icon: Icons.lock_rounded,
                   iconColor: YanoljaColors.primaryPurple,
+                  iconAsset: NolMyIconAsset.security,
                   title: '앱 잠금',
                   subtitle: '앱 진입 시 생체 인증을 사용하도록 설정',
                   value: settings.biometricLock,
@@ -169,6 +179,7 @@ class SettingsScreen extends ConsumerWidget {
                 _SettingsSwitchTile(
                   icon: Icons.data_saver_on_rounded,
                   iconColor: YanoljaColors.success,
+                  iconAsset: NolMyIconAsset.settings,
                   title: '데이터 절약',
                   subtitle: '모바일 네트워크에서 고해상도 이미지 로딩을 줄여요',
                   value: settings.dataSaver,
@@ -180,6 +191,7 @@ class SettingsScreen extends ConsumerWidget {
                 _SettingsActionTile(
                   icon: Icons.history_rounded,
                   iconColor: YanoljaColors.sale,
+                  iconAsset: NolMyIconAsset.recent,
                   title: '검색 기록 삭제',
                   subtitle: recentSearchCount == 0
                       ? '삭제할 최근 검색어가 없어요'
@@ -200,17 +212,26 @@ class SettingsScreen extends ConsumerWidget {
                       ? Icons.login_rounded
                       : Icons.account_circle_rounded,
                   iconColor: YanoljaColors.primary,
+                  iconAsset: NolMyIconAsset.profileEdit,
                   title: user == null ? '로그인하기' : '내 정보 보기',
                   subtitle:
                       user == null ? '쿠폰과 예약 내역을 이어서 확인하세요' : user.displayName,
                   onTap: () {
                     _feedback(ref);
-                    context.push(user == null ? '/login' : '/my-info');
+                    // /login 은 일반 라우트라 push 가능하지만, /my-info 는
+                    // StatefulShellRoute 브랜치이므로 go 로 이동해야 한다.
+                    // (push 시 ShellRouteMatch 페이지 키 중복으로 크래시)
+                    if (user == null) {
+                      context.push('/login');
+                    } else {
+                      context.go('/my-info');
+                    }
                   },
                 ),
                 _SettingsActionTile(
                   icon: Icons.content_copy_rounded,
                   iconColor: YanoljaColors.accentBlue,
+                  iconAsset: NolMyIconAsset.review,
                   title: '설정 요약 복사',
                   subtitle: '현재 설정 값을 클립보드에 저장',
                   onTap: () => _copySettingsSummary(context, ref, settings),
@@ -218,6 +239,7 @@ class SettingsScreen extends ConsumerWidget {
                 _SettingsActionTile(
                   icon: Icons.restart_alt_rounded,
                   iconColor: YanoljaColors.textSecondary,
+                  iconAsset: NolMyIconAsset.settings,
                   title: '설정 초기화',
                   subtitle: '알림, 개인화, 화면 설정을 기본값으로 되돌려요',
                   onTap: () => _showResetDialog(context, ref),
@@ -281,23 +303,94 @@ class SettingsScreen extends ConsumerWidget {
     final accountLabel = user?.displayName ?? '게스트';
 
     return Container(
-      color: YanoljaColors.background,
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 18),
-      child: YanoljaPremiumHero(
-        badge: 'NOL CONTROL',
-        title: '내 여행 앱을\n내 방식대로 조정해요',
-        subtitle: '$accountLabel님의 알림, 추천, 화면 설정이 즉시 반영됩니다.',
-        icon: Icons.tune_rounded,
-        gradient: const [
-          Color(0xFF172A8B),
-          YanoljaColors.primary,
-          Color(0xFF00AFA3),
-        ],
-        padding: const EdgeInsets.all(22),
-        metrics: [
-          YanoljaHeroMetric(label: '활성 설정', value: '${settings.enabledCount}개'),
-          YanoljaHeroMetric(label: '화면', value: settings.themeLabel),
-        ],
+      color: YanoljaColors.surfaceAlt,
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: YanoljaColors.surface,
+          borderRadius: BorderRadius.circular(YanoljaRadius.xl),
+          border: Border.all(color: YanoljaColors.border),
+          boxShadow: const [
+            BoxShadow(
+              color: YanoljaColors.shadow,
+              blurRadius: 22,
+              offset: Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            const NolMyIcon(
+              asset: NolMyIconAsset.settings,
+              size: 78,
+              semanticLabel: '앱 설정',
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: YanoljaColors.primaryLight,
+                      borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+                    ),
+                    child: const Text(
+                      'NOL CONTROL',
+                      style: TextStyle(
+                        color: YanoljaColors.primary,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    '내 여행 앱을 내 방식대로',
+                    style: TextStyle(
+                      color: YanoljaColors.textPrimary,
+                      fontSize: 19,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    '$accountLabel님의 알림, 추천, 화면 설정이 바로 반영됩니다.',
+                    style: const TextStyle(
+                      color: YanoljaColors.textSecondary,
+                      fontSize: 12.5,
+                      height: 1.35,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 7,
+                    runSpacing: 7,
+                    children: [
+                      _SettingsHeroMetric(
+                        label: '활성 설정',
+                        value: '${settings.enabledCount}개',
+                      ),
+                      _SettingsHeroMetric(
+                        label: '화면',
+                        value: settings.themeLabel,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -306,6 +399,7 @@ class SettingsScreen extends ConsumerWidget {
     final statusItems = [
       _StatusItem(
         icon: Icons.notifications_rounded,
+        iconAsset: NolMyIconAsset.notification,
         label: '알림',
         value: settings.reservationAlerts || settings.marketingAlerts
             ? '켜짐'
@@ -314,12 +408,14 @@ class SettingsScreen extends ConsumerWidget {
       ),
       _StatusItem(
         icon: Icons.place_rounded,
+        iconAsset: NolMyIconAsset.location,
         label: '지역',
         value: settings.defaultRegion,
         color: YanoljaColors.mint,
       ),
       _StatusItem(
         icon: Icons.history_rounded,
+        iconAsset: NolMyIconAsset.recent,
         label: '검색기록',
         value: '$recentSearchCount개',
         color: YanoljaColors.sale,
@@ -560,6 +656,52 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
+class _SettingsHeroMetric extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _SettingsHeroMetric({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: YanoljaColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(YanoljaRadius.md),
+        border: Border.all(color: YanoljaColors.border),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: YanoljaColors.textTertiary,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0,
+            ),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            value,
+            style: const TextStyle(
+              color: YanoljaColors.textPrimary,
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SettingsSection extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -605,6 +747,7 @@ class _SettingsSection extends StatelessWidget {
 class _SettingsSwitchTile extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
+  final String? iconAsset;
   final String title;
   final String subtitle;
   final bool value;
@@ -613,6 +756,7 @@ class _SettingsSwitchTile extends StatelessWidget {
   const _SettingsSwitchTile({
     required this.icon,
     required this.iconColor,
+    this.iconAsset,
     required this.title,
     required this.subtitle,
     required this.value,
@@ -625,7 +769,7 @@ class _SettingsSwitchTile extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 14, 18, 14),
       child: Row(
         children: [
-          _SettingsIcon(icon: icon, color: iconColor),
+          _SettingsIcon(icon: icon, color: iconColor, asset: iconAsset),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -670,6 +814,7 @@ class _SettingsSwitchTile extends StatelessWidget {
 class _SettingsActionTile extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
+  final String? iconAsset;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
@@ -678,6 +823,7 @@ class _SettingsActionTile extends StatelessWidget {
   const _SettingsActionTile({
     required this.icon,
     required this.iconColor,
+    this.iconAsset,
     required this.title,
     required this.subtitle,
     required this.onTap,
@@ -697,6 +843,7 @@ class _SettingsActionTile extends StatelessWidget {
               _SettingsIcon(
                 icon: icon,
                 color: enabled ? iconColor : YanoljaColors.textTertiary,
+                asset: enabled ? iconAsset : null,
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -765,6 +912,7 @@ class _ThemeModeTile extends ConsumerWidget {
               const _SettingsIcon(
                 icon: Icons.palette_rounded,
                 color: YanoljaColors.primary,
+                asset: NolMyIconAsset.theme,
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -885,11 +1033,20 @@ class _ModePill extends StatelessWidget {
 class _SettingsIcon extends StatelessWidget {
   final IconData icon;
   final Color color;
+  final String? asset;
 
-  const _SettingsIcon({required this.icon, required this.color});
+  const _SettingsIcon({
+    required this.icon,
+    required this.color,
+    this.asset,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (asset != null) {
+      return NolMyIcon(asset: asset!, size: 46);
+    }
+
     return Container(
       width: 44,
       height: 44,
@@ -904,12 +1061,14 @@ class _SettingsIcon extends StatelessWidget {
 
 class _StatusItem {
   final IconData icon;
+  final String? iconAsset;
   final String label;
   final String value;
   final Color color;
 
   const _StatusItem({
     required this.icon,
+    this.iconAsset,
     required this.label,
     required this.value,
     required this.color,
@@ -934,7 +1093,10 @@ class _StatusCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(item.icon, color: item.color, size: 21),
+          if (item.iconAsset == null)
+            Icon(item.icon, color: item.color, size: 21)
+          else
+            NolMyIcon(asset: item.iconAsset!, size: 34),
           const Spacer(),
           Text(
             item.label,

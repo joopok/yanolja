@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:yanolja_clone/core/nol_menu.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 
@@ -27,6 +28,9 @@ class YanoljaAppBar extends StatelessWidget implements PreferredSizeWidget {
   final PreferredSizeWidget? bottom;
   final YanoljaAppBarVariant variant;
 
+  /// 리딩(뒤로가기) 버튼을 배경·테두리 없는 플레인 아이콘으로 렌더할지 여부.
+  final bool flatLeading;
+
   const YanoljaAppBar({
     super.key,
     required this.title,
@@ -43,6 +47,7 @@ class YanoljaAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.toolbarHeight = 58,
     this.bottom,
     this.variant = YanoljaAppBarVariant.sub,
+    this.flatLeading = false,
   });
 
   const YanoljaAppBar.main({
@@ -60,7 +65,8 @@ class YanoljaAppBar extends StatelessWidget implements PreferredSizeWidget {
         onBackPress = null,
         titleOpacity = 1,
         toolbarHeight = 62,
-        variant = YanoljaAppBarVariant.main;
+        variant = YanoljaAppBarVariant.main,
+        flatLeading = false;
 
   const YanoljaAppBar.sub({
     super.key,
@@ -72,6 +78,7 @@ class YanoljaAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.backgroundColor = YanoljaColors.background,
     this.foregroundColor = YanoljaColors.textPrimary,
     this.bottom,
+    this.flatLeading = false,
   })  : leading = null,
         showBackButton = true,
         useCloseButton = false,
@@ -94,7 +101,8 @@ class YanoljaAppBar extends StatelessWidget implements PreferredSizeWidget {
         useCloseButton = true,
         titleOpacity = 1,
         toolbarHeight = 58,
-        variant = YanoljaAppBarVariant.modal;
+        variant = YanoljaAppBarVariant.modal,
+        flatLeading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -149,6 +157,7 @@ class YanoljaAppBar extends StatelessWidget implements PreferredSizeWidget {
     if (!showBackButton) return null;
     return _YanoljaBackButton(
       useCloseButton: useCloseButton,
+      flat: flatLeading,
       onPressed: () => _handleBack(context),
     );
   }
@@ -364,11 +373,13 @@ class YanoljaSliverAppBar extends StatelessWidget {
 
 class _YanoljaBackButton extends StatelessWidget {
   final bool useCloseButton;
+  final bool flat;
   final VoidCallback onPressed;
 
   const _YanoljaBackButton({
     required this.useCloseButton,
     required this.onPressed,
+    this.flat = false,
   });
 
   @override
@@ -387,20 +398,23 @@ class _YanoljaBackButton extends StatelessWidget {
             label: label,
             child: YanoljaPressable(
               onTap: onPressed,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(YanoljaRadius.squircle),
               pressedScale: 0.94,
               child: Container(
                 width: 40,
                 height: 40,
                 alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: YanoljaColors.surfaceAlt,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: YanoljaColors.border),
-                ),
+                decoration: flat
+                    ? null
+                    : BoxDecoration(
+                        color: YanoljaColors.surfaceAlt,
+                        borderRadius:
+                            BorderRadius.circular(YanoljaRadius.squircle),
+                        border: Border.all(color: YanoljaColors.border),
+                      ),
                 child: Icon(
                   icon,
-                  size: useCloseButton ? 22 : 18,
+                  size: flat ? 22 : (useCloseButton ? 22 : 18),
                   color: YanoljaColors.textPrimary,
                 ),
               ),
@@ -487,7 +501,7 @@ class _YanoljaAllMenuAction extends StatelessWidget {
             HapticFeedback.selectionClick();
             context.push('/all-categories');
           },
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(YanoljaRadius.squircle),
           pressedScale: 0.94,
           child: Container(
             width: 38,
@@ -496,24 +510,19 @@ class _YanoljaAllMenuAction extends StatelessWidget {
             // 기본 trailing(SizedBox 6) + 우측 14 = 화면 끝에서 20px,
             // 좌측 titleSpacing(20) 및 본문 패딩(20)과 시각적으로 정렬된다.
             margin: const EdgeInsets.only(left: 2, right: 14),
-            decoration: BoxDecoration(
-              color: YanoljaColors.primaryLight,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: YanoljaColors.primary.withValues(alpha: 0.14),
+            // 배경색·테두리·그림자 없이 아이콘만 노출한다.
+            alignment: Alignment.center,
+            child: Image.asset(
+              NolMenuIcons.appBarHamburger,
+              width: 26,
+              height: 22,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+              errorBuilder: (_, __, ___) => const Icon(
+                Icons.menu_rounded,
+                color: YanoljaColors.textPrimary,
+                size: 24,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: YanoljaColors.primary.withValues(alpha: 0.08),
-                  blurRadius: 14,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.menu_rounded,
-              color: YanoljaColors.primary,
-              size: 23,
             ),
           ),
         ),

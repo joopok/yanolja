@@ -84,7 +84,9 @@ class BookingRepository {
 
   Future<Booking?> getBookingById(String id) async {
     await Future.delayed(const Duration(milliseconds: 300));
-    return _mockBookings.firstWhere((booking) => booking.id == id);
+    // 없는 ID 조회 시 StateError 대신 null 반환(반환형이 nullable).
+    final matches = _mockBookings.where((booking) => booking.id == id);
+    return matches.isEmpty ? null : matches.first;
   }
 
   /// 결제 완료된 새 예약을 목록 맨 앞에 추가한다.

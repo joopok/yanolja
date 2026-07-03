@@ -9,6 +9,7 @@ import 'package:yanolja_clone/data/model/booking.dart';
 import 'package:yanolja_clone/presentation/provider/booking_provider.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_bottom_nav.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
 
 class BookingScreen extends ConsumerWidget {
   const BookingScreen({super.key});
@@ -111,13 +112,74 @@ class BookingScreen extends ConsumerWidget {
     final bookingsAsync = ref.watch(provider);
 
     return bookingsAsync.when(
-      loading: () => const Center(
-        child: CircularProgressIndicator(color: YanoljaColors.primary),
+      loading: () => ListView(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 34),
+        children: const [
+          _BookingSkeletonCard(),
+          SizedBox(height: 12),
+          _BookingSkeletonCard(),
+          SizedBox(height: 12),
+          _BookingSkeletonCard(),
+        ],
       ),
       error: (err, stack) => Center(
-        child: Text(
-          '예약 내역을 불러올 수 없어요',
-          style: TextStyle(color: YanoljaColors.textSecondary),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 76,
+                height: 76,
+                decoration: const BoxDecoration(
+                  color: YanoljaColors.primaryLight,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.error_outline_rounded,
+                  size: 34,
+                  color: YanoljaColors.primary,
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                '예약 내역을 불러올 수 없어요',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: YanoljaColors.textPrimary,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                '잠시 후 다시 시도해 주세요',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  color: YanoljaColors.textSecondary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => ref.invalidate(provider),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: YanoljaColors.primary,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(YanoljaRadius.md),
+                  ),
+                ),
+                child: const Text(
+                  '다시 시도',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       data: (bookings) {
@@ -129,12 +191,19 @@ class BookingScreen extends ConsumerWidget {
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(20, 14, 20, 34),
           children: [
-            _BookingSummary(
-              count: bookings.length,
-              isUpcoming: isUpcoming,
+            YanoljaEntrance(
+              delay: YanoljaMotion.stagger(0),
+              child: _BookingSummary(
+                count: bookings.length,
+                isUpcoming: isUpcoming,
+              ),
             ),
             const SizedBox(height: 12),
-            for (final booking in bookings) _BookingCard(booking: booking),
+            for (final entry in bookings.asMap().entries)
+              YanoljaEntrance(
+                delay: YanoljaMotion.stagger(entry.key + 1),
+                child: _BookingCard(booking: entry.value),
+              ),
           ],
         );
       },
@@ -235,6 +304,13 @@ class _BookingSummary extends StatelessWidget {
         color: YanoljaColors.background,
         borderRadius: BorderRadius.circular(YanoljaRadius.lg),
         border: Border.all(color: YanoljaColors.border),
+        boxShadow: const [
+          BoxShadow(
+            color: YanoljaColors.shadow,
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -255,7 +331,7 @@ class _BookingSummary extends StatelessWidget {
               size: 22,
             ),
           ),
-          const SizedBox(width: 13),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -303,7 +379,7 @@ class _BookingCard extends StatelessWidget {
         return (
           label: '이용완료',
           color: YanoljaColors.success,
-          bg: const Color(0xFFE7F8F1),
+          bg: YanoljaColors.success.withValues(alpha: 0.12),
         );
       default:
         return (
@@ -326,6 +402,13 @@ class _BookingCard extends StatelessWidget {
         color: YanoljaColors.background,
         borderRadius: BorderRadius.circular(YanoljaRadius.lg),
         border: Border.all(color: YanoljaColors.border),
+        boxShadow: const [
+          BoxShadow(
+            color: YanoljaColors.shadow,
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: InkWell(
         onTap: () {
@@ -334,15 +417,15 @@ class _BookingCard extends StatelessWidget {
         },
         borderRadius: BorderRadius.circular(YanoljaRadius.lg),
         child: Padding(
-          padding: const EdgeInsets.all(15),
+          padding: const EdgeInsets.all(16),
           child: Column(
             children: [
               Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+                      horizontal: YanoljaSpacing.s,
+                      vertical: YanoljaSpacing.xs,
                     ),
                     decoration: BoxDecoration(
                       color: status.bg,
@@ -357,7 +440,7 @@ class _BookingCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 7),
+                  const SizedBox(width: 8),
                   const Text(
                     'NOL 예약',
                     style: TextStyle(
@@ -374,7 +457,7 @@ class _BookingCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 13),
+              const SizedBox(height: 12),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -402,7 +485,7 @@ class _BookingCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 13),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -454,7 +537,7 @@ class _BookingCard extends StatelessWidget {
                                 color: YanoljaColors.textSecondary,
                               ),
                             ),
-                            const SizedBox(width: 7),
+                            const SizedBox(width: 8),
                             Text(
                               '${YanoljaFormat.price(booking.totalPrice)}원',
                               style: const TextStyle(
@@ -497,7 +580,7 @@ class _BookingCard extends StatelessWidget {
                         '/detail/${booking.accommodationId}',
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: YanoljaColors.textPrimary,
+                        backgroundColor: YanoljaColors.primary,
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -515,6 +598,77 @@ class _BookingCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _BookingSkeletonCard extends StatelessWidget {
+  const _BookingSkeletonCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: YanoljaColors.background,
+        borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+        border: Border.all(color: YanoljaColors.border),
+        boxShadow: const [
+          BoxShadow(
+            color: YanoljaColors.shadow,
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _bar(width: 72, height: 20, radius: YanoljaRadius.sm),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 92,
+                height: 92,
+                decoration: BoxDecoration(
+                  color: YanoljaColors.surfaceAlt,
+                  borderRadius: BorderRadius.circular(YanoljaRadius.md),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _bar(width: double.infinity, height: 16),
+                    const SizedBox(height: 8),
+                    _bar(width: 150, height: 12),
+                    const SizedBox(height: 16),
+                    _bar(width: 110, height: 18),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _bar({
+    required double width,
+    required double height,
+    double radius = YanoljaRadius.sm,
+  }) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: YanoljaColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(radius),
       ),
     );
   }

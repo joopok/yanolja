@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/data/model/accommodation.dart';
 import 'package:yanolja_clone/presentation/provider/search_provider.dart';
+import 'package:yanolja_clone/presentation/provider/accommodation_provider.dart';
 import 'package:yanolja_clone/presentation/screen/map_screen.dart';
 import 'package:yanolja_clone/presentation/widget/animated_search_field.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
@@ -136,11 +137,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 
-  void _toggleDisplayMode() {
+  void _selectDisplayMode(SearchDisplayMode mode) {
+    if (_displayMode == mode) return;
     setState(() {
-      _displayMode = _displayMode == SearchDisplayMode.list
-          ? SearchDisplayMode.map
-          : SearchDisplayMode.list;
+      _displayMode = mode;
     });
     HapticFeedback.lightImpact();
   }
@@ -178,12 +178,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   /// 목록 / 지도 세그먼트
   Widget _buildDisplayModeToggle() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+      margin: const EdgeInsets.fromLTRB(20, 10, 20, 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Container(
-            padding: const EdgeInsets.all(4),
+            padding: const EdgeInsets.all(YanoljaSpacing.xs),
             decoration: BoxDecoration(
               color: YanoljaColors.surfaceAlt,
               borderRadius: BorderRadius.circular(YanoljaRadius.pill),
@@ -196,13 +196,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   Icons.view_list_rounded,
                   '목록',
                   _displayMode == SearchDisplayMode.list,
-                  _toggleDisplayMode,
+                  () => _selectDisplayMode(SearchDisplayMode.list),
                 ),
                 _buildToggleButton(
                   Icons.map_rounded,
                   '지도',
                   _displayMode == SearchDisplayMode.map,
-                  _toggleDisplayMode,
+                  () => _selectDisplayMode(SearchDisplayMode.map),
                 ),
               ],
             ),
@@ -221,9 +221,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.m, vertical: 7),
         decoration: BoxDecoration(
-          color: isSelected ? YanoljaColors.textPrimary : Colors.transparent,
+          color: isSelected ? YanoljaColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(YanoljaRadius.pill),
         ),
         child: Row(
@@ -373,9 +373,19 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                             width: 62,
                             height: 62,
                             fit: BoxFit.cover,
+                            errorBuilder: (context, error, stack) => Container(
+                              width: 62,
+                              height: 62,
+                              color: YanoljaColors.surfaceAlt,
+                              child: const Icon(
+                                Icons.image_outlined,
+                                color: YanoljaColors.textTertiary,
+                                size: 24,
+                              ),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: YanoljaSpacing.s),
                         Text(
                           item.label,
                           maxLines: 1,
@@ -484,7 +494,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 onTap: () => _handleSearch(keyword),
                 child: Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                      const EdgeInsets.symmetric(horizontal: YanoljaSpacing.m, vertical: 13),
                   decoration: BoxDecoration(
                     border: index == rankings.length - 1
                         ? null
@@ -589,7 +599,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   Widget _buildMapResults(List<Accommodation> searchResults) {
     if (searchResults.isEmpty) {
-      return _buildNoResultsWidget();
+      return _buildNoResultsWidget(ref.read(searchProvider).query);
     }
     return MapScreen(accommodations: searchResults);
   }
@@ -598,8 +608,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Widget _buildSearchResults() {
     final searchState = ref.watch(searchProvider);
     final searchResults = ref.watch(searchResultsProvider);
+    final sourceAsync = ref.watch(accommodationListProvider);
 
-    if (searchState.isLoading) {
+    // 데이터 소스 로드 실패 시 리스트-레벨 에러 상태(재시도 동선).
+    if (sourceAsync.hasError) {
+      return _buildResultsErrorWidget();
+    }
+
+    if (searchState.isLoading || sourceAsync.isLoading) {
       return _buildLoadingWidget();
     }
 
@@ -610,71 +626,45 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 🔢 검색 결과 건수 헤더
+        // 🔢 검색 결과 건수 헤더 (모드 전환은 상단 pill 토글이 단일 컨트롤로 담당)
         Container(
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(20, 14, 20, 12),
           color: YanoljaColors.background,
-          child: Row(
-            children: [
-              Expanded(
-                child: RichText(
-                  text: TextSpan(
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: YanoljaColors.textSecondary,
-                      letterSpacing: -0.2,
-                    ),
-                    children: [
-                      TextSpan(
-                        text: "'${searchState.query}' ",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          color: YanoljaColors.textPrimary,
-                        ),
-                      ),
-                      const TextSpan(text: '검색 결과 '),
-                      TextSpan(
-                        text: '${searchResults.length}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          color: YanoljaColors.primary,
-                        ),
-                      ),
-                      const TextSpan(text: '개'),
-                    ],
-                  ),
-                ),
+          child: RichText(
+            text: TextSpan(
+              style: const TextStyle(
+                fontSize: 14,
+                color: YanoljaColors.textSecondary,
+                letterSpacing: -0.2,
               ),
-              TextButton.icon(
-                onPressed: _toggleDisplayMode,
-                style: TextButton.styleFrom(
-                  foregroundColor: YanoljaColors.textPrimary,
-                  minimumSize: Size.zero,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                icon: Icon(
-                  _displayMode == SearchDisplayMode.list
-                      ? Icons.map_rounded
-                      : Icons.view_list_rounded,
-                  size: 17,
-                ),
-                label: Text(
-                  _displayMode == SearchDisplayMode.list ? '지도' : '목록',
+              children: [
+                TextSpan(
+                  text: "'${searchState.query}' ",
                   style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w900,
+                    color: YanoljaColors.textPrimary,
                   ),
                 ),
-              ),
-            ],
+                const TextSpan(text: '검색 결과 '),
+                TextSpan(
+                  text: '${searchResults.length}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: YanoljaColors.primary,
+                  ),
+                ),
+                const TextSpan(text: '개'),
+              ],
+            ),
           ),
         ),
 
-        // 8px surfaceAlt 구분 띠
-        const Divider(height: 1, thickness: 1, color: YanoljaColors.border),
+        // NOL식 8px surfaceAlt 섹션 구분 띠
+        const SizedBox(
+          height: 8,
+          child: ColoredBox(color: YanoljaColors.surfaceAlt),
+        ),
 
         // 📋 검색 결과 리스트
         Expanded(
@@ -698,6 +688,56 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 
+  /// 검색 결과 데이터 소스 로드 실패 시의 에러 상태(재시도).
+  Widget _buildResultsErrorWidget() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.error_outline_rounded,
+              size: 52,
+              color: YanoljaColors.textTertiary,
+            ),
+            const SizedBox(height: 14),
+            const Text(
+              '검색 결과를 불러오지 못했어요',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+                color: YanoljaColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              '잠시 후 다시 시도해주세요',
+              style: TextStyle(
+                fontSize: 13,
+                color: YanoljaColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 18),
+            FilledButton(
+              onPressed: () => ref.invalidate(accommodationListProvider),
+              style: FilledButton.styleFrom(
+                backgroundColor: YanoljaColors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(YanoljaRadius.md),
+                ),
+              ),
+              child: const Text(
+                '다시 시도',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   /// NOL 검색 결과 카드
   Widget _buildResultCard(Accommodation accommodation, String query) {
     final rate = YanoljaFormat.discountRate(accommodation.id);
@@ -714,7 +754,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           context.push('/detail/${accommodation.id}');
         },
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.l, vertical: 14),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -729,6 +769,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         width: imageWidth,
                         height: imageHeight,
                         fit: BoxFit.cover,
+                        memCacheWidth:
+                            (imageWidth * MediaQuery.devicePixelRatioOf(context))
+                                .round(),
                         placeholder: (context, url) => Container(
                           width: imageWidth,
                           height: imageHeight,
@@ -845,7 +888,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       reviewCount: accommodation.reviewCount,
                       fontSize: 12,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: YanoljaSpacing.s),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
@@ -929,30 +972,55 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     context.push(shortcut.route);
   }
 
-  /// 🔄 로딩 위젯
+  /// 🔄 로딩 위젯 — 결과 카드 골격을 본뜬 스켈레톤
   Widget _buildLoadingWidget() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 28,
-            height: 28,
-            child: CircularProgressIndicator(
-              color: YanoljaColors.primary,
-              strokeWidth: 2.5,
-            ),
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+      itemCount: 3,
+      separatorBuilder: (_, __) => const SizedBox(height: YanoljaSpacing.xl),
+      itemBuilder: (_, __) => _buildResultSkeleton(),
+    );
+  }
+
+  Widget _buildResultSkeleton() {
+    Widget bar(double width, double height) => Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            color: YanoljaColors.surfaceAlt,
+            borderRadius: BorderRadius.circular(YanoljaRadius.sm),
           ),
-          SizedBox(height: 16),
-          Text(
-            '검색 중...',
-            style: TextStyle(
-              fontSize: 14,
-              color: YanoljaColors.textSecondary,
-            ),
+        );
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 112,
+          height: 136,
+          decoration: BoxDecoration(
+            color: YanoljaColors.surfaceAlt,
+            borderRadius: BorderRadius.circular(14),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              bar(54, 18),
+              const SizedBox(height: 12),
+              bar(double.infinity, 16),
+              const SizedBox(height: YanoljaSpacing.s),
+              bar(150, 12),
+              const SizedBox(height: 12),
+              bar(96, 12),
+              const SizedBox(height: YanoljaSpacing.m),
+              bar(120, 20),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -976,7 +1044,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 size: 44,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: YanoljaSpacing.l),
             Text(
               query != null ? "'$query'에 대한 결과가 없어요" : '검색 결과가 없습니다',
               style: const TextStyle(
@@ -987,7 +1055,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: YanoljaSpacing.s),
             const Text(
               '다른 키워드로 검색해보세요.',
               style: TextStyle(

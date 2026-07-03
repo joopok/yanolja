@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:yanolja_clone/core/nol_menu.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 import 'package:yanolja_clone/presentation/provider/search_provider.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_bottom_nav.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
+import 'package:yanolja_clone/presentation/widget/nol_footer.dart';
 
 class MoreScreen extends ConsumerWidget {
   const MoreScreen({super.key});
@@ -43,7 +45,8 @@ class MoreScreen extends ConsumerWidget {
                   delay: const Duration(milliseconds: 200),
                   child: _buildSupportSection(context),
                 ),
-                const SizedBox(height: 42),
+                _sectionGap(),
+                const NolFooter(),
               ],
             ),
           ),
@@ -54,7 +57,8 @@ class MoreScreen extends ConsumerWidget {
 
   Widget _buildAppBar(BuildContext context) {
     return YanoljaSliverAppBar.sub(
-      title: '전체 카테고리',
+      title: '전체 메뉴',
+      subtitle: '예약과 혜택 메뉴를 한 곳에서',
       fallbackRoute: '/home',
       actions: [
         IconButton(
@@ -73,13 +77,13 @@ class MoreScreen extends ConsumerWidget {
             color: YanoljaColors.textPrimary,
           ),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: YanoljaSpacing.xs),
       ],
     );
   }
 
   Widget _buildTopTabs(BuildContext context) {
-    const tabs = ['홈', '티켓', '쿠폰·혜택', '특가'];
+    const tabs = ['전체', '티켓', '쿠폰·혜택', '특가'];
 
     return Container(
       color: YanoljaColors.background,
@@ -89,10 +93,10 @@ class MoreScreen extends ConsumerWidget {
           for (final tab in tabs) ...[
             _TopTab(
               label: tab,
-              selected: tab == '홈',
+              selected: tab == '전체',
               onTap: () => _handleTopTab(context, tab),
             ),
-            if (tab != tabs.last) const SizedBox(width: 8),
+            if (tab != tabs.last) const SizedBox(width: YanoljaSpacing.s),
           ],
         ],
       ),
@@ -127,7 +131,7 @@ class MoreScreen extends ConsumerWidget {
               const SizedBox(width: 10),
               const Expanded(
                 child: Text(
-                  '어디로 놀러갈까요?',
+                  '어떤 예약을 찾고 있나요?',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -168,68 +172,17 @@ class MoreScreen extends ConsumerWidget {
   }
 
   Widget _buildCategorySection(BuildContext context) {
-    final primaryItems = [
-      _CategoryItem(
-        icon: Icons.hotel_rounded,
-        label: '호텔/리조트',
-        color: YanoljaColors.primary,
-        route: '/hotel',
-      ),
-      _CategoryItem(
-        icon: Icons.house_siding_rounded,
-        label: '펜션/풀빌라',
-        color: YanoljaColors.mint,
-        route: '/pension',
-      ),
-      _CategoryItem(
-        icon: Icons.bed_rounded,
-        label: '모텔',
-        color: YanoljaColors.primaryPurple,
-        route: '/service/motel',
-      ),
-      _CategoryItem(
-        icon: Icons.local_activity_rounded,
-        label: '국내레저',
-        color: YanoljaColors.sale,
-        route: '/service/leisure',
-      ),
-      _CategoryItem(
-        icon: Icons.directions_car_filled_rounded,
-        label: '교통/쏘카',
-        color: YanoljaColors.accentBlue,
-        route: '/service/transport',
-      ),
-      _CategoryItem(
-        icon: Icons.confirmation_number_rounded,
-        label: 'NOL 티켓',
-        color: YanoljaColors.yellow,
-        route: '/ticket',
-      ),
-      _CategoryItem(
-        icon: Icons.flight_takeoff_rounded,
-        label: '항공',
-        color: YanoljaColors.primary,
-        route: '/service/flight',
-      ),
-      _CategoryItem(
-        icon: Icons.public_rounded,
-        label: '해외숙소',
-        color: YanoljaColors.mint,
-        route: '/service/overseas',
-      ),
-      _CategoryItem(
-        icon: Icons.map_rounded,
-        label: '해외투어',
-        color: YanoljaColors.primaryPurple,
-        route: '/service/overseas-tour',
-      ),
-      _CategoryItem(
-        icon: Icons.card_travel_rounded,
-        label: '패키지',
-        color: YanoljaColors.sale,
-        route: '/service/package',
-      ),
-    ];
+    final primaryItems = nolQuickMenu
+        .where((item) => item.route != '/all-categories')
+        .map(
+          (item) => _CategoryItem(
+            icon: item.icon,
+            label: item.label,
+            color: item.color,
+            route: item.route,
+          ),
+        )
+        .toList();
 
     return Container(
       color: YanoljaColors.background,
@@ -256,14 +209,10 @@ class MoreScreen extends ConsumerWidget {
                 childAspectRatio: 0.72,
               ),
               itemBuilder: (context, index) {
-                return YanoljaEntrance(
-                  delay: YanoljaMotion.stagger(index, start: 0, step: 18),
-                  beginOffset: const Offset(0, 0.03),
-                  child: _CategoryTile(
-                    item: primaryItems[index],
-                    onTap: () =>
-                        _handleCategoryTap(context, primaryItems[index]),
-                  ),
+                return _CategoryTile(
+                  item: primaryItems[index],
+                  onTap: () =>
+                      _handleCategoryTap(context, primaryItems[index]),
                 );
               },
             ),
@@ -308,10 +257,11 @@ class MoreScreen extends ConsumerWidget {
       color: YanoljaColors.background,
       child: Column(
         children: [
-          const YanoljaSectionHeader(
+          YanoljaSectionHeader(
             title: '쿠폰·혜택',
-            trailingText: '전체 보기',
-            padding: EdgeInsets.fromLTRB(20, 22, 20, 12),
+            trailingText: '전체보기',
+            padding: const EdgeInsets.fromLTRB(20, 22, 20, 8),
+            onTrailingTap: () => context.push('/service/coupons'),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 22),
@@ -382,7 +332,7 @@ class MoreScreen extends ConsumerWidget {
               const Divider(
                 height: 1,
                 color: YanoljaColors.divider,
-                indent: 76,
+                indent: 78,
               ),
           ],
         ],
@@ -407,11 +357,11 @@ class MoreScreen extends ConsumerWidget {
   void _handleTopTab(BuildContext context, String tab) {
     HapticFeedback.selectionClick();
     switch (tab) {
-      case '홈':
+      case '전체':
         context.go('/home');
         return;
       case '티켓':
-        context.push('/service/leisure');
+        context.push('/ticket');
         return;
       case '쿠폰·혜택':
         context.push('/service/coupons');
@@ -440,9 +390,9 @@ class _TopTab extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(YanoljaRadius.pill),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: YanoljaSpacing.s),
         decoration: BoxDecoration(
-          color: selected ? YanoljaColors.textPrimary : Colors.transparent,
+          color: selected ? YanoljaColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(YanoljaRadius.pill),
         ),
         child: Text(
@@ -497,7 +447,7 @@ class _CategoryTile extends StatelessWidget {
             ),
             child: Icon(item.icon, color: item.color, size: 25),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: YanoljaSpacing.s),
           Text(
             item.label,
             maxLines: 2,
@@ -531,6 +481,13 @@ class _NolDayBanner extends StatelessWidget {
         decoration: BoxDecoration(
           color: YanoljaColors.primary,
           borderRadius: BorderRadius.circular(YanoljaRadius.lg),
+          boxShadow: [
+            BoxShadow(
+              color: YanoljaColors.primary.withValues(alpha: 0.28),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Row(
           children: [
@@ -561,11 +518,11 @@ class _NolDayBanner extends StatelessWidget {
                       letterSpacing: -0.3,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  SizedBox(height: YanoljaSpacing.xs),
                   Text(
                     '호텔·펜션·티켓 특가를 한 번에 확인하세요',
                     style: TextStyle(
-                      color: Color(0xFFEAF0FF),
+                      color: YanoljaColors.primaryLight,
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600,
                     ),
@@ -628,7 +585,7 @@ class _BenefitRow extends StatelessWidget {
               ),
               child: Icon(item.icon, color: item.color, size: 22),
             ),
-            const SizedBox(width: 13),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -637,7 +594,7 @@ class _BenefitRow extends StatelessWidget {
                     item.title,
                     style: const TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.w800,
                       color: YanoljaColors.textPrimary,
                       letterSpacing: -0.2,
                     ),
@@ -693,12 +650,12 @@ class _SupportRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.l, vertical: 15),
         child: Row(
           children: [
             Container(
-              width: 42,
-              height: 42,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
                 color: YanoljaColors.surfaceAlt,
                 borderRadius: BorderRadius.circular(YanoljaRadius.md),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
 
 class GoogleMapsStyleSuggestions extends StatelessWidget {
   final List<String> suggestions;
@@ -26,7 +27,7 @@ class GoogleMapsStyleSuggestions extends StatelessWidget {
     return Container(
       color: theme.colorScheme.surface,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: YanoljaSpacing.s),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -163,7 +164,7 @@ class GoogleMapsStyleSuggestions extends StatelessWidget {
           onTap();
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.l, vertical: 12),
           child: Row(
             children: [
               Icon(
@@ -192,7 +193,7 @@ class GoogleMapsStyleSuggestions extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.l),
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
@@ -292,7 +293,7 @@ class GoogleMapsStyleSuggestions extends StatelessWidget {
     ];
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.l),
       child: Column(
         children: recommendedPlaces.map((place) {
           return Container(

@@ -249,7 +249,10 @@ final searchProvider = StateNotifierProvider<SearchNotifier, SearchState>((ref) 
 // 검색 결과를 제공하는 Provider
 final searchResultsProvider = Provider<List<Accommodation>>((ref) {
   final allAccommodationsAsync = ref.watch(accommodationListProvider);
-  
+  // 검색 상태(쿼리/카테고리/정렬) 변경에 반응하도록 구독한다.
+  // (이전엔 read만 해서 검색어를 바꿔도 결과가 갱신되지 않는 버그가 있었음)
+  ref.watch(searchProvider);
+
   return allAccommodationsAsync.when(
     data: (accommodations) {
       final searchNotifier = ref.read(searchProvider.notifier);

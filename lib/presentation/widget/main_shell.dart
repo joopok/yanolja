@@ -175,7 +175,7 @@ class _MainShellState extends State<MainShell> {
 
           // 헤더
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.l),
             child: Row(
               children: [
                 Container(
@@ -217,7 +217,7 @@ class _MainShellState extends State<MainShell> {
           // 메뉴 그리드
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: YanoljaSpacing.l),
               child: GridView.count(
                 crossAxisCount: 3,
                 crossAxisSpacing: 12,

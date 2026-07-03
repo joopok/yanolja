@@ -2197,6 +2197,10 @@ class MockAccommodationApi {
   // ID로 특정 숙소 하나를 가져옵니다.
   Future<Map<String, dynamic>> fetchAccommodationById(String id) async {
     await Future.delayed(const Duration(milliseconds: 500)); // 0.5초 딜레이
-    return _mockData.firstWhere((element) => element['id'] == id);
+    // 없는 ID 조회 시 잡히지 않는 StateError 대신 명확한 예외로 전파.
+    return _mockData.firstWhere(
+      (element) => element['id'] == id,
+      orElse: () => throw Exception('숙소를 찾을 수 없습니다 (id: $id)'),
+    );
   }
 }

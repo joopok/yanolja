@@ -63,10 +63,26 @@ class YanoljaCloneApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
 
       // NOL 라이트 테마 (앱 전체 일관 적용)
+      // 다크 테마는 아직 없다 — darkTheme 미지정 시 다크 모드에서도 라이트
+      // 테마가 쓰이며, 설정 화면은 이를 '준비 중'으로 안내한다.
       theme: _buildYanoljaTheme(),
-      darkTheme: _buildYanoljaTheme(),
 
       themeMode: _resolveThemeMode(settings.themeMode),
+
+      // 설정의 '부드러운 모션'을 앱 전역 애니메이션에 연결한다.
+      // OS 접근성(동작 줄이기)이 켜져 있으면 설정과 무관하게 항상 줄인다.
+      // YanoljaEntrance/YanoljaPressable 등이 MediaQuery.disableAnimations 를
+      // 읽으므로 이 주입만으로 전 화면에 반영된다.
+      builder: (context, child) {
+        final mediaQuery = MediaQuery.of(context);
+        return MediaQuery(
+          data: mediaQuery.copyWith(
+            disableAnimations:
+                mediaQuery.disableAnimations || !settings.motionEffects,
+          ),
+          child: child!,
+        );
+      },
 
       // 🇰🇷 한국어 로케일 — 날짜 선택기/기본 위젯 텍스트를 한글로 표시
       locale: const Locale('ko', 'KR'),

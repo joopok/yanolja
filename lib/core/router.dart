@@ -58,7 +58,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     /// 앱 시작 시 표시될 초기 경로
     /// 홈 화면이 기본 화면으로 설정되어 있습니다.
-    initialLocation: '/splash',
+    initialLocation: '/settings', // TEMP-SCREENSHOT: 원복 필요 ('/splash')
 
     /// 앱의 모든 라우트 정의
     routes: [

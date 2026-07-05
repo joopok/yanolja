@@ -3,15 +3,22 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yanolja_clone/core/theme/yanolja_theme.dart';
-import 'package:yanolja_clone/presentation/widget/yanolja_confirm_dialog.dart';
 import 'package:yanolja_clone/presentation/provider/auth_provider.dart';
 import 'package:yanolja_clone/presentation/provider/search_provider.dart';
 import 'package:yanolja_clone/presentation/provider/settings_provider.dart';
 import 'package:yanolja_clone/presentation/widget/nol_my_icon.dart';
-import 'package:yanolja_clone/presentation/widget/yanolja_bottom_nav.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_app_bar.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_bottom_nav.dart';
 import 'package:yanolja_clone/presentation/widget/yanolja_brand_surfaces.dart';
+import 'package:yanolja_clone/presentation/widget/yanolja_confirm_dialog.dart';
 
+/// 앱 설정 화면 — 연회색 배경 위 흰 그룹 카드로 섹션을 나누는 구조.
+///
+/// - 계정 카드(최상단) → 상태 요약 스트립 → 설정 그룹 카드들 순서.
+/// - 스위치 타일은 행 전체가 탭 가능하고 스크린리더에 한 덩어리로 읽힌다.
+/// - '부드러운 모션'은 main.dart 의 MediaQuery 주입을 통해 앱 전역
+///   애니메이션에 실제로 반영된다. 화면 모드(다크)와 언어는 아직 표시만
+///   저장되는 준비 중 설정이라 선택 시 그 사실을 그대로 안내한다.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -21,61 +28,79 @@ class SettingsScreen extends ConsumerWidget {
     final user = ref.watch(authStateProvider);
     final recentSearchCount = ref.watch(searchProvider).recentSearches.length;
 
+    // TEMP-SCREENSHOT: 원복 필요 — 지역 시트 자동 오픈
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showRegionSheet(context, ref);
+    });
+
     return Scaffold(
       backgroundColor: YanoljaColors.surfaceAlt,
       bottomNavigationBar: const YanoljaBottomNav(selectedBranchIndex: 4),
       body: CustomScrollView(
+        controller: ScrollController(initialScrollOffset: 840), // TEMP-SCREENSHOT: 원복 필요
         physics: const BouncingScrollPhysics(),
         slivers: [
-          _buildAppBar(context, ref),
-          SliverToBoxAdapter(child: _buildHero(context, settings, user)),
-          SliverToBoxAdapter(
-            child: _buildStatusGrid(settings, recentSearchCount),
+          const YanoljaSliverAppBar.sub(
+            title: '앱 설정',
+            fallbackRoute: '/my-info',
+            backgroundColor: YanoljaColors.surfaceAlt,
           ),
           SliverToBoxAdapter(
-            child: _SettingsSection(
-              title: '알림',
-              subtitle: '예약과 혜택을 필요한 만큼만 받아보세요',
-              children: [
-                _SettingsSwitchTile(
-                  icon: Icons.notifications_active_rounded,
-                  iconColor: YanoljaColors.primary,
-                  iconAsset: NolMyIconAsset.notification,
-                  title: '예약 알림',
-                  subtitle: '예약 확정, 체크인, 취소/환불 상태를 알려드려요',
-                  value: settings.reservationAlerts,
-                  onChanged: (value) {
-                    _feedback(ref);
-                    ref
-                        .read(nolSettingsProvider.notifier)
-                        .setReservationAlerts(value);
-                  },
-                ),
-                _SettingsSwitchTile(
-                  icon: Icons.local_offer_rounded,
-                  iconColor: YanoljaColors.sale,
-                  iconAsset: NolMyIconAsset.coupon,
-                  title: '혜택·마케팅 알림',
-                  subtitle: '쿠폰, 특가, NOLDAY 소식을 받아요',
-                  value: settings.marketingAlerts,
-                  onChanged: (value) {
-                    _feedback(ref);
-                    ref
-                        .read(nolSettingsProvider.notifier)
-                        .setMarketingAlerts(value);
-                  },
-                ),
-              ],
+            child: YanoljaEntrance(
+              delay: YanoljaMotion.stagger(0, start: 30, step: 45),
+              child: _AccountCard(user: user, onFeedback: () => _feedback(ref)),
             ),
           ),
           SliverToBoxAdapter(
-            child: _SettingsSection(
+            child: YanoljaEntrance(
+              delay: YanoljaMotion.stagger(1, start: 30, step: 45),
+              child: _StatusStrip(
+                settings: settings,
+                recentSearchCount: recentSearchCount,
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: YanoljaEntrance(
+              delay: YanoljaMotion.stagger(2, start: 30, step: 45),
+              child: _SettingsGroup(
+                title: '알림',
+                subtitle: '예약과 혜택을 필요한 만큼만 받아보세요',
+                children: [
+                  _SettingsSwitchTile(
+                    iconAsset: NolMyIconAsset.notification,
+                    title: '예약 알림',
+                    subtitle: '예약 확정, 체크인, 취소/환불 상태를 알려드려요',
+                    value: settings.reservationAlerts,
+                    onChanged: (value) {
+                      _feedback(ref);
+                      ref
+                          .read(nolSettingsProvider.notifier)
+                          .setReservationAlerts(value);
+                    },
+                  ),
+                  _SettingsSwitchTile(
+                    iconAsset: NolMyIconAsset.coupon,
+                    title: '혜택·마케팅 알림',
+                    subtitle: '쿠폰, 특가, NOLDAY 소식을 받아요',
+                    value: settings.marketingAlerts,
+                    onChanged: (value) {
+                      _feedback(ref);
+                      ref
+                          .read(nolSettingsProvider.notifier)
+                          .setMarketingAlerts(value);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: _SettingsGroup(
               title: '개인화',
               subtitle: '여행 취향과 위치 기반 추천을 조정하세요',
               children: [
                 _SettingsSwitchTile(
-                  icon: Icons.near_me_rounded,
-                  iconColor: YanoljaColors.mint,
                   iconAsset: NolMyIconAsset.location,
                   title: '위치 기반 추천',
                   subtitle: '${settings.defaultRegion} 기준으로 가까운 숙소와 티켓을 추천',
@@ -88,16 +113,12 @@ class SettingsScreen extends ConsumerWidget {
                   },
                 ),
                 _SettingsActionTile(
-                  icon: Icons.place_rounded,
-                  iconColor: YanoljaColors.primaryPurple,
                   iconAsset: NolMyIconAsset.location,
                   title: '기본 여행 지역',
                   subtitle: settings.defaultRegion,
                   onTap: () => _showRegionSheet(context, ref),
                 ),
                 _SettingsSwitchTile(
-                  icon: Icons.auto_awesome_rounded,
-                  iconColor: YanoljaColors.yellow,
                   iconAsset: NolMyIconAsset.points,
                   title: '취향 기반 추천',
                   subtitle: '검색과 찜 데이터를 바탕으로 더 맞는 상품을 보여줘요',
@@ -113,25 +134,23 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           SliverToBoxAdapter(
-            child: _SettingsSection(
+            child: _SettingsGroup(
               title: '화면과 사용감',
               subtitle: '앱을 보는 방식과 인터랙션을 맞춤 설정하세요',
               children: [
                 _ThemeModeTile(settings: settings),
                 _SettingsActionTile(
-                  icon: Icons.language_rounded,
-                  iconColor: YanoljaColors.accentBlue,
                   iconAsset: NolMyIconAsset.language,
                   title: '언어',
-                  subtitle: settings.languageLabel,
+                  subtitle: settings.language == NolLanguage.korean
+                      ? settings.languageLabel
+                      : '${settings.languageLabel} · 준비 중(한국어로 표시)',
                   onTap: () => _showLanguageSheet(context, ref),
                 ),
                 _SettingsSwitchTile(
-                  icon: Icons.vibration_rounded,
-                  iconColor: YanoljaColors.primary,
                   iconAsset: NolMyIconAsset.settings,
                   title: '터치 피드백',
-                  subtitle: '버튼과 토글을 누를 때 가벼운 진동을 사용',
+                  subtitle: '설정을 조작할 때 가벼운 진동을 사용',
                   value: settings.hapticFeedback,
                   onChanged: (value) {
                     ref
@@ -141,11 +160,9 @@ class SettingsScreen extends ConsumerWidget {
                   },
                 ),
                 _SettingsSwitchTile(
-                  icon: Icons.motion_photos_auto_rounded,
-                  iconColor: YanoljaColors.mint,
                   iconAsset: NolMyIconAsset.theme,
                   title: '부드러운 모션',
-                  subtitle: '화면 전환과 카드 애니메이션을 자연스럽게 표시',
+                  subtitle: '끄면 화면 전환과 카드 애니메이션을 최소화해요',
                   value: settings.motionEffects,
                   onChanged: (value) {
                     _feedback(ref);
@@ -158,16 +175,14 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           SliverToBoxAdapter(
-            child: _SettingsSection(
+            child: _SettingsGroup(
               title: '보안과 데이터',
               subtitle: '개인 정보와 앱 데이터를 관리하세요',
               children: [
                 _SettingsSwitchTile(
-                  icon: Icons.lock_rounded,
-                  iconColor: YanoljaColors.primaryPurple,
                   iconAsset: NolMyIconAsset.security,
                   title: '앱 잠금',
-                  subtitle: '앱 진입 시 생체 인증을 사용하도록 설정',
+                  subtitle: '앱 진입 시 생체 인증 사용 · 준비 중이에요',
                   value: settings.biometricLock,
                   onChanged: (value) {
                     _feedback(ref);
@@ -177,11 +192,9 @@ class SettingsScreen extends ConsumerWidget {
                   },
                 ),
                 _SettingsSwitchTile(
-                  icon: Icons.data_saver_on_rounded,
-                  iconColor: YanoljaColors.success,
                   iconAsset: NolMyIconAsset.settings,
                   title: '데이터 절약',
-                  subtitle: '모바일 네트워크에서 고해상도 이미지 로딩을 줄여요',
+                  subtitle: '모바일 네트워크에서 이미지 로딩을 줄여요 · 준비 중',
                   value: settings.dataSaver,
                   onChanged: (value) {
                     _feedback(ref);
@@ -189,56 +202,30 @@ class SettingsScreen extends ConsumerWidget {
                   },
                 ),
                 _SettingsActionTile(
-                  icon: Icons.history_rounded,
-                  iconColor: YanoljaColors.sale,
                   iconAsset: NolMyIconAsset.recent,
                   title: '검색 기록 삭제',
                   subtitle: recentSearchCount == 0
                       ? '삭제할 최근 검색어가 없어요'
                       : '최근 검색어 $recentSearchCount개',
                   enabled: recentSearchCount > 0,
-                  onTap: () => _clearSearchHistory(context, ref),
+                  onTap: () =>
+                      _clearSearchHistory(context, ref, recentSearchCount),
                 ),
               ],
             ),
           ),
           SliverToBoxAdapter(
-            child: _SettingsSection(
-              title: '계정',
-              subtitle: user == null ? '로그인이 필요해요' : '${user.email}로 이용 중',
+            child: _SettingsGroup(
+              title: '설정 관리',
+              subtitle: '현재 설정을 내보내거나 기본값으로 되돌려요',
               children: [
                 _SettingsActionTile(
-                  icon: user == null
-                      ? Icons.login_rounded
-                      : Icons.account_circle_rounded,
-                  iconColor: YanoljaColors.primary,
-                  iconAsset: NolMyIconAsset.profileEdit,
-                  title: user == null ? '로그인하기' : '내 정보 보기',
-                  subtitle:
-                      user == null ? '쿠폰과 예약 내역을 이어서 확인하세요' : user.displayName,
-                  onTap: () {
-                    _feedback(ref);
-                    // /login 은 일반 라우트라 push 가능하지만, /my-info 는
-                    // StatefulShellRoute 브랜치이므로 go 로 이동해야 한다.
-                    // (push 시 ShellRouteMatch 페이지 키 중복으로 크래시)
-                    if (user == null) {
-                      context.push('/login');
-                    } else {
-                      context.go('/my-info');
-                    }
-                  },
-                ),
-                _SettingsActionTile(
-                  icon: Icons.content_copy_rounded,
-                  iconColor: YanoljaColors.accentBlue,
                   iconAsset: NolMyIconAsset.review,
                   title: '설정 요약 복사',
                   subtitle: '현재 설정 값을 클립보드에 저장',
                   onTap: () => _copySettingsSummary(context, ref, settings),
                 ),
                 _SettingsActionTile(
-                  icon: Icons.restart_alt_rounded,
-                  iconColor: YanoljaColors.textSecondary,
                   iconAsset: NolMyIconAsset.settings,
                   title: '설정 초기화',
                   subtitle: '알림, 개인화, 화면 설정을 기본값으로 되돌려요',
@@ -250,16 +237,16 @@ class SettingsScreen extends ConsumerWidget {
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.fromLTRB(
-                20,
-                10,
-                20,
+                YanoljaSpacing.gutter,
+                22,
+                YanoljaSpacing.gutter,
                 30 + MediaQuery.paddingOf(context).bottom,
               ),
               child: const Text(
-                'Yanolja Clone · NOL 설정',
+                'NOL(야놀자) 클론 · 앱 설정',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: YanoljaColors.textTertiary,
+                  color: YanoljaColors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0,
@@ -267,176 +254,6 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAppBar(BuildContext context, WidgetRef ref) {
-    return YanoljaSliverAppBar.sub(
-      title: '앱 설정',
-      fallbackRoute: '/my-info',
-      onBackPress: () {
-        _feedback(ref);
-        if (context.canPop()) {
-          context.pop();
-        } else {
-          context.go('/my-info');
-        }
-      },
-      actions: [
-        IconButton(
-          tooltip: '설정 초기화',
-          icon: const Icon(Icons.restart_alt_rounded),
-          onPressed: () => _showResetDialog(context, ref),
-        ),
-        const SizedBox(width: 6),
-      ],
-    );
-  }
-
-  Widget _buildHero(
-    BuildContext context,
-    NolSettingsState settings,
-    AppUser? user,
-  ) {
-    final accountLabel = user?.displayName ?? '게스트';
-
-    return Container(
-      color: YanoljaColors.surfaceAlt,
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: YanoljaColors.surface,
-          borderRadius: BorderRadius.circular(YanoljaRadius.xl),
-          border: Border.all(color: YanoljaColors.border),
-          boxShadow: const [
-            BoxShadow(
-              color: YanoljaColors.shadow,
-              blurRadius: 22,
-              offset: Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            const NolMyIcon(
-              asset: NolMyIconAsset.settings,
-              size: 78,
-              semanticLabel: '앱 설정',
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 9,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: YanoljaColors.primaryLight,
-                      borderRadius: BorderRadius.circular(YanoljaRadius.pill),
-                    ),
-                    child: const Text(
-                      'NOL CONTROL',
-                      style: TextStyle(
-                        color: YanoljaColors.primary,
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    '내 여행 앱을 내 방식대로',
-                    style: TextStyle(
-                      color: YanoljaColors.textPrimary,
-                      fontSize: 19,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    '$accountLabel님의 알림, 추천, 화면 설정이 바로 반영됩니다.',
-                    style: const TextStyle(
-                      color: YanoljaColors.textSecondary,
-                      fontSize: 12.5,
-                      height: 1.35,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 7,
-                    runSpacing: 7,
-                    children: [
-                      _SettingsHeroMetric(
-                        label: '활성 설정',
-                        value: '${settings.enabledCount}개',
-                      ),
-                      _SettingsHeroMetric(
-                        label: '화면',
-                        value: settings.themeLabel,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusGrid(NolSettingsState settings, int recentSearchCount) {
-    final statusItems = [
-      _StatusItem(
-        icon: Icons.notifications_rounded,
-        iconAsset: NolMyIconAsset.notification,
-        label: '알림',
-        value: settings.reservationAlerts || settings.marketingAlerts
-            ? '켜짐'
-            : '꺼짐',
-        color: YanoljaColors.primary,
-      ),
-      _StatusItem(
-        icon: Icons.place_rounded,
-        iconAsset: NolMyIconAsset.location,
-        label: '지역',
-        value: settings.defaultRegion,
-        color: YanoljaColors.mint,
-      ),
-      _StatusItem(
-        icon: Icons.history_rounded,
-        iconAsset: NolMyIconAsset.recent,
-        label: '검색기록',
-        value: '$recentSearchCount개',
-        color: YanoljaColors.sale,
-      ),
-    ];
-
-    return Container(
-      color: YanoljaColors.background,
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-      child: Row(
-        children: [
-          for (int i = 0; i < statusItems.length; i++) ...[
-            Expanded(
-              child: YanoljaEntrance(
-                delay: YanoljaMotion.stagger(i, start: 60, step: 35),
-                beginOffset: const Offset(0, 0.03),
-                child: _StatusCard(item: statusItems[i]),
-              ),
-            ),
-            if (i != statusItems.length - 1) const SizedBox(width: 9),
-          ],
         ],
       ),
     );
@@ -450,14 +267,13 @@ class SettingsScreen extends ConsumerWidget {
     _showOptionSheet<String>(
       context: context,
       title: '기본 여행 지역',
-      subtitle: '홈과 내 주변 추천의 기준 지역으로 사용합니다',
+      subtitle: '홈과 내 주변 추천의 기준 지역으로 저장합니다',
       options: regions,
       selected: selectedRegion,
       labelBuilder: (region) => region,
-      iconBuilder: (_) => Icons.place_rounded,
       onSelected: (region) {
         ref.read(nolSettingsProvider.notifier).setDefaultRegion(region);
-        _showSnack(context, '$region 기준 추천으로 변경했어요');
+        _showSnack(context, '기본 여행 지역을 $region(으)로 저장했어요');
       },
     );
   }
@@ -469,7 +285,7 @@ class SettingsScreen extends ConsumerWidget {
     _showOptionSheet<NolLanguage>(
       context: context,
       title: '언어 선택',
-      subtitle: '앱 표시 언어를 선택하세요',
+      subtitle: '한국어 외 번역은 준비 중이에요 — 선택은 저장됩니다',
       options: NolLanguage.values,
       selected: selectedLanguage,
       labelBuilder: (language) {
@@ -482,14 +298,22 @@ class SettingsScreen extends ConsumerWidget {
             return '日本語';
         }
       },
-      iconBuilder: (_) => Icons.language_rounded,
       onSelected: (language) {
         ref.read(nolSettingsProvider.notifier).setLanguage(language);
-        _showSnack(context, '언어 설정을 변경했어요');
+        _showSnack(
+          context,
+          language == NolLanguage.korean
+              ? '한국어로 표시합니다'
+              : '선택을 저장했어요 — 번역이 준비되면 적용돼요',
+        );
       },
     );
   }
 
+  /// 단일 선택 옵션 바텀시트.
+  ///
+  /// 전역 bottomSheetTheme(상단 라운드·드래그 핸들·스크림)을 그대로 쓰고,
+  /// 옵션 목록은 스크롤 가능하게 감싸 옵션 수가 늘어도 넘치지 않는다.
   void _showOptionSheet<T>({
     required BuildContext context,
     required String title,
@@ -497,109 +321,84 @@ class SettingsScreen extends ConsumerWidget {
     required List<T> options,
     required T selected,
     required String Function(T option) labelBuilder,
-    required IconData Function(T option) iconBuilder,
     required void Function(T option) onSelected,
   }) {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.transparent,
       builder: (context) {
-        return Container(
-          margin: const EdgeInsets.all(12),
-          padding: EdgeInsets.fromLTRB(
-            20,
-            10,
-            20,
-            16 + MediaQuery.paddingOf(context).bottom,
-          ),
-          decoration: BoxDecoration(
-            color: YanoljaColors.background,
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: const [
-              BoxShadow(
-                color: YanoljaColors.shadow,
-                blurRadius: 24,
-                offset: Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 42,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 18),
-                  decoration: BoxDecoration(
-                    color: YanoljaColors.border,
-                    borderRadius: BorderRadius.circular(999),
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              YanoljaSpacing.gutter,
+              0,
+              YanoljaSpacing.gutter,
+              YanoljaSpacing.m,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: YanoljaColors.textPrimary,
+                    fontSize: 19,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0,
                   ),
                 ),
-              ),
-              Text(
-                title,
-                style: const TextStyle(
-                  color: YanoljaColors.textPrimary,
-                  fontSize: 19,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0,
-                ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  color: YanoljaColors.textSecondary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0,
-                ),
-              ),
-              const SizedBox(height: 14),
-              for (final option in options)
-                Material(
-                  type: MaterialType.transparency,
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(
-                      iconBuilder(option),
-                      color: option == selected
-                          ? YanoljaColors.primary
-                          : YanoljaColors.textTertiary,
-                    ),
-                    title: Text(
-                      labelBuilder(option),
-                      style: TextStyle(
-                        color: YanoljaColors.textPrimary,
-                        fontWeight: option == selected
-                            ? FontWeight.w900
-                            : FontWeight.w700,
-                        letterSpacing: 0,
-                      ),
-                    ),
-                    trailing: option == selected
-                        ? const Icon(
-                            Icons.check_circle_rounded,
-                            color: YanoljaColors.primary,
-                          )
-                        : null,
-                    onTap: () {
-                      Navigator.pop(context);
-                      onSelected(option);
-                    },
+                const SizedBox(height: 5),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: YanoljaColors.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0,
                   ),
                 ),
-            ],
+                const SizedBox(height: 10),
+                Flexible(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      children: [
+                        for (final option in options)
+                          _OptionSheetRow(
+                            label: labelBuilder(option),
+                            selected: option == selected,
+                            onTap: () {
+                              Navigator.pop(context);
+                              onSelected(option);
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
     );
   }
 
-  void _clearSearchHistory(BuildContext context, WidgetRef ref) {
+  Future<void> _clearSearchHistory(
+    BuildContext context,
+    WidgetRef ref,
+    int count,
+  ) async {
     _feedback(ref);
+    final confirmed = await showYanoljaConfirmDialog(
+      context: context,
+      icon: Icons.history_rounded,
+      title: '검색 기록을 삭제할까요?',
+      message: '최근 검색어 $count개가 모두 삭제됩니다.',
+      confirmText: '삭제',
+    );
+    if (!confirmed || !context.mounted) return;
     ref.read(searchProvider.notifier).clearRecentSearches();
     _showSnack(context, '최근 검색어를 삭제했어요');
   }
@@ -656,11 +455,174 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-class _SettingsHeroMetric extends StatelessWidget {
+// ─────────────────────────────────────────────────────────────
+// 계정 카드 · 상태 요약 스트립
+// ─────────────────────────────────────────────────────────────
+
+class _AccountCard extends StatelessWidget {
+  final AppUser? user;
+  final VoidCallback onFeedback;
+
+  const _AccountCard({required this.user, required this.onFeedback});
+
+  @override
+  Widget build(BuildContext context) {
+    final loggedIn = user != null;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        YanoljaSpacing.gutter,
+        4,
+        YanoljaSpacing.gutter,
+        0,
+      ),
+      child: Material(
+        color: YanoljaColors.surface,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(color: YanoljaColors.border),
+          borderRadius: BorderRadius.circular(YanoljaRadius.xl),
+        ),
+        child: InkWell(
+          onTap: () {
+            onFeedback();
+            // /login 은 일반 라우트라 push 가능하지만, /my-info 는
+            // StatefulShellRoute 브랜치이므로 go 로 이동해야 한다.
+            // (push 시 ShellRouteMatch 페이지 키 중복으로 크래시)
+            if (loggedIn) {
+              context.go('/my-info');
+            } else {
+              context.push('/login');
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                NolMyIcon(
+                  asset: NolMyIconAsset.profileEdit,
+                  size: 54,
+                  semanticLabel: loggedIn ? '내 프로필' : '로그인',
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        loggedIn ? user!.displayName : '로그인이 필요해요',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: YanoljaColors.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        loggedIn ? user!.email : '쿠폰과 예약 내역을 이어서 확인하세요',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: YanoljaColors.textSecondary,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                if (loggedIn)
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    color: YanoljaColors.textSecondary,
+                  )
+                else
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 13,
+                      vertical: 9,
+                    ),
+                    decoration: BoxDecoration(
+                      color: YanoljaColors.primary,
+                      borderRadius: BorderRadius.circular(YanoljaRadius.pill),
+                    ),
+                    child: const Text(
+                      '로그인',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusStrip extends StatelessWidget {
+  final NolSettingsState settings;
+  final int recentSearchCount;
+
+  const _StatusStrip({
+    required this.settings,
+    required this.recentSearchCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final items = [
+      (
+        NolMyIconAsset.notification,
+        '알림',
+        settings.reservationAlerts || settings.marketingAlerts ? '켜짐' : '꺼짐',
+      ),
+      (NolMyIconAsset.location, '기본 지역', settings.defaultRegion),
+      (NolMyIconAsset.settings, '활성 설정', '${settings.enabledCount}개'),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        YanoljaSpacing.gutter,
+        YanoljaSpacing.cardGap,
+        YanoljaSpacing.gutter,
+        0,
+      ),
+      child: Row(
+        children: [
+          for (int i = 0; i < items.length; i++) ...[
+            Expanded(
+              child: _StatusCard(
+                iconAsset: items[i].$1,
+                label: items[i].$2,
+                value: items[i].$3,
+              ),
+            ),
+            if (i != items.length - 1) const SizedBox(width: YanoljaSpacing.s),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusCard extends StatelessWidget {
+  final String iconAsset;
   final String label;
   final String value;
 
-  const _SettingsHeroMetric({
+  const _StatusCard({
+    required this.iconAsset,
     required this.label,
     required this.value,
   });
@@ -668,30 +630,34 @@ class _SettingsHeroMetric extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      padding: const EdgeInsets.fromLTRB(13, 13, 13, 12),
       decoration: BoxDecoration(
-        color: YanoljaColors.surfaceAlt,
-        borderRadius: BorderRadius.circular(YanoljaRadius.md),
+        color: YanoljaColors.surface,
+        borderRadius: BorderRadius.circular(YanoljaRadius.lg),
         border: Border.all(color: YanoljaColors.border),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          NolMyIcon(asset: iconAsset, size: 32),
+          const SizedBox(height: 12),
           Text(
             label,
             style: const TextStyle(
-              color: YanoljaColors.textTertiary,
-              fontSize: 10.5,
-              fontWeight: FontWeight.w800,
+              color: YanoljaColors.textSecondary,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
               letterSpacing: 0,
             ),
           ),
-          const SizedBox(width: 5),
+          const SizedBox(height: 2),
           Text(
             value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: YanoljaColors.textPrimary,
-              fontSize: 12,
+              fontSize: 14,
               fontWeight: FontWeight.w900,
               letterSpacing: 0,
             ),
@@ -702,76 +668,39 @@ class _SettingsHeroMetric extends StatelessWidget {
   }
 }
 
-class _SettingsSection extends StatelessWidget {
+// ─────────────────────────────────────────────────────────────
+// 설정 그룹 카드와 타일
+// ─────────────────────────────────────────────────────────────
+
+/// 섹션 라벨(카드 밖) + 흰 라운드 그룹 카드(타일 목록) 한 벌.
+class _SettingsGroup extends StatelessWidget {
   final String title;
   final String subtitle;
   final List<Widget> children;
 
-  const _SettingsSection({
+  const _SettingsGroup({
     required this.title,
     required this.subtitle,
     required this.children,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    return YanoljaEntrance(
-      child: Container(
-        margin: const EdgeInsets.only(top: 8),
-        color: YanoljaColors.background,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            YanoljaSectionHeader(
-              title: title,
-              subtitle: subtitle,
-              padding: const EdgeInsets.fromLTRB(20, 22, 20, 8),
-            ),
-            for (int i = 0; i < children.length; i++) ...[
-              children[i],
-              if (i != children.length - 1)
-                const Divider(
-                  height: 1,
-                  color: YanoljaColors.divider,
-                  indent: 78,
-                ),
-            ],
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SettingsSwitchTile extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final String? iconAsset;
-  final String title;
-  final String subtitle;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  const _SettingsSwitchTile({
-    required this.icon,
-    required this.iconColor,
-    this.iconAsset,
-    required this.title,
-    required this.subtitle,
-    required this.value,
-    required this.onChanged,
-  });
+  /// 타일 좌패딩(16) + 아이콘(44) + 간격(14) — 구분선을 텍스트 시작선에 맞춘다.
+  static const double _dividerIndent = 74;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 14, 18, 14),
-      child: Row(
+      padding: const EdgeInsets.fromLTRB(
+        YanoljaSpacing.gutter,
+        YanoljaSpacing.sectionGap,
+        YanoljaSpacing.gutter,
+        0,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _SettingsIcon(icon: icon, color: iconColor, asset: iconAsset),
-          const SizedBox(width: 14),
-          Expanded(
+          Padding(
+            padding: const EdgeInsets.only(left: 4, right: 4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -781,29 +710,43 @@ class _SettingsSwitchTile extends StatelessWidget {
                     color: YanoljaColors.textPrimary,
                     fontSize: 15,
                     fontWeight: FontWeight.w900,
-                    letterSpacing: 0,
+                    letterSpacing: -0.2,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
                   subtitle,
                   style: const TextStyle(
                     color: YanoljaColors.textSecondary,
-                    fontSize: 12.5,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    height: 1.35,
                     letterSpacing: 0,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 12),
-          Switch.adaptive(
-            value: value,
-            activeThumbColor: YanoljaColors.primary,
-            activeTrackColor: YanoljaColors.primaryLight,
-            onChanged: onChanged,
+          const SizedBox(height: 10),
+          Material(
+            color: YanoljaColors.surface,
+            clipBehavior: Clip.antiAlias,
+            shape: RoundedRectangleBorder(
+              side: const BorderSide(color: YanoljaColors.border),
+              borderRadius: BorderRadius.circular(YanoljaRadius.xl),
+            ),
+            child: Column(
+              children: [
+                for (int i = 0; i < children.length; i++) ...[
+                  children[i],
+                  if (i != children.length - 1)
+                    const Divider(
+                      height: 1,
+                      color: YanoljaColors.divider,
+                      indent: _dividerIndent,
+                    ),
+                ],
+              ],
+            ),
           ),
         ],
       ),
@@ -811,19 +754,68 @@ class _SettingsSwitchTile extends StatelessWidget {
   }
 }
 
+/// 스위치 설정 한 줄 — 행 전체가 탭 대상이고, 스크린리더에는
+/// 라벨과 스위치가 하나의 토글로 읽힌다.
+class _SettingsSwitchTile extends StatelessWidget {
+  final String iconAsset;
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _SettingsSwitchTile({
+    required this.iconAsset,
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return MergeSemantics(
+      child: Semantics(
+        toggled: value,
+        child: InkWell(
+          onTap: () => onChanged(!value),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 10, 12),
+            child: Row(
+              children: [
+                NolMyIcon(asset: iconAsset, size: 44),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: _TileTexts(title: title, subtitle: subtitle),
+                ),
+                const SizedBox(width: 8),
+                ExcludeSemantics(
+                  child: Switch.adaptive(
+                    value: value,
+                    // iOS(Cupertino 렌더) 기본 트랙은 시스템 그린이라
+                    // 브랜드 블루 트랙 + 흰 썸으로 통일한다.
+                    activeTrackColor: YanoljaColors.primary,
+                    onChanged: onChanged,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 이동/실행형 설정 한 줄.
 class _SettingsActionTile extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final String? iconAsset;
+  final String iconAsset;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
   final bool enabled;
 
   const _SettingsActionTile({
-    required this.icon,
-    required this.iconColor,
-    this.iconAsset,
+    required this.iconAsset,
     required this.title,
     required this.subtitle,
     required this.onTap,
@@ -832,54 +824,23 @@ class _SettingsActionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: enabled ? onTap : null,
+    return InkWell(
+      onTap: enabled ? onTap : null,
+      child: Opacity(
+        opacity: enabled ? 1 : 0.45,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 14, 18, 14),
+          padding: const EdgeInsets.fromLTRB(16, 12, 14, 12),
           child: Row(
             children: [
-              _SettingsIcon(
-                icon: icon,
-                color: enabled ? iconColor : YanoljaColors.textTertiary,
-                asset: enabled ? iconAsset : null,
-              ),
+              NolMyIcon(asset: iconAsset, size: 44),
               const SizedBox(width: 14),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        color: enabled
-                            ? YanoljaColors.textPrimary
-                            : YanoljaColors.textTertiary,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        color: YanoljaColors.textSecondary,
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                        height: 1.35,
-                        letterSpacing: 0,
-                      ),
-                    ),
-                  ],
-                ),
+                child: _TileTexts(title: title, subtitle: subtitle),
               ),
-              const SizedBox(width: 12),
-              Icon(
+              const SizedBox(width: 8),
+              const Icon(
                 Icons.chevron_right_rounded,
-                color:
-                    enabled ? YanoljaColors.textTertiary : YanoljaColors.border,
+                color: YanoljaColors.textSecondary,
               ),
             ],
           ),
@@ -889,6 +850,45 @@ class _SettingsActionTile extends StatelessWidget {
   }
 }
 
+class _TileTexts extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const _TileTexts({required this.title, required this.subtitle});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: YanoljaColors.textPrimary,
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.2,
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          subtitle,
+          style: const TextStyle(
+            color: YanoljaColors.textSecondary,
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+            height: 1.35,
+            letterSpacing: 0,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// 화면 모드 선택 타일 — 라이트/다크/시스템 pill.
+/// 다크 테마는 아직 없으므로(전 화면 라이트 토큰 고정) 다크/시스템 선택 시
+/// '준비 중'임을 부제와 토스트로 정직하게 안내한다. 선택 자체는 저장된다.
 class _ThemeModeTile extends ConsumerWidget {
   final NolSettingsState settings;
 
@@ -901,49 +901,28 @@ class _ThemeModeTile extends ConsumerWidget {
       (NolThemeMode.light, '라이트', Icons.light_mode_rounded),
       (NolThemeMode.dark, '다크', Icons.dark_mode_rounded),
     ];
+    final pending = settings.themeMode != NolThemeMode.light;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 16),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const _SettingsIcon(
-                icon: Icons.palette_rounded,
-                color: YanoljaColors.primary,
-                asset: NolMyIconAsset.theme,
-              ),
+              const NolMyIcon(asset: NolMyIconAsset.theme, size: 44),
               const SizedBox(width: 14),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '화면 모드',
-                      style: TextStyle(
-                        color: YanoljaColors.textPrimary,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      settings.themeLabel,
-                      style: const TextStyle(
-                        color: YanoljaColors.textSecondary,
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0,
-                      ),
-                    ),
-                  ],
+                child: _TileTexts(
+                  title: '화면 모드',
+                  subtitle: pending
+                      ? '${settings.themeLabel} · 준비 중(라이트로 표시)'
+                      : settings.themeLabel,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           Row(
             children: [
               for (int i = 0; i < options.length; i++) ...[
@@ -957,10 +936,17 @@ class _ThemeModeTile extends ConsumerWidget {
                       ref
                           .read(nolSettingsProvider.notifier)
                           .setThemeMode(options[i].$1);
+                      if (options[i].$1 != NolThemeMode.light) {
+                        SettingsScreen._showSnack(
+                          context,
+                          '다크 화면은 준비 중이에요 — 지금은 라이트로 보여드려요',
+                        );
+                      }
                     },
                   ),
                 ),
-                if (i != options.length - 1) const SizedBox(width: 8),
+                if (i != options.length - 1)
+                  const SizedBox(width: YanoljaSpacing.s),
               ],
             ],
           ),
@@ -988,28 +974,30 @@ class _ModePill extends StatelessWidget {
     return YanoljaPressable(
       pressedScale: 0.985,
       onTap: onTap,
+      borderRadius: BorderRadius.circular(YanoljaRadius.pill),
       child: AnimatedContainer(
         duration: YanoljaMotion.base,
         curve: YanoljaMotion.curve,
-        height: 44,
+        constraints: const BoxConstraints(minHeight: YanoljaSpacing.tapMin),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color:
-              selected ? YanoljaColors.textPrimary : YanoljaColors.surfaceAlt,
+          color: selected ? YanoljaColors.primary : YanoljaColors.surfaceAlt,
           borderRadius: BorderRadius.circular(YanoljaRadius.pill),
           border: Border.all(
-            color: selected ? YanoljaColors.textPrimary : YanoljaColors.border,
+            color: selected ? YanoljaColors.primary : YanoljaColors.border,
           ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
-              size: 17,
+              size: 16,
               color: selected ? Colors.white : YanoljaColors.textSecondary,
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             Flexible(
               child: Text(
                 label,
@@ -1018,7 +1006,7 @@ class _ModePill extends StatelessWidget {
                 style: TextStyle(
                   color: selected ? Colors.white : YanoljaColors.textPrimary,
                   fontSize: 13,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w800,
                   letterSpacing: 0,
                 ),
               ),
@@ -1030,96 +1018,50 @@ class _ModePill extends StatelessWidget {
   }
 }
 
-class _SettingsIcon extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String? asset;
+// ─────────────────────────────────────────────────────────────
+// 옵션 바텀시트 행
+// ─────────────────────────────────────────────────────────────
 
-  const _SettingsIcon({
-    required this.icon,
-    required this.color,
-    this.asset,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (asset != null) {
-      return NolMyIcon(asset: asset!, size: 46);
-    }
-
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(YanoljaRadius.md),
-      ),
-      child: Icon(icon, color: color, size: 22),
-    );
-  }
-}
-
-class _StatusItem {
-  final IconData icon;
-  final String? iconAsset;
+class _OptionSheetRow extends StatelessWidget {
   final String label;
-  final String value;
-  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
 
-  const _StatusItem({
-    required this.icon,
-    this.iconAsset,
+  const _OptionSheetRow({
     required this.label,
-    required this.value,
-    required this.color,
+    required this.selected,
+    required this.onTap,
   });
-}
-
-class _StatusCard extends StatelessWidget {
-  final _StatusItem item;
-
-  const _StatusCard({required this.item});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 94,
-      padding: const EdgeInsets.all(13),
-      decoration: BoxDecoration(
-        color: YanoljaColors.surfaceAlt,
-        borderRadius: BorderRadius.circular(YanoljaRadius.lg),
-        border: Border.all(color: YanoljaColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (item.iconAsset == null)
-            Icon(item.icon, color: item.color, size: 21)
-          else
-            NolMyIcon(asset: item.iconAsset!, size: 34),
-          const Spacer(),
-          Text(
-            item.label,
-            style: const TextStyle(
-              color: YanoljaColors.textTertiary,
-              fontSize: 11.5,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(YanoljaRadius.md),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 52),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: YanoljaColors.textPrimary,
+                  fontSize: 15,
+                  fontWeight: selected ? FontWeight.w900 : FontWeight.w600,
+                  letterSpacing: -0.2,
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            item.value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: YanoljaColors.textPrimary,
-              fontSize: 14,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0,
-            ),
-          ),
-        ],
+            if (selected)
+              const Icon(
+                Icons.check_circle_rounded,
+                color: YanoljaColors.primary,
+                size: 22,
+              ),
+          ],
+        ),
       ),
     );
   }
